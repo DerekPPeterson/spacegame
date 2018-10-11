@@ -55,7 +55,7 @@ unsigned int link_shaders(unsigned int vertexShader, unsigned int fragmentShader
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "ERROR: shader linking failed\n" << infoLog << std::endl;
+        std::cout << "ERROR: Shader linking failed\n" << infoLog << std::endl;
         throw std::exception();
     }
     // Shaders are not needed after they are linked
@@ -77,3 +77,20 @@ void Shader::use()
 {
     glUseProgram(ID);
 }
+
+void Shader::setBool(const std::string &name, bool value) const
+{         
+    glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value); 
+}
+void Shader::setInt(const std::string &name, int value) const
+{ 
+    glUniform1i(glGetUniformLocation(ID, name.c_str()), value); 
+}
+void Shader::setFloat(const std::string &name, float value) const
+{ 
+    glUniform1f(glGetUniformLocation(ID, name.c_str()), value); 
+} 
+void Shader::set4Float(const std::string &name, float x, float y, float z, float w) const
+{ 
+    glUniform4f(glGetUniformLocation(ID, name.c_str()), x, y, z, w); 
+} 

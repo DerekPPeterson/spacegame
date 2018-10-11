@@ -22,6 +22,7 @@ class Shader
         void setBool(const string &name, bool value) const;
         void setInt(const string &name, int value) const;
         void setFloat(const string &name, float value) const;
+        void set4Float(const string &name, float x, float y, float z, float w) const;
 };
 
 #endif
