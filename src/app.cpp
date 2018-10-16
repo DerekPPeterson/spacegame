@@ -11,11 +11,21 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-void processInput(GLFWwindow *window) 
+void processInput(GLFWwindow *window, float *xpos) 
 {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS or
-       glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+       glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
+    }
+
+
+    float inc = 0.01;
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+        *xpos -= 0.01;
+    }
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+        *xpos += 0.01;
+    }
 }
 
 int main()
@@ -51,23 +61,16 @@ int main()
     // Use shader class
     Shader shader("src/vertex.vert", "src/fragment.frag");
 
-    // Triangle vertice data
-    //float vertices[] = {
-    //    -0.5, -0.5, 0.0,
-    //    0.5, -0.5, 0.0,
-    //    0.0, 0.5, 0.0
-    //};
+	// Triangle with colors vertex data
+    float vertices[] = {
+        // positions         // colors
+         0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
+        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
+         0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
+    };    
 
-	// Rectange vertex/index data
-	float vertices[] = {
-	     0.5f,  0.5f, 0.0f,  // top right
-	     0.5f, -0.5f, 0.0f,  // bottom right
-	    -0.5f, -0.5f, 0.0f,  // bottom left
-	    -0.5f,  0.5f, 0.0f   // top left 
-	};
 	unsigned int indices[] = {  // note that we start from 0!
-	    0, 1, 3,   // first triangle
-	    1, 2, 3    // second triangle
+	    0, 1, 2,   // first triangle
 	};  
 
     // Create vertex buffer and vertex array objects
@@ -83,8 +86,10 @@ int main()
 	
 
     // Tell opengl how to interpret the vertice data
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*) 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) 0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -93,21 +98,19 @@ int main()
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // Keep going until window should close
+    float offset = 0;
     while (!glfwWindowShouldClose(window))
     {
         // TODO
-        processInput(window);
+        processInput(window, &offset);
        
         // rendering
-        float timeValue = glfwGetTime();
-        float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
-
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         // swap buffers
         shader.use();
-        shader.set4Float("ourColor", 0, greenValue, 0, 1);
+        shader.setFloat("offset", offset);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
