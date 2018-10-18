@@ -3,8 +3,35 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 #include "shader.h"
+
+unsigned int create_texture_from_file(const char * path)
+{
+    stbi_set_flip_vertically_on_load(true);
+
+    int width, height, nrChannels;
+    unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0); 
+    if (not data) {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+
+	// Create texture from image
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    if (nrChannels == 3) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    } else if (nrChannels == 4) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    }
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(data);
+
+    return texture;
+}
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -60,17 +87,32 @@ int main()
 
     // Use shader class
     Shader shader("src/vertex.vert", "src/fragment.frag");
+    
+    // Load Image
+    glActiveTexture(GL_TEXTURE0);
+    unsigned int waterTexture = create_texture_from_file("./water.jpg");
+    glActiveTexture(GL_TEXTURE1);
+    unsigned int duckTexture = create_texture_from_file("./duck.png");
 
-	// Triangle with colors vertex data
-    float vertices[] = {
-        // positions         // colors
-         0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
-        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
-         0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
-    };    
+    glUniform1i(glGetUniformLocation(shader.ID, "tex1"), 0);
+    glUniform1i(glGetUniformLocation(shader.ID, "tex2"), 1);
+
+    shader.use();
+    shader.setInt("tex1", 0);
+    shader.setInt("tex2", 1);
+
+	// rectangle with color and texture coords data
+	float vertices[] = {
+		// positions          // colors           // texture coords
+		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
+	};
 
 	unsigned int indices[] = {  // note that we start from 0!
-	    0, 1, 2,   // first triangle
+	    0, 1, 3,   // first triangle
+	    1, 2, 3,   // second triangle
 	};  
 
     // Create vertex buffer and vertex array objects
@@ -86,13 +128,16 @@ int main()
 	
 
     // Tell opengl how to interpret the vertice data
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) 0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
 
     // wireframe mode
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
