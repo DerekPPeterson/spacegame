@@ -33,6 +33,8 @@ unsigned int create_texture_from_file(const char * path)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     }
     glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     stbi_image_free(data);
 
     return texture;
@@ -112,8 +114,54 @@ int main()
     glUniform1i(glGetUniformLocation(shader.ID, "tex1"), 0);
     glUniform1i(glGetUniformLocation(shader.ID, "tex2"), 1);
 
+
     shader.setInt("tex1", 0);
     shader.setInt("tex2", 1);
+    //
+	// rectangle with color and texture coords data
+	float cubeVertices[] = {
+		-0.5f, -0.5f, -0.5f,  
+		 0.5f, -0.5f, -0.5f,  
+		 0.5f,  0.5f, -0.5f,  
+		 0.5f,  0.5f, -0.5f,  
+		-0.5f,  0.5f, -0.5f,  
+		-0.5f, -0.5f, -0.5f,  
+
+		-0.5f, -0.5f,  0.5f,  
+		 0.5f, -0.5f,  0.5f,  
+		 0.5f,  0.5f,  0.5f,  
+		 0.5f,  0.5f,  0.5f,  
+		-0.5f,  0.5f,  0.5f,  
+		-0.5f, -0.5f,  0.5f,  
+
+		-0.5f,  0.5f,  0.5f,  
+		-0.5f,  0.5f, -0.5f,  
+		-0.5f, -0.5f, -0.5f,  
+		-0.5f, -0.5f, -0.5f,  
+		-0.5f, -0.5f,  0.5f,  
+		-0.5f,  0.5f,  0.5f,  
+
+		 0.5f,  0.5f,  0.5f,  
+		 0.5f,  0.5f, -0.5f,  
+		 0.5f, -0.5f, -0.5f,  
+		 0.5f, -0.5f, -0.5f,  
+		 0.5f, -0.5f,  0.5f,  
+		 0.5f,  0.5f,  0.5f,  
+
+		-0.5f, -0.5f, -0.5f,  
+		 0.5f, -0.5f, -0.5f,  
+		 0.5f, -0.5f,  0.5f,  
+		 0.5f, -0.5f,  0.5f,  
+		-0.5f, -0.5f,  0.5f,  
+		-0.5f, -0.5f, -0.5f,  
+
+		-0.5f,  0.5f, -0.5f,  
+		 0.5f,  0.5f, -0.5f,  
+		 0.5f,  0.5f,  0.5f,  
+		 0.5f,  0.5f,  0.5f,  
+		-0.5f,  0.5f,  0.5f,  
+		-0.5f,  0.5f, -0.5f  
+	};
 
 	// rectangle with color and texture coords data
 	float vertices[] = {
@@ -181,6 +229,18 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    // Setup light objects
+    Shader lampShader("src/lamp.vert", "src/lamp.frag");
+    lampShader.use();
+    unsigned int lightVBO, lightVAO;
+    glGenVertexArrays(1, &lightVAO);
+    glGenBuffers(1, &lightVBO);
+    glBindVertexArray(lightVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, lightVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*) 0);
+    glEnableVertexAttribArray(0);
+
 
     // wireframe mode
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -203,6 +263,7 @@ int main()
 	};
 
 
+
     glm::mat4 view(1.0);
     // note that we're translating the scene in the reverse direction of where we want to move
     view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
@@ -221,10 +282,28 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        // swap buffers
+
+        lampShader.use();
+        glBindVertexArray(lightVAO);
+        glm::mat4 lightModel(1.0f);
+        glm::vec3 lightPos(1, 1, -2);
+        lightModel = glm::translate(lightModel, lightPos);
+        lightModel = glm::scale(lightModel, glm::vec3(0.2, 0.2, 0.2));
+
+        lampShader.setMat4("view", view);
+        lampShader.setMat4("projection", projection);
+        lampShader.setMat4("model", lightModel);
+
+        //lampShader.setVec3("objectColor", glm::vec3(1, 0.5, 0.2));
+        //lampShader.setVec3("lightColor", glm::vec3(1, 1, 1));
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+            
         shader.use();
         shader.setMat4("view", view);
         shader.setMat4("projection", projection);
+
+        shader.setVec3("lightColor", glm::vec3(1, 1, 0.5));
 
         glBindVertexArray(VAO);
 
