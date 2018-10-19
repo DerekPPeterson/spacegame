@@ -106,7 +106,7 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 
     glActiveTexture(GL_TEXTURE1);
-    unsigned int duckTexture = create_texture_from_file("./image.jpg");
+    unsigned int duckTexture = create_texture_from_file("./duck.png");
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 
     glUniform1i(glGetUniformLocation(shader.ID, "tex1"), 0);
