@@ -1,0 +1,9 @@
+.ycm_extra_conf.py
+CMakeCache.txt
+CMakeFiles/
+Makefile
+app
+cmake_install.cmake
+hello_triangle
+src/hello_triangle.cpp
+tags
