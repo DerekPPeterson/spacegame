@@ -2,6 +2,8 @@
 #include <sstream>
 
 #include "shader.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 string read_whole_file(const char *path)
 {
@@ -94,3 +96,8 @@ void Shader::set4Float(const std::string &name, float x, float y, float z, float
 { 
     glUniform4f(glGetUniformLocation(ID, name.c_str()), x, y, z, w); 
 } 
+void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const
+{
+	glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+}
+
