@@ -89,25 +89,29 @@ int main()
     Shader shader("src/vertex.vert", "src/fragment.frag");
     
     // Load Image
+    shader.use();
     glActiveTexture(GL_TEXTURE0);
     unsigned int waterTexture = create_texture_from_file("./water.jpg");
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+
     glActiveTexture(GL_TEXTURE1);
     unsigned int duckTexture = create_texture_from_file("./duck.png");
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 
     glUniform1i(glGetUniformLocation(shader.ID, "tex1"), 0);
     glUniform1i(glGetUniformLocation(shader.ID, "tex2"), 1);
 
-    shader.use();
     shader.setInt("tex1", 0);
     shader.setInt("tex2", 1);
 
 	// rectangle with color and texture coords data
 	float vertices[] = {
 		// positions          // colors           // texture coords
-		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   2.0f, 2.0f,   // top right
+		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   2.0f, 0.0f,   // bottom right
 		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
+		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 2.0f    // top left 
 	};
 
 	unsigned int indices[] = {  // note that we start from 0!
