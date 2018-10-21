@@ -14,6 +14,18 @@
 #include "shader.h"
 #include "camera.h"
 
+int SCREEN_WIDTH = 800;
+int SCREEN_HEIGHT = 600;;
+
+// camera
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = SCREEN_WIDTH / 2.0f;
+float lastY = SCREEN_HEIGHT / 2.0f;
+bool firstMouse = true;
+
+float deltaTime = 0;
+float lastFrame = 0;
+
 
 unsigned int create_texture_from_file(const char * path)
 {
@@ -42,14 +54,11 @@ unsigned int create_texture_from_file(const char * path)
     return texture;
 }
 
-int screenWidth = 800;
-int screenHeight = 600;;
-
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
-	screenWidth = width;
-	screenHeight = height;
+	SCREEN_WIDTH = width;
+	SCREEN_HEIGHT = height;
 }
 
 void processInput(GLFWwindow *window, Camera &camera, float deltaTime) 
@@ -65,6 +74,33 @@ void processInput(GLFWwindow *window, Camera &camera, float deltaTime)
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
         camera.ProcessKeyboard(RIGHT, deltaTime);
     }
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+        camera.ProcessKeyboard(FORWARD, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
+    }
+}
+
+
+// glfw: whenever the mouse moves, this callback is called
+// -------------------------------------------------------
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+    lastX = xpos;
+    lastY = ypos;
+
+    camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 int main()
@@ -76,7 +112,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Create window object
-    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -85,6 +121,8 @@ int main()
     glfwMakeContextCurrent(window);
     // set callback to resize viewport to window size if the window size is changed
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 
     // Initialize GLAD : loads all opengl function pointers
@@ -266,16 +304,8 @@ float vertices[] = {
 	  glm::vec3(-1.3f,  1.0f, -1.5f)  
 	};
 
-    Camera camera = Camera();
-
-    camera.Position = glm::vec3(0, 0, 5);
-    glm::mat4 view = camera.GetViewMatrix();
-
 	glm::mat4 projection(1.0);
-	projection = glm::perspective((float) glm::radians(45.0), (float) screenWidth / screenHeight, 0.1f, 100.0f);
-
-    float deltaTime = 0;
-    float lastFrame = 0;
+	projection = glm::perspective((float) glm::radians(45.0), (float) SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 100.0f);
 
     // Keep going until window should close
     float offset = 0;
@@ -285,6 +315,7 @@ float vertices[] = {
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         processInput(window, camera, deltaTime);
+        glm::mat4 view = camera.GetViewMatrix();
        
         // rendering
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
