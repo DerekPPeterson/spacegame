@@ -7,3 +7,5 @@ cmake_install.cmake
 hello_triangle
 src/hello_triangle.cpp
 tags
+assimp/
+*.trace

@@ -4,8 +4,6 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -13,6 +11,7 @@
 
 #include "shader.h"
 #include "camera.h"
+#include "mesh.h"
 
 int SCREEN_WIDTH = 800;
 int SCREEN_HEIGHT = 600;;
@@ -26,33 +25,6 @@ bool firstMouse = true;
 float deltaTime = 0;
 float lastFrame = 0;
 
-
-unsigned int create_texture_from_file(const char * path)
-{
-    stbi_set_flip_vertically_on_load(true);
-
-    int width, height, nrChannels;
-    unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0); 
-    if (not data) {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-
-	// Create texture from image
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    if (nrChannels == 3) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    } else if (nrChannels == 4) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    }
-    glGenerateMipmap(GL_TEXTURE_2D);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    stbi_image_free(data);
-
-    return texture;
-}
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -122,7 +94,7 @@ int main()
     // set callback to resize viewport to window size if the window size is changed
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 
     // Initialize GLAD : loads all opengl function pointers
@@ -139,24 +111,6 @@ int main()
     // Use shader class
     Shader shader("src/vertex.vert", "src/fragment.frag");
     
-    // Load Image
-    shader.use();
-    glActiveTexture(GL_TEXTURE0);
-    unsigned int waterTexture = create_texture_from_file("./water.jpg");
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-
-    glActiveTexture(GL_TEXTURE1);
-    unsigned int duckTexture = create_texture_from_file("./duck.png");
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-
-    glUniform1i(glGetUniformLocation(shader.ID, "tex1"), 0);
-    glUniform1i(glGetUniformLocation(shader.ID, "tex2"), 1);
-
-
-    shader.setInt("tex1", 0);
-    shader.setInt("tex2", 1);
-    //
 	// rectangle with color and texture coords data
 	float cubeVertices[] = {
 		-0.5f, -0.5f, -0.5f,  
@@ -202,72 +156,6 @@ int main()
 		-0.5f,  0.5f, -0.5f  
 	};
 
-float vertices[] = {
-	//vertices			  //normals			   //texture coords
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f,
-                                                          
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,  0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,  1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,  0.0f, 0.0f,
-                                                          
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f,
-                                                          
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f,
-                                                          
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f,
-                                                          
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f
-};
-
-    // Create vertex buffer and vertex array objects
-    unsigned int VBO, VAO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	
-
-    // Tell opengl how to interpret the vertice data
-    //positions
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) 0);
-    glEnableVertexAttribArray(0);
-	// Normals
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    // Texture coords
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
@@ -290,19 +178,7 @@ float vertices[] = {
 	//depth testing
 	glEnable(GL_DEPTH_TEST);
 
-
-	glm::vec3 cubePositions[] = {
-	  glm::vec3( 0.0f,  0.0f,  0.0f), 
-	  glm::vec3( 2.0f,  5.0f, -15.0f), 
-	  glm::vec3(-1.5f, -2.2f, -2.5f),  
-	  glm::vec3(-3.8f, -2.0f, -12.3f),  
-	  glm::vec3( 2.4f, -0.4f, -3.5f),  
-	  glm::vec3(-1.7f,  3.0f, -7.5f),  
-	  glm::vec3( 1.3f, -2.0f, -2.5f),  
-	  glm::vec3( 1.5f,  2.0f, -2.5f), 
-	  glm::vec3( 1.5f,  0.2f, -1.5f), 
-	  glm::vec3(-1.3f,  1.0f, -1.5f)  
-	};
+    Model spaceship("./res/models/Spaceship.obj");
 
 	glm::mat4 projection(1.0);
 	projection = glm::perspective((float) glm::radians(45.0), (float) SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 100.0f);
@@ -341,22 +217,16 @@ float vertices[] = {
         shader.use();
         shader.setMat4("view", view);
         shader.setMat4("projection", projection);
+        glm::mat4 spaceshipModel(1.0f);
+        shader.setMat4("model", spaceshipModel);
 
         shader.setVec3("lightColor", glm::vec3(0.5, 0.5, .5));
 		shader.setVec3("lightPos", lightPos);
 		shader.setVec3("viewPos", camera.Position);
 
-        glBindVertexArray(VAO);
 
-		for (int i = 0; i < 10; i++) {
-            glm::mat4 model(1.0f);
-            model = glm::translate(model, cubePositions[i]);
-            float angle = 20 * i + glfwGetTime();
-            model = glm::rotate(model, angle, glm::vec3(0.2, 0.5, 0.7));
-            
-            shader.setMat4("model", model);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        spaceship.draw(shader);
+
         glfwSwapBuffers(window);
         // check if any events are triggered
         glfwPollEvents();
