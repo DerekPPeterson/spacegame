@@ -1,6 +1,7 @@
 #include "mesh.h"
 
 #include <string>
+#include <set>
 #include <stdio.h>
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -129,8 +130,6 @@ Mesh Model::processMesh(aiMesh * mesh, const aiScene *scene)
         vertex.position.y = mesh->mVertices[i].y;
         vertex.position.z = mesh->mVertices[i].z;
 
-        printf("Loaded vertex: %f %f %f\n", vertex.position.x, vertex.position.y, vertex.position.z);
-
         vertex.normal.x = mesh->mNormals[i].x;
         vertex.normal.y = mesh->mNormals[i].y;
         vertex.normal.z = mesh->mNormals[i].z;
@@ -166,9 +165,10 @@ Mesh Model::processMesh(aiMesh * mesh, const aiScene *scene)
 unsigned int loadTextureFromFile(string path, string directory)
 {
     int width, height, nrChannels;
-    unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0); 
+    string full_path = directory + "/" + path;
+    unsigned char *data = stbi_load(full_path.c_str(), &width, &height, &nrChannels, 0); 
     if (not data) {
-        std::cout << "Failed to load texture" << std::endl;
+        std::cout << "Failed to load texture: " << full_path << std::endl;
     }
 
 	// Create texture from image
@@ -195,10 +195,14 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial *mat,
     for (int i = 0; i < mat->GetTextureCount(type); i++) {
         aiString str;
         mat->GetTexture(type, i, &str);
+        string texture_path = str.C_Str();
+        if (texture_paths.count(texture_path)) {
+            continue;
+        }
+        texture_paths.insert(texture_path);
         Texture texture;
-        texture.id = loadTextureFromFile(str.C_Str(), directory);
+        texture.id = loadTextureFromFile(texture_path, directory);
         texture.type = typeName;
-        texture.path = str.C_Str();
         textures.push_back(texture);
     }
     return textures;

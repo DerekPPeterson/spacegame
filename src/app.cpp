@@ -94,7 +94,7 @@ int main()
     // set callback to resize viewport to window size if the window size is changed
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
-    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 
     // Initialize GLAD : loads all opengl function pointers
@@ -178,7 +178,7 @@ int main()
 	//depth testing
 	glEnable(GL_DEPTH_TEST);
 
-    Model spaceship("./res/models/Spaceship.obj");
+    Model spaceship("./res/models/Viper/Viper-mk-IV-fighter.obj");
 
 	glm::mat4 projection(1.0);
 	projection = glm::perspective((float) glm::radians(45.0), (float) SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 100.0f);
@@ -198,7 +198,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         glm::vec3 lightPos(1, 1, -2);
-        glm::mat4 lightRotation = glm::rotate(glm::mat4(1.0f), (float) glfwGetTime(), glm::vec3(0, 0, 1));
+        glm::mat4 lightRotation = glm::rotate(glm::mat4(1.0f), 3.0f * (float) glfwGetTime(), glm::vec3(0, 0, 1));
         lightPos = lightRotation * glm::vec4(lightPos[0], lightPos[1], lightPos[2], 1);
 
         lampShader.use();
@@ -218,6 +218,9 @@ int main()
         shader.setMat4("view", view);
         shader.setMat4("projection", projection);
         glm::mat4 spaceshipModel(1.0f);
+        spaceshipModel = glm::scale(spaceshipModel, glm::vec3(0.1, 0.1, 0.1));
+        glm::mat4 shipRotation = glm::rotate(glm::mat4(1.0f), (float) glfwGetTime(), glm::vec3(0, 1, 0));
+        spaceshipModel = shipRotation * spaceshipModel;
         shader.setMat4("model", spaceshipModel);
 
         shader.setVec3("lightColor", glm::vec3(0.5, 0.5, .5));

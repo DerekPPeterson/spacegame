@@ -2,6 +2,7 @@
 #define MESH_H
 
 #include <vector>
+#include <set>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -21,7 +22,6 @@ struct Vertex {
 struct Texture {
     unsigned int id;
     string type;
-    string path;
 };
 
 class Mesh
@@ -43,7 +43,7 @@ class Mesh
 class Model
 {
     public:
-        Model(char* path)
+        Model(const char *path)
         {
             loadModel(path);
         }
@@ -53,6 +53,7 @@ class Model
         // Model Data
         vector<Mesh> meshes;
         string directory;
+        set<string> texture_paths;
 
         //functions
         void loadModel(string path);
