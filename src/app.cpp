@@ -13,8 +13,8 @@
 #include "camera.h"
 #include "mesh.h"
 
-int SCREEN_WIDTH = 800;
-int SCREEN_HEIGHT = 600;;
+int SCREEN_WIDTH = 1600;
+int SCREEN_HEIGHT = 900;;
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -84,7 +84,8 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Create window object
-    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, 
+            "LearnOpenGL", glfwGetPrimaryMonitor(), NULL);
     if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -106,7 +107,7 @@ int main()
     }
 
     // set size of opengl viewport to size of window
-    glViewport(0, 0, 800, 600);
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     // Use shader class
     Shader shader("src/vertex.vert", "src/fragment.frag");
@@ -178,7 +179,8 @@ int main()
 	//depth testing
 	glEnable(GL_DEPTH_TEST);
 
-    Model spaceship("./res/models/Viper/Viper-mk-IV-fighter.obj");
+    //Model spaceship("./res/models/Viper/Viper-mk-IV-fighter.obj");
+    Model starship("./res/models/SS1_OBJ/SS1.obj");
 
 	glm::mat4 projection(1.0);
 	projection = glm::perspective((float) glm::radians(45.0), (float) SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 100.0f);
@@ -217,18 +219,26 @@ int main()
         shader.use();
         shader.setMat4("view", view);
         shader.setMat4("projection", projection);
-        glm::mat4 spaceshipModel(1.0f);
-        spaceshipModel = glm::scale(spaceshipModel, glm::vec3(0.1, 0.1, 0.1));
-        glm::mat4 shipRotation = glm::rotate(glm::mat4(1.0f), (float) glfwGetTime(), glm::vec3(0, 1, 0));
-        spaceshipModel = shipRotation * spaceshipModel;
-        shader.setMat4("model", spaceshipModel);
 
         shader.setVec3("lightColor", glm::vec3(0.5, 0.5, .5));
 		shader.setVec3("lightPos", lightPos);
 		shader.setVec3("viewPos", camera.Position);
 
 
-        spaceship.draw(shader);
+        glm::mat4 spaceshipModel(1.0f);
+        spaceshipModel = glm::scale(spaceshipModel, glm::vec3(0.1, 0.1, 0.1));
+        glm::mat4 shipRotation = glm::rotate(glm::mat4(1.0f), (float) glfwGetTime(), glm::vec3(0.2, 1, 0));
+        spaceshipModel = shipRotation * spaceshipModel;
+        shader.setMat4("model", spaceshipModel);
+        //spaceship.draw(shader);
+
+
+        glm::mat4 starshipModel(1.0f);
+        starshipModel = glm::scale(spaceshipModel, glm::vec3(0.4, 0.4, 0.4));
+        starshipModel = glm::translate(starshipModel, glm::vec3(0.0, 1, 0));
+        starshipModel = shipRotation * starshipModel;
+        shader.setMat4("model", starshipModel);
+        starship.draw(shader);
 
         glfwSwapBuffers(window);
         // check if any events are triggered
