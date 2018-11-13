@@ -11,7 +11,7 @@
 
 #include "shader.h"
 #include "camera.h"
-#include "mesh.h"
+#include "model.h"
 
 int SCREEN_WIDTH = 1600;
 int SCREEN_HEIGHT = 900;;
