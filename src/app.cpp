@@ -12,9 +12,10 @@
 #include "shader.h"
 #include "camera.h"
 #include "model.h"
+#include "cubemap.h"
 
-int SCREEN_WIDTH = 1600;
-int SCREEN_HEIGHT = 900;;
+int SCREEN_WIDTH = 800;
+int SCREEN_HEIGHT = 600;;
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -85,7 +86,7 @@ int main()
 
     // Create window object
     GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, 
-            "LearnOpenGL", glfwGetPrimaryMonitor(), NULL);
+            "LearnOpenGL", NULL, NULL);
     if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -179,8 +180,11 @@ int main()
 	//depth testing
 	glEnable(GL_DEPTH_TEST);
 
-    //Model spaceship("./res/models/Viper/Viper-mk-IV-fighter.obj");
+    Model spaceship("./res/models/Viper/Viper-mk-IV-fighter.obj");
     Model starship("./res/models/SS1_OBJ/SS1.obj");
+
+    Shader skyboxShader("./src/shaders/skybox.vert", "./src/shaders/skybox.frag");
+    Skybox skybox("./res/textures/lightblue");
 
 	glm::mat4 projection(1.0);
 	projection = glm::perspective((float) glm::radians(45.0), (float) SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 100.0f);
@@ -230,7 +234,7 @@ int main()
         glm::mat4 shipRotation = glm::rotate(glm::mat4(1.0f), (float) glfwGetTime(), glm::vec3(0.2, 1, 0));
         spaceshipModel = shipRotation * spaceshipModel;
         shader.setMat4("model", spaceshipModel);
-        //spaceship.draw(shader);
+        spaceship.draw(shader);
 
 
         glm::mat4 starshipModel(1.0f);
@@ -238,7 +242,13 @@ int main()
         starshipModel = glm::translate(starshipModel, glm::vec3(0.0, 1, 0));
         starshipModel = shipRotation * starshipModel;
         shader.setMat4("model", starshipModel);
-        starship.draw(shader);
+        //starship.draw(shader);
+
+        glm::mat4 skyboxView = glm::mat4(glm::mat3(camera.GetViewMatrix()));  
+        skyboxShader.use();
+        skyboxShader.setMat4("view", skyboxView);
+        skyboxShader.setMat4("projection", projection);
+        skybox.draw(skyboxShader);
 
         glfwSwapBuffers(window);
         // check if any events are triggered
