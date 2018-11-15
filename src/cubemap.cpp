@@ -98,7 +98,7 @@ void Skybox::setupSkybox(string path)
 		path + "/front.png",
 		path + "/back.png"
 	};
-	unsigned int cubemapTexture = loadCubemap(faces);  
+	textureId = loadCubemap(faces);  
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -119,6 +119,7 @@ void Skybox::draw(Shader shader)
     shader.use();
     glBindVertexArray(VAO);
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
+    glActiveTexture(GL_TEXTURE0);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glDepthMask(GL_TRUE);
 }
