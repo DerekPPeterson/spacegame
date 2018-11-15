@@ -104,7 +104,7 @@ void Skybox::setupSkybox(string path)
     glGenBuffers(1, &VBO);
 
     glBindVertexArray(VAO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices),
             &skyboxVertices[0], GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);

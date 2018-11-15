@@ -180,7 +180,7 @@ int main()
 	//depth testing
 	glEnable(GL_DEPTH_TEST);
 
-    Model spaceship("./res/models/Viper/Viper-mk-IV-fighter.obj");
+    //Model spaceship("./res/models/Viper/Viper-mk-IV-fighter.obj");
     Model starship("./res/models/SS1_OBJ/SS1.obj");
 
     Shader skyboxShader("./src/shaders/skybox.vert", "./src/shaders/skybox.frag");
@@ -234,15 +234,14 @@ int main()
         glm::mat4 shipRotation = glm::rotate(glm::mat4(1.0f), (float) glfwGetTime(), glm::vec3(0.2, 1, 0));
         spaceshipModel = shipRotation * spaceshipModel;
         shader.setMat4("model", spaceshipModel);
-        spaceship.draw(shader);
-
+        //spaceship.draw(shader);
 
         glm::mat4 starshipModel(1.0f);
-        starshipModel = glm::scale(spaceshipModel, glm::vec3(0.4, 0.4, 0.4));
+        starshipModel = glm::scale(spaceshipModel, glm::vec3(1, 1, 1));
         starshipModel = glm::translate(starshipModel, glm::vec3(0.0, 1, 0));
         starshipModel = shipRotation * starshipModel;
         shader.setMat4("model", starshipModel);
-        //starship.draw(shader);
+        starship.draw(shader);
 
         glm::mat4 skyboxView = glm::mat4(glm::mat3(camera.GetViewMatrix()));  
         skyboxShader.use();
