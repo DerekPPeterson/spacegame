@@ -222,7 +222,7 @@ int main()
     glGenTextures(1, &FbTexture);
     glBindTexture(GL_TEXTURE_2D, FbTexture);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -280,7 +280,7 @@ int main()
         shader.setMat4("view", view);
         shader.setMat4("projection", projection);
 
-        shader.setVec3("lightColor", glm::vec3(0.5, 0.5, .5));
+        shader.setVec3("lightColor", glm::vec3(10, 10, 10));
 		shader.setVec3("lightPos", lightPos);
 		shader.setVec3("viewPos", camera.Position);
 
