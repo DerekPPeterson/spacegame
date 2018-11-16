@@ -111,7 +111,7 @@ int main()
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     // Use shader class
-    Shader shader("src/vertex.vert", "src/fragment.frag");
+    Shader shader("src/shaders/vertex.vert", "src/shaders/fragment.frag");
 
     Shader framebufferShader("src/shaders/framebuffer.vert", "src/shaders/framebuffer.frag");
 
@@ -186,7 +186,7 @@ int main()
     glBindVertexArray(0);
 
     // Setup light objects
-    Shader lampShader("src/lamp.vert", "src/lamp.frag");
+    Shader lampShader("src/shaders/lamp.vert", "src/shaders/lamp.frag");
     lampShader.use();
     unsigned int lightVBO, lightVAO;
     glGenVertexArrays(1, &lightVAO);
