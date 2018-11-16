@@ -212,7 +212,7 @@ int main()
     Skybox skybox("./res/textures/lightblue");
 
 	glm::mat4 projection(1.0);
-	projection = glm::perspective((float) glm::radians(45.0), (float) SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 100.0f);
+	projection = glm::perspective((float) glm::radians(45.0), (float) SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 10000.0f);
 
     // Framebuffer stuff
     unsigned int FBO;
