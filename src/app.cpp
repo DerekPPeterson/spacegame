@@ -1,4 +1,3 @@
-#include <iostream>
 #include <math.h>
 #include <unistd.h>
 
@@ -13,6 +12,7 @@
 #include "camera.h"
 #include "model.h"
 #include "cubemap.h"
+#include "drawable.h"
 
 int SCREEN_WIDTH = 1600;
 int SCREEN_HEIGHT = 900;;
@@ -111,7 +111,7 @@ int main()
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     // Use shader class
-    Shader shader("src/shaders/vertex.vert", "src/shaders/fragment.frag");
+    Shader shader("src/shaders/vertex.vert", "src/shaders/lighting.frag");
     Shader blendShader("src/shaders/framebuffer.vert", "src/shaders/blend.frag");
     Shader framebufferShader("src/shaders/framebuffer.vert", "src/shaders/framebuffer.frag");
     Shader blurShader("src/shaders/framebuffer.vert", "src/shaders/blur.frag");
@@ -268,6 +268,13 @@ int main()
 		);
 	}
 
+    Cube::setup();
+    vector<PointLight> pointLights = {
+        PointLight(glm::vec3(0, -1, 0), glm::vec3(10, 0, 0)),
+        PointLight(glm::vec3(2, 2, 0), glm::vec3(0, 10, 0)),
+        PointLight(glm::vec3(-2, 2, 0), glm::vec3(0, 0, 20))
+    };
+
     // Keep going until window should close
     float offset = 0;
     while (!glfwWindowShouldClose(window))
@@ -285,44 +292,64 @@ int main()
        
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        glm::vec3 lightPos(1, 1, -2);
-        glm::mat4 lightRotation = glm::rotate(glm::mat4(1.0f), 0.5f* (float) glfwGetTime(), glm::vec3(0, 0, 1));
-        lightPos = lightRotation * glm::vec4(lightPos[0], lightPos[1], lightPos[2], 1);
 
+        // Render lights as objects
         lampShader.use();
-        glBindVertexArray(lightVAO);
-        glm::mat4 lightModel(1.0f);
-        lightModel = glm::translate(lightModel, lightPos);
-        lightModel = glm::scale(lightModel, glm::vec3(0.02, 0.02, 0.02));
-
         lampShader.setMat4("view", view);
         lampShader.setMat4("projection", projection);
-        lampShader.setMat4("model", lightModel);
 
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        for (auto light : pointLights) {
+            light.draw(lampShader);
+        }
 
-            
+        // Render rest of scene lit by those lights
         shader.use();
         shader.setMat4("view", view);
         shader.setMat4("projection", projection);
-
-        shader.setVec3("lightColor", glm::vec3(3, 3, 3));
-		shader.setVec3("lightPos", lightPos);
 		shader.setVec3("viewPos", camera.Position);
+		shader.setInt("numPointLights", pointLights.size());
+
+        for (int i = 0; i < pointLights.size(); i++) {
+            pointLights[i].setUniforms(shader, i);
+        }
+
+        //glm::vec3 lightPos(1, 1, -2);
+        //glm::mat4 lightRotation = glm::rotate(glm::mat4(1.0f), 0.5f* (float) glfwGetTime(), glm::vec3(0, 0, 1));
+        //lightPos = lightRotation * glm::vec4(lightPos[0], lightPos[1], lightPos[2], 1);
+
+        //lampShader.use();
+        //glBindVertexArray(lightVAO);
+        //glm::mat4 lightModel(1.0f);
+        //lightModel = glm::translate(lightModel, lightPos);
+        //lightModel = glm::scale(lightModel, glm::vec3(0.02, 0.02, 0.02));
+
+        //lampShader.setMat4("view", view);
+        //lampShader.setMat4("projection", projection);
+        //lampShader.setMat4("model", lightModel);
+
+        //glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        //    
+        //shader.use();
+        //shader.setMat4("view", view);
+        //shader.setMat4("projection", projection);
+
+        //shader.setVec3("lightColor", glm::vec3(3, 3, 3));
+		//shader.setVec3("lightPos", lightPos);
+		//shader.setVec3("viewPos", camera.Position);
 
         glm::mat4 shipRotation = glm::rotate(glm::mat4(1.0f), 2.0f * (float) glfwGetTime(), glm::vec3(0.2, 1, 0));
 
-        glm::mat4 spaceshipModel(1.0f);
-        spaceshipModel = glm::scale(spaceshipModel, glm::vec3(0.1, 0.1, 0.1));
-        spaceshipModel = glm::translate(spaceshipModel, glm::vec3(0, 0, 10));
-        shader.setMat4("model", spaceshipModel);
-        //spaceship.draw(shader);
+        //glm::mat4 spaceshipModel(1.0f);
+        //spaceshipModel = glm::scale(spaceshipModel, glm::vec3(0.1, 0.1, 0.1));
+        //spaceshipModel = glm::translate(spaceshipModel, glm::vec3(0, 0, 10));
+        //shader.setMat4("model", spaceshipModel);
+        ////spaceship.draw(shader);
 
         glm::mat4 starshipModel(1.0f);
         starshipModel = glm::scale(starshipModel, glm::vec3(0.5, 0.5, 0.5));
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1; i++) {
             glm::mat4 shipTranslation = glm::translate(starshipModel, glm::vec3(0, i * 5, i * 10));
             shader.setMat4("model", shipTranslation  * shipRotation * starshipModel);
             starship.draw(shader);
