@@ -247,7 +247,7 @@ int main()
             std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0); 
 
-    // ping pong buffer
+    // ping pong buffer (for rendering bloom)
 	unsigned int pingpongFBO[2];
 	unsigned int pingpongBuffer[2];
 	glGenFramebuffers(2, pingpongFBO);
@@ -272,18 +272,17 @@ int main()
     float offset = 0;
     while (!glfwWindowShouldClose(window))
     {
-
-        glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-        glEnable(GL_DEPTH_TEST);
-        
-
+        // Calculatetime difference and  process camera movement based on it
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         processInput(window, camera, deltaTime);
         glm::mat4 view = camera.GetViewMatrix();
+
+        // Actually render scene
+        glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+        glEnable(GL_DEPTH_TEST);
        
-        // rendering
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
@@ -329,8 +328,6 @@ int main()
             starship.draw(shader);
         }
 
-
-
         glm::mat4 skyboxView = glm::mat4(glm::mat3(camera.GetViewMatrix()));  
         skyboxShader.use();
         skyboxShader.setMat4("view", skyboxView);
@@ -340,7 +337,7 @@ int main()
 		bool horizontal = true, first_iteration = true;
 		int amount = 4;
 
-        // Downscale
+        // Downscale bright image
         glViewport(0, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
         glBindVertexArray(quadVAO);
         glDisable(GL_DEPTH_TEST);
@@ -355,7 +352,7 @@ int main()
         //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 1);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        // Blur
+        // Blur bright areas for bloom
 		blurShader.use();
 		for (unsigned int i = 0; i < amount; i++)
 		{
@@ -378,6 +375,7 @@ int main()
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // Merge bloom and scene and draw result
         glDisable(GL_DEPTH_TEST);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, FbTexture[0]);
