@@ -14,8 +14,8 @@
 #include "model.h"
 #include "cubemap.h"
 
-int SCREEN_WIDTH = 800;
-int SCREEN_HEIGHT = 600;;
+int SCREEN_WIDTH = 1600;
+int SCREEN_HEIGHT = 900;;
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -86,7 +86,7 @@ int main()
 
     // Create window object
     GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, 
-            "LearnOpenGL", NULL, NULL);
+            "LearnOpenGL", glfwGetPrimaryMonitor(), NULL);
     if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -112,8 +112,9 @@ int main()
 
     // Use shader class
     Shader shader("src/shaders/vertex.vert", "src/shaders/fragment.frag");
-
+    Shader blendShader("src/shaders/framebuffer.vert", "src/shaders/blend.frag");
     Shader framebufferShader("src/shaders/framebuffer.vert", "src/shaders/framebuffer.frag");
+    Shader blurShader("src/shaders/framebuffer.vert", "src/shaders/blur.frag");
 
 	float quadVertices[] = {  
         // positions   // texCoords
@@ -218,16 +219,22 @@ int main()
     glGenFramebuffers(1, &FBO);
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
     
-    unsigned int FbTexture;
-    glGenTextures(1, &FbTexture);
-    glBindTexture(GL_TEXTURE_2D, FbTexture);
+    // 2nd texture is for bloom
+    unsigned int FbTexture[2];
+    for (int i = 0; i < 2; i++ ) {
+        glGenTextures(2, &FbTexture[i]);
+        glBindTexture(GL_TEXTURE_2D, FbTexture[i]);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, FbTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, FbTexture[i], 0);
+    }
+
+    unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    glDrawBuffers(2, attachments);  
 
     unsigned int rbo;
     glGenRenderbuffers(1, &rbo);
@@ -239,6 +246,27 @@ int main()
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
             std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+
+    // ping pong buffer
+	unsigned int pingpongFBO[2];
+	unsigned int pingpongBuffer[2];
+	glGenFramebuffers(2, pingpongFBO);
+	glGenTextures(2, pingpongBuffer);
+	for (unsigned int i = 0; i < 2; i++)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[i]);
+		glBindTexture(GL_TEXTURE_2D, pingpongBuffer[i]);
+		glTexImage2D(
+			GL_TEXTURE_2D, 0, GL_RGB16F, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 0, GL_RGB, GL_FLOAT, NULL
+		);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glFramebufferTexture2D(
+			GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingpongBuffer[i], 0
+		);
+	}
 
     // Keep going until window should close
     float offset = 0;
@@ -256,18 +284,18 @@ int main()
         glm::mat4 view = camera.GetViewMatrix();
        
         // rendering
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         glm::vec3 lightPos(1, 1, -2);
-        glm::mat4 lightRotation = glm::rotate(glm::mat4(1.0f), 3.0f * (float) glfwGetTime(), glm::vec3(0, 0, 1));
+        glm::mat4 lightRotation = glm::rotate(glm::mat4(1.0f), 0.5f* (float) glfwGetTime(), glm::vec3(0, 0, 1));
         lightPos = lightRotation * glm::vec4(lightPos[0], lightPos[1], lightPos[2], 1);
 
         lampShader.use();
         glBindVertexArray(lightVAO);
         glm::mat4 lightModel(1.0f);
         lightModel = glm::translate(lightModel, lightPos);
-        lightModel = glm::scale(lightModel, glm::vec3(0.2, 0.2, 0.2));
+        lightModel = glm::scale(lightModel, glm::vec3(0.02, 0.02, 0.02));
 
         lampShader.setMat4("view", view);
         lampShader.setMat4("projection", projection);
@@ -280,25 +308,28 @@ int main()
         shader.setMat4("view", view);
         shader.setMat4("projection", projection);
 
-        shader.setVec3("lightColor", glm::vec3(10, 10, 10));
+        shader.setVec3("lightColor", glm::vec3(3, 3, 3));
 		shader.setVec3("lightPos", lightPos);
 		shader.setVec3("viewPos", camera.Position);
 
         glm::mat4 shipRotation = glm::rotate(glm::mat4(1.0f), 2.0f * (float) glfwGetTime(), glm::vec3(0.2, 1, 0));
 
-        //glm::mat4 spaceshipModel(1.0f);
-        //spaceshipModel = glm::scale(spaceshipModel, glm::vec3(0.1, 0.1, 0.1));
-        //spaceshipModel = glm::translate(spaceshipModel, glm::vec3(0, 0, 10));
-        //spaceshipModel = shipRotation * spaceshipModel;
-        //shader.setMat4("model", spaceshipModel);
+        glm::mat4 spaceshipModel(1.0f);
+        spaceshipModel = glm::scale(spaceshipModel, glm::vec3(0.1, 0.1, 0.1));
+        spaceshipModel = glm::translate(spaceshipModel, glm::vec3(0, 0, 10));
+        shader.setMat4("model", spaceshipModel);
         //spaceship.draw(shader);
 
         glm::mat4 starshipModel(1.0f);
-        starshipModel = glm::scale(starshipModel, glm::vec3(0.1, 0.1, 0.1));
-        starshipModel = glm::translate(starshipModel, glm::vec3(0.0, 1, 0));
-        starshipModel = shipRotation * starshipModel;
-        shader.setMat4("model", starshipModel);
-        starship.draw(shader);
+        starshipModel = glm::scale(starshipModel, glm::vec3(0.5, 0.5, 0.5));
+
+        for (int i = 0; i < 100; i++) {
+            glm::mat4 shipTranslation = glm::translate(starshipModel, glm::vec3(0, i * 5, i * 10));
+            shader.setMat4("model", shipTranslation  * shipRotation * starshipModel);
+            starship.draw(shader);
+        }
+
+
 
         glm::mat4 skyboxView = glm::mat4(glm::mat3(camera.GetViewMatrix()));  
         skyboxShader.use();
@@ -306,15 +337,55 @@ int main()
         skyboxShader.setMat4("projection", projection);
         skybox.draw(skyboxShader);
 
+		bool horizontal = true, first_iteration = true;
+		int amount = 4;
+
+        // Downscale
+        glViewport(0, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+        glBindVertexArray(quadVAO);
+        glDisable(GL_DEPTH_TEST);
+        framebufferShader.use();
+        glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[!horizontal]); 
+        glClearColor(0, 0, 0, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, FbTexture[1]);
+        framebufferShader.setInt("hdrBuffer", 0);
+        //glGenerateMipmap(GL_TEXTURE_2D);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 1);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        // Blur
+		blurShader.use();
+		for (unsigned int i = 0; i < amount; i++)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]); 
+			blurShader.setInt("horizontal", horizontal);
+			glBindTexture(
+				GL_TEXTURE_2D, pingpongBuffer[!horizontal]
+			); 
+
+			glActiveTexture(GL_TEXTURE0);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+
+			horizontal = !horizontal;
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+
+        glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT );
+
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        framebufferShader.use();
-        glBindVertexArray(quadVAO);
         glDisable(GL_DEPTH_TEST);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, FbTexture);
+        glBindTexture(GL_TEXTURE_2D, FbTexture[0]);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, pingpongBuffer[!horizontal]);
+        blendShader.use();
+        blendShader.setInt("hdrBuffer1", 1);
+        glBindVertexArray(quadVAO);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         // check if any events are triggered

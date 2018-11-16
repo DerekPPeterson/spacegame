@@ -71,7 +71,7 @@ void Mesh::draw(Shader shader)
             number = to_string(i_specular);
             i_specular++;
         }
-        shader.setFloat(("material.texture_" + name + number).c_str(), i);
+        shader.setInt((name + number).c_str(), i);
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
     }
     glActiveTexture(GL_TEXTURE0);
@@ -156,7 +156,7 @@ Mesh Model::processMesh(aiMesh * mesh, const aiScene *scene)
             aiTextureType_DIFFUSE, "diffuse");
     textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
     vector<Texture> specularMaps = loadMaterialTextures(material, 
-            aiTextureType_DIFFUSE, "specular");
+            aiTextureType_SPECULAR, "specular");
     textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
     return Mesh(vertices, indices, textures);
@@ -170,6 +170,8 @@ unsigned int loadTextureFromFile(string path, string directory)
     if (not data) {
         std::cout << "Failed to load texture: " << full_path << std::endl;
     }
+
+	std::cout << "Loading texture" << full_path << std::endl;
 
 	// Create texture from image
     unsigned int texture;
