@@ -308,6 +308,7 @@ int main()
         shader.setMat4("projection", projection);
 		shader.setVec3("viewPos", camera.Position);
 		shader.setInt("numPointLights", pointLights.size());
+        shader.setFloat("ambientStrength", 0.05);
 
         for (int i = 0; i < pointLights.size(); i++) {
             pointLights[i].setUniforms(shader, i);
@@ -349,7 +350,7 @@ int main()
         glm::mat4 starshipModel(1.0f);
         starshipModel = glm::scale(starshipModel, glm::vec3(0.5, 0.5, 0.5));
 
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 10; i++) {
             glm::mat4 shipTranslation = glm::translate(starshipModel, glm::vec3(0, i * 5, i * 10));
             shader.setMat4("model", shipTranslation  * shipRotation * starshipModel);
             starship.draw(shader);

@@ -43,16 +43,18 @@ Cube::Cube(glm::vec3 position)
 
 void Cube::setup()
 {
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, 3 * numVertices * sizeof(float), vertices, 
-            GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*) 0);
-    glEnableVertexAttribArray(0);
-}
-
+    if (not isSetup) {
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        glBindVertexArray(VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, 3 * numVertices * sizeof(float), vertices, 
+                GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*) 0);
+        glEnableVertexAttribArray(0);
+        isSetup = true;
+    }
+} 
 void Cube::draw(Shader shader)
 {
     glm::mat4 model = glm::translate(glm::mat4(1.0f), position);
@@ -65,6 +67,7 @@ void Cube::draw(Shader shader)
 unsigned int Cube::VBO = -1;
 unsigned int Cube::VAO = -1;
 int Cube::numVertices = 36;
+bool Cube::isSetup = false;
 float Cube::vertices[] = {
     -0.5f, -0.5f, -0.5f,  
      0.5f, -0.5f, -0.5f,  

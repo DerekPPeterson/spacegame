@@ -10,17 +10,14 @@
 class Drawable
 {
     public:
-        void draw();
+        virtual void draw() {};
 };
 
 class Object: public Drawable 
 {
     public:
         Object() {};
-        void draw();
-
-    private:
-        glm::mat4 model;
+        virtual void draw() {};
 };
 
 class Cube: public Object
@@ -37,6 +34,7 @@ class Cube: public Object
         static float vertices[];
         static int numVertices;
         static unsigned int VBO, VAO;
+        static bool isSetup;
 };
 
 enum LightType {LIGHT_NONE, LIGHT_POINT};
