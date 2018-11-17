@@ -10,6 +10,11 @@ uniform sampler2D diffuse0;
 uniform sampler2D specular0;
 uniform sampler2D emissive0;
 
+// used in addition to the texture color
+// set to 0 if using just textures
+uniform vec3 diffuseColor;
+uniform vec3 specularColor;
+
 uniform vec3 viewPos;
 
 struct PointLight {
@@ -32,12 +37,12 @@ vec3 CalcPointLight(PointLight pointLight, vec3 normal, vec3 fragPos, vec3 viewD
     normal = normalize(normal);
 
     float diff = max(dot(normal, lightDir), 0.0);
-    vec3 diffuse = diff * pointLight.color * texture(diffuse0, TexCoord).rgb;
+    vec3 diffuse = diff * pointLight.color * (texture(diffuse0, TexCoord).rgb + diffuseColor);
 
     vec3 reflectDir = reflect(-lightDir, normal);
 
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-    vec3 specular = specularStrength * spec * pointLight.color * texture(specular0, TexCoord).rgb;
+    vec3 specular = specularStrength * spec * pointLight.color * (texture(specular0, TexCoord).rgb + specularColor);
 
     float dist = distance(fragPos, pointLight.position);
     float attenuation = 1.0f / (pointLight.attenuation[0] 

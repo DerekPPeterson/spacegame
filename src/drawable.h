@@ -20,6 +20,8 @@ class Object: public Drawable
     public:
         Object() {};
         virtual void draw(Shader Shader) {};
+    protected:
+        bool visible = true;
 };
 
 class Cube: public Object
@@ -85,7 +87,7 @@ class PointLight: public Light
 
         glm::vec3 position;
         glm::vec3 color;
-        glm::vec3 attenuation = {0, 0, 0.1};
+        glm::vec3 attenuation = {0, 0.5, 0.05};
         float size = 1;
 
         static Model sphere;

@@ -20,7 +20,7 @@ int SCREEN_WIDTH = 1600;
 int SCREEN_HEIGHT = 900;;
 
 // camera
-Camera camera(glm::vec3(0.0f, 400.0f, -100));
+Camera camera(glm::vec3(0.0f, 10.0f, 5));
 float lastX = SCREEN_WIDTH / 2.0f;
 float lastY = SCREEN_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -123,7 +123,6 @@ int main()
     // wireframe mode
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-
     // Load Models/textures
     //Model spaceship("./res/models/Viper/Viper-mk-IV-fighter.obj");
     Model starship("./res/models/SS1_OBJ/SS1.obj");
@@ -133,21 +132,12 @@ int main()
     PointLight::setup();
     SpaceGrid spaceGrid = SpaceGrid();
 
-    // Prepare objects
-    vector<Object*> objects;
+    Framebuffers framebuffers(SCREEN_WIDTH, SCREEN_HEIGHT);
+    Quad framebufferQuad({0, 0, 0});
 
 	glm::mat4 projection(1.0);
 	projection = glm::perspectiveRH((float) glm::radians(45.0), (float) SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 10000.0f);
 	//projection = glm::ortho(0.0f, (float) SCREEN_WIDTH, 0.0f, (float) SCREEN_HEIGHT, 0.1f, 10000.0f);
-
-    // Framebuffer stuff
-    Framebuffers framebuffers(SCREEN_WIDTH, SCREEN_HEIGHT);
-    Quad framebufferQuad({0, 0, 0});
-
-
-    //PointLight(glm::vec3(0, -1, 0), glm::vec3(10, 0, 0));
-    //PointLight(glm::vec3(2, 2, 0), glm::vec3(0, 10, 0));
-    //PointLight(glm::vec3(-2, 2, 0), glm::vec3(0, 0, 20));
 
     // Keep going until window should close
     float offset = 0;
@@ -225,7 +215,7 @@ int main()
         glm::mat4 starshipModel(1.0f);
         starshipModel = glm::scale(starshipModel, glm::vec3(0.5, 0.5, 0.5));
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 0; i++) {
             glm::mat4 shipTranslation = glm::translate(starshipModel, glm::vec3(0, i * 5, i * 10));
             shader.setMat4("model", shipTranslation  * shipRotation * starshipModel);
             starship.draw(shader);

@@ -10,11 +10,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-struct planet {
+typedef struct Planet {
     glm::vec3 color;
     float radius;
     float orbitalRadius;
-};
+    float phase;
+    float inclination;
+} Planet;
 
 class System : public Object
 {
@@ -26,7 +28,10 @@ class System : public Object
     private:
         shared_ptr<Light> sun;
         glm::vec3 position;
-        std::vector<planet> planets;
+        std::vector<Planet> planets;
+        static Model sphere;
+        static bool isSetup;
+        void setup();
 };
 
 class SpaceGrid : public Object
