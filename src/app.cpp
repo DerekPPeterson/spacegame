@@ -14,12 +14,13 @@
 #include "cubemap.h"
 #include "drawable.h"
 #include "framebuffer.h"
+#include "spaceThings.h"
 
 int SCREEN_WIDTH = 1600;
 int SCREEN_HEIGHT = 900;;
 
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 400.0f, -100));
 float lastX = SCREEN_WIDTH / 2.0f;
 float lastY = SCREEN_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -111,61 +112,42 @@ int main()
     // set size of opengl viewport to size of window
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    // Compiler needed shaders
+    // Compile needed shaders
     Shader shader("src/shaders/vertex.vert", "src/shaders/lighting.frag");
     Shader blendShader("src/shaders/framebuffer.vert", "src/shaders/blend.frag");
     Shader framebufferShader("src/shaders/framebuffer.vert", "src/shaders/framebuffer.frag");
     Shader blurShader("src/shaders/framebuffer.vert", "src/shaders/blur.frag");
-
-	float quadVertices[] = {  
-        // positions   // texCoords
-        -1.0f,  1.0f,  0.0f, 1.0f,
-        -1.0f, -1.0f,  0.0f, 0.0f,
-         1.0f, -1.0f,  1.0f, 0.0f,
-
-        -1.0f,  1.0f,  0.0f, 1.0f,
-         1.0f, -1.0f,  1.0f, 0.0f,
-         1.0f,  1.0f,  1.0f, 1.0f
-    };	
-
-    unsigned int quadVBO, quadVAO;
-    glGenVertexArrays(1, &quadVAO);
-    glGenBuffers(1, &quadVBO);
-    glBindVertexArray(quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*) 0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*) (2 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    
-    // Setup light objects
     Shader lampShader("src/shaders/lamp.vert", "src/shaders/lamp.frag");
-    //
+    Shader skyboxShader("./src/shaders/skybox.vert", "./src/shaders/skybox.frag");
+
     // wireframe mode
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	//depth testing
-	glEnable(GL_DEPTH_TEST);
 
+    // Load Models/textures
     //Model spaceship("./res/models/Viper/Viper-mk-IV-fighter.obj");
     Model starship("./res/models/SS1_OBJ/SS1.obj");
-
-    Shader skyboxShader("./src/shaders/skybox.vert", "./src/shaders/skybox.frag");
     Skybox skybox("./res/textures/lightblue");
+    Cube::setup();
+    Quad::setup();
+    PointLight::setup();
+    SpaceGrid spaceGrid = SpaceGrid();
+
+    // Prepare objects
+    vector<Object*> objects;
 
 	glm::mat4 projection(1.0);
-	projection = glm::perspective((float) glm::radians(45.0), (float) SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 10000.0f);
+	projection = glm::perspectiveRH((float) glm::radians(45.0), (float) SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 10000.0f);
+	//projection = glm::ortho(0.0f, (float) SCREEN_WIDTH, 0.0f, (float) SCREEN_HEIGHT, 0.1f, 10000.0f);
 
     // Framebuffer stuff
     Framebuffers framebuffers(SCREEN_WIDTH, SCREEN_HEIGHT);
+    Quad framebufferQuad({0, 0, 0});
 
-    Cube::setup();
-    vector<PointLight> pointLights = {
-        PointLight(glm::vec3(0, -1, 0), glm::vec3(10, 0, 0)),
-        PointLight(glm::vec3(2, 2, 0), glm::vec3(0, 10, 0)),
-        PointLight(glm::vec3(-2, 2, 0), glm::vec3(0, 0, 20))
-    };
+
+    //PointLight(glm::vec3(0, -1, 0), glm::vec3(10, 0, 0));
+    //PointLight(glm::vec3(2, 2, 0), glm::vec3(0, 10, 0));
+    //PointLight(glm::vec3(-2, 2, 0), glm::vec3(0, 0, 20));
 
     // Keep going until window should close
     float offset = 0;
@@ -190,8 +172,9 @@ int main()
         lampShader.setMat4("view", view);
         lampShader.setMat4("projection", projection);
 
-        for (auto light : pointLights) {
-            light.draw(lampShader);
+        vector<shared_ptr<Light>> lights = Light::getAllLights();
+        for (auto light : lights) {
+            light->draw(lampShader);
         }
 
         // Render rest of scene lit by those lights
@@ -199,11 +182,11 @@ int main()
         shader.setMat4("view", view);
         shader.setMat4("projection", projection);
 		shader.setVec3("viewPos", camera.Position);
-		shader.setInt("numPointLights", pointLights.size());
-        shader.setFloat("ambientStrength", 0.05);
+		shader.setInt("numPointLights", lights.size());
+        shader.setFloat("ambientStrength", 0.00);
 
-        for (int i = 0; i < pointLights.size(); i++) {
-            pointLights[i].setUniforms(shader, i);
+        for (int i = 0; i < lights.size(); i++) {
+            lights[i]->setUniforms(shader, i);
         }
 
         //glm::vec3 lightPos(1, 1, -2);
@@ -248,6 +231,8 @@ int main()
             starship.draw(shader);
         }
 
+        spaceGrid.draw(shader);
+
         glm::mat4 skyboxView = glm::mat4(glm::mat3(camera.GetViewMatrix()));  
         skyboxShader.use();
         skyboxShader.setMat4("view", skyboxView);
@@ -259,7 +244,6 @@ int main()
 
         // Downscale bright image
         glViewport(0, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-        glBindVertexArray(quadVAO);
         glDisable(GL_DEPTH_TEST);
         framebufferShader.use();
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.pingpongBuffers[!horizontal].id); 
@@ -270,7 +254,7 @@ int main()
         framebufferShader.setInt("hdrBuffer", 0);
         //glGenerateMipmap(GL_TEXTURE_2D);
         //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 1);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        framebufferQuad.draw();
 
         // Blur bright areas for bloom
 		blurShader.use();
@@ -292,8 +276,6 @@ int main()
         glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT );
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
 
         // Merge bloom and scene and draw result
         glDisable(GL_DEPTH_TEST);
@@ -303,8 +285,7 @@ int main()
         glBindTexture(GL_TEXTURE_2D, framebuffers.pingpongBuffers[!horizontal].colorTextures[0]);
         blendShader.use();
         blendShader.setInt("hdrBuffer1", 1);
-        glBindVertexArray(quadVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        framebufferQuad.draw();
 
         // check if any events are triggered
         glfwSwapBuffers(window);
