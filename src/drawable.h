@@ -59,6 +59,7 @@ class PointLight: public Light
         Cube cube;
         glm::vec3 position;
         glm::vec3 color;
+        glm::vec3 attenuation = {0, 0, 1};
 };
 
 //std::vector<Light&> ALL_LIGHTS;

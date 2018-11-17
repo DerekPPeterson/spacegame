@@ -18,14 +18,16 @@ PointLight::PointLight(glm::vec3 position, glm::vec3 color)
     this->position = position;
     this->color = color;
     cube = Cube(position);
+
 }
 
 void PointLight::setUniforms(Shader shader, int iPointLight)
 {
-    shader.setVec3("pointLights[" + to_string(iPointLight) + "].position",
-            position);
-    shader.setVec3("pointLights[" + to_string(iPointLight) + "].color",
-            color);
+    string arrayElem = "pointLights[" + to_string(iPointLight) + "]";
+
+    shader.setVec3(arrayElem + ".position", position);
+    shader.setVec3(arrayElem + ".color", color);
+    shader.setVec3(arrayElem + ".attenuation", attenuation);
 }
 
 void PointLight::draw(Shader shader)

@@ -15,6 +15,7 @@ uniform vec3 viewPos;
 struct PointLight {
     vec3 position;
     vec3 color;
+    vec3 attenuation; // (constant, linear, quadratic)
 };
 
 #define MAX_POINT_LIGHTS 50
@@ -38,7 +39,12 @@ vec3 CalcPointLight(PointLight pointLight, vec3 normal, vec3 fragPos, vec3 viewD
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
     vec3 specular = specularStrength * spec * pointLight.color * texture(specular0, TexCoord).rgb;
 
-    return diffuse + specular;
+    float dist = distance(fragPos, pointLight.position);
+    float attenuation = 1.0f / (pointLight.attenuation[0] 
+            + pointLight.attenuation[1] * dist 
+            + pointLight.attenuation[2] * dist * dist);
+
+    return attenuation * (diffuse + specular);
 }
 
 void main()
