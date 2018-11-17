@@ -35,9 +35,7 @@ class Cube: public Object
     private:
         glm::vec3 position;
 
-        static float vertices[];
-        static int numVertices;
-        static unsigned int VBO, VAO;
+        static Model model;
         static bool isSetup;
 };
 

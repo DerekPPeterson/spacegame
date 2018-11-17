@@ -63,12 +63,14 @@ void Skybox::draw(Shader shader)
 {
     glDepthMask(GL_FALSE);
     glDepthFunc(GL_LEQUAL);
+    glCullFace(GL_FRONT);
 
     shader.use();
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
     glActiveTexture(GL_TEXTURE0);
     skyboxCube.draw(shader);
 
+    glCullFace(GL_BACK);
     glDepthMask(GL_TRUE);
 }
 

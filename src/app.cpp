@@ -139,6 +139,8 @@ int main()
 	projection = glm::perspectiveRH((float) glm::radians(45.0), (float) SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 10000.0f);
 	//projection = glm::ortho(0.0f, (float) SCREEN_WIDTH, 0.0f, (float) SCREEN_HEIGHT, 0.1f, 10000.0f);
 
+    glEnable(GL_CULL_FACE);  
+
     // Keep going until window should close
     float offset = 0;
     while (!glfwWindowShouldClose(window))
