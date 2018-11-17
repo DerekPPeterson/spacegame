@@ -85,7 +85,7 @@ class PointLight: public Light
 
         glm::vec3 position;
         glm::vec3 color;
-        glm::vec3 attenuation = {0, 0.5, 0.05};
+        glm::vec3 attenuation = {0, 0.5, 0.1};
         float size = 1;
 
         static Model sphere;

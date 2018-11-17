@@ -17,7 +17,7 @@
 #include "spaceThings.h"
 
 int SCREEN_WIDTH = 1600;
-int SCREEN_HEIGHT = 900;;
+int SCREEN_HEIGHT = 900;
 
 // camera
 Camera camera(glm::vec3(0.0f, 10.0f, 5));
@@ -114,6 +114,7 @@ int main()
 
     // Compile needed shaders
     Shader shader("src/shaders/vertex.vert", "src/shaders/lighting.frag");
+    Shader simpleDiffuse("src/shaders/vertex.vert", "src/shaders/simpleDiffuseLighting.frag");
     Shader blendShader("src/shaders/framebuffer.vert", "src/shaders/blend.frag");
     Shader framebufferShader("src/shaders/framebuffer.vert", "src/shaders/framebuffer.frag");
     Shader blurShader("src/shaders/framebuffer.vert", "src/shaders/blur.frag");
@@ -141,6 +142,8 @@ int main()
 
     glEnable(GL_CULL_FACE);  
 
+    vector<float> frameTimes;
+
     // Keep going until window should close
     float offset = 0;
     while (!glfwWindowShouldClose(window))
@@ -148,6 +151,7 @@ int main()
         // Calculatetime difference and  process camera movement based on it
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
+        frameTimes.push_back(deltaTime);
         lastFrame = currentFrame;
         processInput(window, camera, deltaTime);
         glm::mat4 view = camera.GetViewMatrix();
@@ -223,7 +227,16 @@ int main()
             starship.draw(shader);
         }
 
-        spaceGrid.draw(shader);
+        simpleDiffuse.use();
+        for (int i = 0; i < lights.size(); i++) {
+            lights[i]->setUniforms(simpleDiffuse, i);
+        }
+        simpleDiffuse.setMat4("view", view);
+        simpleDiffuse.setMat4("projection", projection);
+		simpleDiffuse.setVec3("viewPos", camera.Position);
+		simpleDiffuse.setInt("numPointLights", lights.size());
+        simpleDiffuse.setFloat("ambientStrength", 0.0);
+        spaceGrid.draw(simpleDiffuse);
 
         glm::mat4 skyboxView = glm::mat4(glm::mat3(camera.GetViewMatrix()));  
         skyboxShader.use();
@@ -283,6 +296,13 @@ int main()
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    float average = 0;
+    for (auto t : frameTimes) {
+        average += t;
+    }
+    average /= frameTimes.size();
+    cout << "Average frametime: " << average << endl;
 
     glfwTerminate();
     return 0;

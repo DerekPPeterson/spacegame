@@ -6,6 +6,7 @@ in vec3 fragPos;
 layout (location = 0) out vec4 FragColor;
 layout (location = 1) out vec4 BrightColor;
 
+uniform bool useTextures = true;
 uniform sampler2D diffuse0;
 uniform sampler2D specular0;
 uniform sampler2D emissive0;
@@ -37,12 +38,23 @@ vec3 CalcPointLight(PointLight pointLight, vec3 normal, vec3 fragPos, vec3 viewD
     normal = normalize(normal);
 
     float diff = max(dot(normal, lightDir), 0.0);
-    vec3 diffuse = diff * pointLight.color * (texture(diffuse0, TexCoord).rgb + diffuseColor);
+
+    vec3 diffuse;
+    if (useTextures) {
+        diffuse = diff * pointLight.color * (texture(diffuse0, TexCoord).rgb + diffuseColor);
+    } else {
+        diffuse = diff * pointLight.color * (diffuseColor);
+    }
 
     vec3 reflectDir = reflect(-lightDir, normal);
 
+    vec3 specular;
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-    vec3 specular = specularStrength * spec * pointLight.color * (texture(specular0, TexCoord).rgb + specularColor);
+    if (useTextures) {
+        specular = specularStrength * spec * pointLight.color * (texture(specular0, TexCoord).rgb + specularColor);
+    } else {
+        specular = specularStrength * spec * pointLight.color * (specularColor);
+    }
 
     float dist = distance(fragPos, pointLight.position);
     float attenuation = 1.0f / (pointLight.attenuation[0] 

@@ -51,9 +51,11 @@ void System::draw(Shader shader)
         planetModel = glm::translate(planetModel, glm::vec3(planet.orbitalRadius, 0, 0));
         planetModel = glm::scale(planetModel, glm::vec3(planet.radius, planet.radius, planet.radius));
         shader.setMat4("model", planetModel);
+        shader.setInt("useTextures", 0);
         shader.setVec3("diffuseColor", planet.color);
         sphere.draw(shader);
         shader.setVec3("diffuseColor", glm::vec3(0, 0, 0));
+        shader.setInt("useTextures", 1);
     }
 }
 
@@ -71,7 +73,7 @@ void System::setup()
 
 SpaceGrid::SpaceGrid()
 {
-    float distance = 50;
+    float distance = 30;
     for (int i = 0; i < GRID_X; i++) {
         for (int j = 0; j < GRID_Y; j++) {
             grid[i][j] = System(glm::vec3(i * distance + j * distance / 2 , 0, j * distance));
