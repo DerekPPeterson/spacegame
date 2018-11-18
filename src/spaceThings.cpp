@@ -105,9 +105,9 @@ void SpaceGrid::draw(Shader shader) {
     }
 }
 
-System& SpaceGrid::getSystem(int i, int j)
+System* SpaceGrid::getSystem(int i, int j)
 {
-    return grid[i][j];
+    return &grid[i][j];
 }
 
 map<string, Model> SpaceShip::models;
@@ -124,12 +124,12 @@ void SpaceShip::loadModel(string type)
     }
 }
 
-SpaceShip::SpaceShip(string type, System& system) :
+SpaceShip::SpaceShip(string type, System* system) :
     type(type), curSystem(system)
 {
     this->type = type;
     loadModel(type);
-    position = calcOrbitPosition(curSystem.getPosition(), orbit);
+    position = calcOrbitPosition(curSystem->getPosition(), orbit);
     orbit.phase = rand_float_between(0, 2 * 3.14);
     orbit.inclination = rand_float_between(0, 3.14 / 3);
     orbit.radius = rand_float_between(1, 3);
@@ -137,7 +137,7 @@ SpaceShip::SpaceShip(string type, System& system) :
 
 void SpaceShip::update(float deltaTime)
 {
-    glm::vec3 targetPosition = calcOrbitPosition(curSystem.getPosition(), orbit);
+    glm::vec3 targetPosition = calcOrbitPosition(curSystem->getPosition(), orbit);
     glm::vec3 targetDisplacement = targetPosition - position;
     glm::vec3 targetDirection = normalize(targetDisplacement);
     float targetAngle = glm::orientedAngle(direction, targetDirection, {0, 1, 0});
@@ -168,7 +168,7 @@ void SpaceShip::draw(Shader shader)
     models[type].draw(shader);
 }
 
-void SpaceShip::gotoSystem(System& system)
+void SpaceShip::gotoSystem(System *system)
 {
     curSystem = system;
 }
