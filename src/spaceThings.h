@@ -4,19 +4,25 @@
 #include "drawable.h"
 
 #include <vector>
+#include <map>
 #include <memory>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+typedef struct Orbit {
+    float radius;
+    float phase;
+    float inclination;
+} Orbit;
+
 typedef struct Planet {
     glm::vec3 color;
     float radius;
-    float orbitalRadius;
-    float phase;
-    float inclination;
+    Orbit orbit;
 } Planet;
+
 
 class System : public Object
 {
@@ -24,6 +30,7 @@ class System : public Object
         System() {};
         System(glm::vec3 position);
         void draw(Shader shader);
+        glm::vec3 getPosition();
 
     private:
         shared_ptr<Light> sun;
@@ -39,8 +46,33 @@ class SpaceGrid : public Object
     public:
         SpaceGrid();
         void draw(Shader shader);
+        shared_ptr<System> getSystem(int i, int j);
     private:
         System grid[4][4];
+};
+
+
+class SpaceShip : public Object
+{
+    public:
+        SpaceShip(string type, shared_ptr<System> system);
+        void draw(Shader shader);
+        void gotoSystem(shared_ptr<System>);
+        void update(float deltaTime);
+    
+    private:
+        string type;
+        float length = 0.01;
+        glm::vec3 position;
+        shared_ptr<System> curSystem;
+        Orbit orbit;
+
+        // +xaxis of model will be front of ship
+        glm::vec3 direction = {1, 0, 0};
+        float speed = 2;
+
+        static void loadModel(string type);
+        static map<string, Model> models;
 };
 
 #endif

@@ -132,6 +132,7 @@ int main()
     Quad::setup();
     PointLight::setup();
     SpaceGrid spaceGrid = SpaceGrid();
+    SpaceShip ss1_0 = SpaceShip("SS1", spaceGrid.getSystem(0, 0));
 
     Framebuffers framebuffers(SCREEN_WIDTH, SCREEN_HEIGHT);
     Quad framebufferQuad({0, 0, 0});
@@ -185,6 +186,9 @@ int main()
             lights[i]->setUniforms(shader, i);
         }
 
+        ss1_0.update(deltaTime);
+        ss1_0.draw(shader);
+
         //glm::vec3 lightPos(1, 1, -2);
         //glm::mat4 lightRotation = glm::rotate(glm::mat4(1.0f), 0.5f* (float) glfwGetTime(), glm::vec3(0, 0, 1));
         //lightPos = lightRotation * glm::vec4(lightPos[0], lightPos[1], lightPos[2], 1);
@@ -218,14 +222,14 @@ int main()
         //shader.setMat4("model", spaceshipModel);
         ////spaceship.draw(shader);
 
-        glm::mat4 starshipModel(1.0f);
-        starshipModel = glm::scale(starshipModel, glm::vec3(0.5, 0.5, 0.5));
+        //glm::mat4 starshipModel(1.0f);
+        //starshipModel = glm::scale(starshipModel, glm::vec3(0.5, 0.5, 0.5));
 
-        for (int i = 0; i < 0; i++) {
-            glm::mat4 shipTranslation = glm::translate(starshipModel, glm::vec3(0, i * 5, i * 10));
-            shader.setMat4("model", shipTranslation  * shipRotation * starshipModel);
-            starship.draw(shader);
-        }
+        //for (int i = 0; i < 0; i++) {
+        //    glm::mat4 shipTranslation = glm::translate(starshipModel, glm::vec3(0, i * 5, i * 10));
+        //    shader.setMat4("model", shipTranslation  * shipRotation * starshipModel);
+        //    starship.draw(shader);
+        //}
 
         simpleDiffuse.use();
         for (int i = 0; i < lights.size(); i++) {
