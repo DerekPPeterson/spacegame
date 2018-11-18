@@ -7,7 +7,7 @@ include_directories(include)
 file(GLOB SOURCES "src/*.cpp" "src/*.c")
 
 add_executable(app ${SOURCES})
-target_link_libraries(app glfw3 GL X11 pthread Xrandr Xi dl assimp)
+target_link_libraries(app glfw3 GL X11 pthread Xrandr Xi dl assimp bfd)
 
 #add_executable(hello_triangle src/hello_triangle.cpp src/glad.c )
 #target_link_libraries(hello_triangle glfw3 GL X11 pthread Xrandr Xi dl)

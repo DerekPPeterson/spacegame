@@ -1,5 +1,6 @@
 #include "spaceThings.h"
 #include "drawable.h"
+#include "timer.h"
 
 #include <cstdlib>
 #include <GLFW/glfw3.h>
@@ -45,9 +46,10 @@ glm::vec3 calcOrbitPosition(glm::vec3 systemPosition, Orbit &orbit)
 {
     glm::mat4 transform = glm::translate(glm::mat4(1.0f), systemPosition);
 
+    transform = glm::rotate(transform, orbit.phase, {0, 1, 0});
     glm::vec3 orbitAxis = glm::rotateX(glm::vec3(0, 1, 0), orbit.inclination);
     transform = glm::rotate(transform, 
-             1.0f / (float) pow(orbit.radius , 3.0/2.0) * (float) glfwGetTime(), 
+             1.0f / (float) pow(orbit.radius , 3.0/2.0) * Timer::get("start"), 
             orbitAxis);
     transform = glm::translate(transform, glm::vec3(orbit.radius, 0, 0));
 
@@ -81,8 +83,8 @@ void System::setup()
     sphere = Model("./res/models/sphere.obj");
 }
 
-#define GRID_X 1
-#define GRID_Y 1
+#define GRID_X 4
+#define GRID_Y 4
 
 SpaceGrid::SpaceGrid()
 {
@@ -103,9 +105,9 @@ void SpaceGrid::draw(Shader shader) {
     }
 }
 
-shared_ptr<System> SpaceGrid::getSystem(int i, int j)
+System& SpaceGrid::getSystem(int i, int j)
 {
-    return shared_ptr<System>(&grid[i][j]);
+    return grid[i][j];
 }
 
 map<string, Model> SpaceShip::models;
@@ -122,25 +124,35 @@ void SpaceShip::loadModel(string type)
     }
 }
 
-SpaceShip::SpaceShip(string type, shared_ptr<System> system)
+SpaceShip::SpaceShip(string type, System& system) :
+    type(type), curSystem(system)
 {
     this->type = type;
     loadModel(type);
-    curSystem = system;
-    glm::vec3 targetPosition = calcOrbitPosition(curSystem->getPosition(), orbit);
+    position = calcOrbitPosition(curSystem.getPosition(), orbit);
     orbit.phase = rand_float_between(0, 2 * 3.14);
-    orbit.inclination = 0;
-    orbit.radius = 1.5;
+    orbit.inclination = rand_float_between(0, 3.14 / 3);
+    orbit.radius = rand_float_between(1, 3);
 }
 
 void SpaceShip::update(float deltaTime)
 {
-    glm::vec3 targetPosition = calcOrbitPosition(curSystem->getPosition(), orbit);
+    glm::vec3 targetPosition = calcOrbitPosition(curSystem.getPosition(), orbit);
     glm::vec3 targetDisplacement = targetPosition - position;
-    direction = normalize(targetDisplacement);
+    glm::vec3 targetDirection = normalize(targetDisplacement);
+    float targetAngle = glm::orientedAngle(direction, targetDirection, {0, 1, 0});
+    if (abs(targetAngle) > turnSpeed * deltaTime) {
+        float angle = turnSpeed * deltaTime * targetAngle / abs(targetAngle);
+        direction = glm::rotate(glm::mat4(1.0f), angle, {0, 1, 0}) * glm::vec4(direction, 1);
+        direction[1] = targetDirection[1];
+        direction = normalize(direction);
+    } else {
+        direction = targetDirection;
+    }
+
     glm::vec3 displacement = direction * speed * deltaTime;
     if (glm::length(displacement) > glm::length(targetDisplacement)) {
-        displacement = targetDisplacement;
+        displacement = glm::length(targetDisplacement) * direction;
     }
     position += displacement;
 }
@@ -148,16 +160,15 @@ void SpaceShip::update(float deltaTime)
 void SpaceShip::draw(Shader shader)
 {
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, position + glm::vec3(0, 0.3, 0));
-    model = glm::rotate(model, glm::orientedAngle({1, 0, 0}, direction, {0, 1, 0}), 
-                        glm::vec3(0, 1, 0));
+    model = glm::inverse(glm::lookAt(position, direction + position, {0, 1, 0}));
+    model = glm::rotate(model, (float) 3.1415 / 2, glm::vec3(0, 1, 0));
     model = glm::scale(model, {length, length, length}), 
 
     shader.setMat4("model", model);
     models[type].draw(shader);
 }
 
-void SpaceShip::gotoSystem(shared_ptr<System> system)
+void SpaceShip::gotoSystem(System& system)
 {
     curSystem = system;
 }

@@ -46,7 +46,7 @@ class SpaceGrid : public Object
     public:
         SpaceGrid();
         void draw(Shader shader);
-        shared_ptr<System> getSystem(int i, int j);
+        System& getSystem(int i, int j);
     private:
         System grid[4][4];
 };
@@ -55,21 +55,22 @@ class SpaceGrid : public Object
 class SpaceShip : public Object
 {
     public:
-        SpaceShip(string type, shared_ptr<System> system);
+        SpaceShip(string type, System& system);
         void draw(Shader shader);
-        void gotoSystem(shared_ptr<System>);
+        void gotoSystem(System& system);
         void update(float deltaTime);
     
     private:
         string type;
         float length = 0.01;
         glm::vec3 position;
-        shared_ptr<System> curSystem;
+        System& curSystem;
         Orbit orbit;
 
         // +xaxis of model will be front of ship
         glm::vec3 direction = {1, 0, 0};
         float speed = 2;
+        float turnSpeed = 2 * 3.14;
 
         static void loadModel(string type);
         static map<string, Model> models;

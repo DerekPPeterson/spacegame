@@ -1,5 +1,6 @@
 #include <math.h>
 #include <unistd.h>
+#include <ctime>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -15,6 +16,7 @@
 #include "drawable.h"
 #include "framebuffer.h"
 #include "spaceThings.h"
+#include "timer.h"
 
 int SCREEN_WIDTH = 1600;
 int SCREEN_HEIGHT = 900;
@@ -24,9 +26,6 @@ Camera camera(glm::vec3(0.0f, 10.0f, 5));
 float lastX = SCREEN_WIDTH / 2.0f;
 float lastY = SCREEN_HEIGHT / 2.0f;
 bool firstMouse = true;
-
-float deltaTime = 0;
-float lastFrame = 0;
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -80,6 +79,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 int main()
 {
+    srand(time(0));
     //Initialize glfw
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -109,6 +109,8 @@ int main()
         return -1;
     }
 
+    Timer::create("start");
+
     // set size of opengl viewport to size of window
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -132,7 +134,10 @@ int main()
     Quad::setup();
     PointLight::setup();
     SpaceGrid spaceGrid = SpaceGrid();
-    SpaceShip ss1_0 = SpaceShip("SS1", spaceGrid.getSystem(0, 0));
+    vector<SpaceShip> ships;
+    for (int i = 0; i < 100; i++) {
+        ships.push_back(SpaceShip("SS1", spaceGrid.getSystem(0, 0)));
+    }
 
     Framebuffers framebuffers(SCREEN_WIDTH, SCREEN_HEIGHT);
     Quad framebufferQuad({0, 0, 0});
@@ -145,15 +150,15 @@ int main()
 
     vector<float> frameTimes;
 
+    Timer::create("frametime");
+
     // Keep going until window should close
     float offset = 0;
     while (!glfwWindowShouldClose(window))
     {
         // Calculatetime difference and  process camera movement based on it
-        float currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
+        float deltaTime = Timer::getDelta("frametime");
         frameTimes.push_back(deltaTime);
-        lastFrame = currentFrame;
         processInput(window, camera, deltaTime);
         glm::mat4 view = camera.GetViewMatrix();
 
@@ -186,50 +191,11 @@ int main()
             lights[i]->setUniforms(shader, i);
         }
 
-        ss1_0.update(deltaTime);
-        ss1_0.draw(shader);
-
-        //glm::vec3 lightPos(1, 1, -2);
-        //glm::mat4 lightRotation = glm::rotate(glm::mat4(1.0f), 0.5f* (float) glfwGetTime(), glm::vec3(0, 0, 1));
-        //lightPos = lightRotation * glm::vec4(lightPos[0], lightPos[1], lightPos[2], 1);
-
-        //lampShader.use();
-        //glBindVertexArray(lightVAO);
-        //glm::mat4 lightModel(1.0f);
-        //lightModel = glm::translate(lightModel, lightPos);
-        //lightModel = glm::scale(lightModel, glm::vec3(0.02, 0.02, 0.02));
-
-        //lampShader.setMat4("view", view);
-        //lampShader.setMat4("projection", projection);
-        //lampShader.setMat4("model", lightModel);
-
-        //glDrawArrays(GL_TRIANGLES, 0, 36);
-
-        //    
-        //shader.use();
-        //shader.setMat4("view", view);
-        //shader.setMat4("projection", projection);
-
-        //shader.setVec3("lightColor", glm::vec3(3, 3, 3));
-		//shader.setVec3("lightPos", lightPos);
-		//shader.setVec3("viewPos", camera.Position);
-
-        glm::mat4 shipRotation = glm::rotate(glm::mat4(1.0f), 2.0f * (float) glfwGetTime(), glm::vec3(0.2, 1, 0));
-
-        //glm::mat4 spaceshipModel(1.0f);
-        //spaceshipModel = glm::scale(spaceshipModel, glm::vec3(0.1, 0.1, 0.1));
-        //spaceshipModel = glm::translate(spaceshipModel, glm::vec3(0, 0, 10));
-        //shader.setMat4("model", spaceshipModel);
-        ////spaceship.draw(shader);
-
-        //glm::mat4 starshipModel(1.0f);
-        //starshipModel = glm::scale(starshipModel, glm::vec3(0.5, 0.5, 0.5));
-
-        //for (int i = 0; i < 0; i++) {
-        //    glm::mat4 shipTranslation = glm::translate(starshipModel, glm::vec3(0, i * 5, i * 10));
-        //    shader.setMat4("model", shipTranslation  * shipRotation * starshipModel);
-        //    starship.draw(shader);
-        //}
+        for (int i = 0; i < ships.size(); i++) {
+            ships[i].gotoSystem(spaceGrid.getSystem(0, 1));
+            ships[i].update(deltaTime);
+            ships[i].draw(shader);
+        }
 
         simpleDiffuse.use();
         for (int i = 0; i < lights.size(); i++) {
