@@ -212,7 +212,6 @@ void SpaceShip::drawWarp(Shader shader, glm::vec3 cameraPos)
 
     model = glm::rotate(model, angle, {1, 0, 0});
 
-    shader.setVec3("warpCentre", position);
     shader.setMat4("model", model);
     sphere.draw(shader);
 }

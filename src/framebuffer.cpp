@@ -7,7 +7,9 @@
 Framebuffers::Framebuffers(int width, int height)
 {
     createMainFramebuffer(mainFramebuffer, 2, width, height);
-    createMainFramebuffer(warpFrameBuffer, 1, width, height);
+    createMainFramebuffer(warpFrameBuffer, 2, width, height);
+    // Bind bright color texture to both frame buffers so bloom is applied to warp effects
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mainFramebuffer.colorTextures[1], 0);
     createNormalBlendingFramebuffer(width, height);
     createPingpongFramebuffer(width / 2, height / 2);
 }

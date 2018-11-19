@@ -248,7 +248,7 @@ int main()
 
         glEnable(GL_DEPTH_TEST);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.warpFrameBuffer.id);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT );
         warpShader2.use();
         warpShader2.setMat4("view", view);
         warpShader2.setMat4("projection", projection);
