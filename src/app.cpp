@@ -122,21 +122,20 @@ int main()
     Shader blurShader("src/shaders/framebuffer.vert", "src/shaders/blur.frag");
     Shader lampShader("src/shaders/lamp.vert", "src/shaders/lamp.frag");
     Shader skyboxShader("./src/shaders/skybox.vert", "./src/shaders/skybox.frag");
-    Shader warpShader("./src/shaders/warp.vert", "./src/shaders/warp.frag");
+    Shader warpShader1("./src/shaders/warp.vert", "./src/shaders/warp1.frag");
+    Shader warpShader2("./src/shaders/warp.vert", "./src/shaders/warp2.frag");
 
     // wireframe mode
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // Load Models/textures
-    //Model spaceship("./res/models/Viper/Viper-mk-IV-fighter.obj");
-    Model starship("./res/models/SS1_OBJ/SS1.obj");
     Skybox skybox("./res/textures/lightblue");
     Cube::setup();
     Quad::setup();
     PointLight::setup();
     SpaceGrid spaceGrid = SpaceGrid();
     vector<SpaceShip> ships;
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 50; i++) {
         ships.push_back(SpaceShip("SS1", spaceGrid.getSystem(0, 0)));
     }
 
@@ -269,18 +268,37 @@ int main()
 
         // Draw warp effects
         glDisable(GL_CULL_FACE);  
-    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
-            warpShader = Shader("./src/shaders/warp.vert", "./src/shaders/warp.frag");
-        }
-        warpShader.use();
-        warpShader.setMat4("view", view);
-        warpShader.setMat4("projection", projection);
-        warpShader.setVec2("screenSize", {SCREEN_WIDTH, SCREEN_HEIGHT});
-        warpShader.setInt("hdrBuffer", 1);
+        //if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+        //    warpShader = Shader("./src/shaders/warp.vert", "./src/shaders/warp.frag");
+        //}
+        glEnable(GL_BLEND);
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.normalBlendFramebuffer.id);
+        glClear(GL_COLOR_BUFFER_BIT);
+        warpShader1.use();
+        warpShader1.setMat4("view", view);
+        warpShader1.setMat4("projection", projection);
+        warpShader1.setVec2("screenSize", {SCREEN_WIDTH, SCREEN_HEIGHT});
+        warpShader1.setInt("hdrBuffer", 1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, framebuffers.mainFramebuffer.colorTextures[0]);
         for (int i = 0; i < ships.size(); i++) {
-            ships[i].drawWarp(warpShader, camera.Position);
+            ships[i].drawWarp(warpShader1, camera.Position);
+        }
+        glDisable(GL_BLEND);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        warpShader2.use();
+        warpShader2.setMat4("view", view);
+        warpShader2.setMat4("projection", projection);
+        warpShader2.setVec2("screenSize", {SCREEN_WIDTH, SCREEN_HEIGHT});
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, framebuffers.mainFramebuffer.colorTextures[0]);
+        warpShader2.setInt("hdrBuffer", 1);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, framebuffers.normalBlendFramebuffer.colorTextures[0]);
+        warpShader2.setInt("normalAdjustBuffer", 2);
+        for (int i = 0; i < ships.size(); i++) {
+            ships[i].drawWarp(warpShader2, camera.Position);
         }
 
         // check if any events are triggered

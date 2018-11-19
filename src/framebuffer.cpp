@@ -7,6 +7,7 @@
 Framebuffers::Framebuffers(int width, int height)
 {
     createMainFramebuffer(width, height);
+    createNormalBlendingFramebuffer(width, height);
     createPingpongFramebuffer(width / 2, height / 2);
 }
 
@@ -51,7 +52,7 @@ void Framebuffers::createPingpongFramebuffer(int width, int height) {
 	{
         pingpongBuffers[i].colorTextures.resize(1);
         glGenFramebuffers(1, &pingpongBuffers[i].id);
-        glGenTextures(2, &pingpongBuffers[i].colorTextures[0]);
+        glGenTextures(1, &pingpongBuffers[i].colorTextures[0]);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, pingpongBuffers[i].id);
 		glBindTexture(GL_TEXTURE_2D, pingpongBuffers[i].colorTextures[0]);
@@ -66,4 +67,28 @@ void Framebuffers::createPingpongFramebuffer(int width, int height) {
 			GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingpongBuffers[i].colorTextures[0], 0
 		);
 	}
+}
+
+void Framebuffers::createNormalBlendingFramebuffer(int width, int height) {
+    // ping pong buffer (for rendering bloom)
+        glGenFramebuffers(1, &normalBlendFramebuffer.id);
+        normalBlendFramebuffer.colorTextures.resize(1);
+        glGenTextures(1, &normalBlendFramebuffer.colorTextures[0]);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, normalBlendFramebuffer.id);
+		glBindTexture(GL_TEXTURE_2D, normalBlendFramebuffer.colorTextures[0]);
+		glTexImage2D(
+			GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL
+		);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glFramebufferTexture2D(
+			GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, normalBlendFramebuffer.colorTextures[0], 0
+		);
+
+        glEnablei(GL_BLEND, normalBlendFramebuffer.id);
+        glBlendFunc(GL_ONE, GL_ONE);
+        glBlendEquation(GL_FUNC_ADD);
 }

@@ -127,6 +127,7 @@ void SpaceShip::loadModel(string type)
     static bool sphereLoaded = false;
     if (not sphereLoaded) {
         sphere = Model("./res/models/quad/quad.obj");
+        sphereLoaded = true;
     }
 }
 
