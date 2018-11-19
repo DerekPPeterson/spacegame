@@ -205,6 +205,7 @@ void SpaceShip::drawWarp(Shader shader, glm::vec3 cameraPos)
     glm::mat4 model = calcModelMat();
     float warpScale = (10 / ((warp-3)*(warp-3) + 1) + warp) * 0.2;
     model = glm::scale(model, glm::vec3(warpScale));
+    model = glm::scale(model, glm::vec3(1, 2, 1));
 
     glm::vec3 modelCameraPos = glm::vec3(glm::inverse(model) * glm::vec4(cameraPos, 1));
     float angle = glm::orientedAngle({0, 0, 1}, glm::normalize(glm::vec3(0, modelCameraPos.y, modelCameraPos.z)), {1, 0, 0});

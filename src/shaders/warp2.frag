@@ -19,7 +19,5 @@ void main()
     vec3 normal = normalize(vec3(texture(normalAdjustBuffer, bufTexCoords).rg, 1));
 
     bufTexCoords += refract(vec3(0, 0, 1), normal, 2).xy * 0.1;
-    //FragColor = vec4(0, 0, intensity, 1);
     FragColor = texture(hdrBuffer, bufTexCoords);
-    //FragColor = vec4(texture(normalAdjustBuffer, bufTexCoords).rg, 0, 1);
 }    

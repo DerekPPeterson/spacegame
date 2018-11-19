@@ -6,28 +6,29 @@
 
 Framebuffers::Framebuffers(int width, int height)
 {
-    createMainFramebuffer(width, height);
+    createMainFramebuffer(mainFramebuffer, 2, width, height);
+    createMainFramebuffer(warpFrameBuffer, 1, width, height);
     createNormalBlendingFramebuffer(width, height);
     createPingpongFramebuffer(width / 2, height / 2);
 }
 
-void Framebuffers::createMainFramebuffer(int width, int height)
+void Framebuffers::createMainFramebuffer(Framebuffer& buf, int nColorBuffers, int width, int height)
 {
-    glGenFramebuffers(1, &mainFramebuffer.id);
-    glBindFramebuffer(GL_FRAMEBUFFER, mainFramebuffer.id);
+    glGenFramebuffers(1, &buf.id);
+    glBindFramebuffer(GL_FRAMEBUFFER, buf.id);
     
     // 2nd texture is for bloom
-    mainFramebuffer.colorTextures.resize(2);
-    for (int i = 0; i < 2; i++ ) {
-        glGenTextures(2, &mainFramebuffer.colorTextures[i]);
-        glBindTexture(GL_TEXTURE_2D, mainFramebuffer.colorTextures[i]);
+    buf.colorTextures.resize(nColorBuffers);
+    for (int i = 0; i < nColorBuffers; i++ ) {
+        glGenTextures(2, &buf.colorTextures[i]);
+        glBindTexture(GL_TEXTURE_2D, buf.colorTextures[i]);
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, mainFramebuffer.colorTextures[i], 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, buf.colorTextures[i], 0);
     }
 
     unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };

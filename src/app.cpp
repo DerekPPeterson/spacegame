@@ -18,8 +18,8 @@
 #include "spaceThings.h"
 #include "timer.h"
 
-int SCREEN_WIDTH = 800;
-int SCREEN_HEIGHT = 600;
+int SCREEN_WIDTH = 1600;
+int SCREEN_HEIGHT = 900;
 
 // camera
 Camera camera(glm::vec3(0.0f, 10.0f, 5));
@@ -88,7 +88,7 @@ int main()
 
     // Create window object
     GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, 
-            "LearnOpenGL", NULL, NULL);
+            "LearnOpenGL", glfwGetPrimaryMonitor(), NULL);
     if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -219,6 +219,50 @@ int main()
         skyboxShader.setMat4("projection", projection);
         skybox.draw(skyboxShader);
 
+        // Draw warp effects
+        glDisable(GL_CULL_FACE);  
+        //if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+        //    warpShader = Shader("./src/shaders/warp.vert", "./src/shaders/warp.frag");
+        //}
+        glEnable(GL_BLEND);
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.normalBlendFramebuffer.id);
+        glClear(GL_COLOR_BUFFER_BIT);
+        warpShader1.use();
+        warpShader1.setMat4("view", view);
+        warpShader1.setMat4("projection", projection);
+        warpShader1.setVec2("screenSize", {SCREEN_WIDTH, SCREEN_HEIGHT});
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, framebuffers.mainFramebuffer.colorTextures[0]);
+        warpShader1.setInt("hdrBuffer", 1);
+        for (int i = 0; i < ships.size(); i++) {
+            ships[i].drawWarp(warpShader1, camera.Position);
+        }
+        glDisable(GL_BLEND);
+
+        // Copy over depth info so we don't render the warp effect over planets etc
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffers.mainFramebuffer.id);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffers.warpFrameBuffer.id);
+        glBlitFramebuffer(
+                  0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST
+                );
+
+        glEnable(GL_DEPTH_TEST);
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.warpFrameBuffer.id);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        warpShader2.use();
+        warpShader2.setMat4("view", view);
+        warpShader2.setMat4("projection", projection);
+        warpShader2.setVec2("screenSize", {SCREEN_WIDTH, SCREEN_HEIGHT});
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, framebuffers.mainFramebuffer.colorTextures[0]);
+        warpShader2.setInt("hdrBuffer", 1);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, framebuffers.normalBlendFramebuffer.colorTextures[0]);
+        warpShader2.setInt("normalAdjustBuffer", 2);
+        for (int i = 0; i < ships.size(); i++) {
+            ships[i].drawWarp(warpShader2, camera.Position);
+        }
+
 		bool horizontal = true, first_iteration = true;
 		int amount = 4;
 
@@ -251,63 +295,31 @@ int main()
 
 			horizontal = !horizontal;
 		}
+
+
+        //// Merge bloom and scene and draw result
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); 
-
         glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT );
-
-
-        // Merge bloom and scene and draw result
+        //glDisable(GL_DEPTH_TEST);
+        //glActiveTexture(GL_TEXTURE0);
+        //glBindTexture(GL_TEXTURE_2D, framebuffers.warpFrameBuffer.colorTextures[0]);
+        //glActiveTexture(GL_TEXTURE1);
+        //glBindTexture(GL_TEXTURE_2D, framebuffers.pingpongBuffers[!horizontal].colorTextures[0]);
+        //blendShader.use();
+        //blendShader.setInt("hdrBuffer1", 1);
+        //framebufferQuad.draw();
+        
         glDisable(GL_DEPTH_TEST);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, framebuffers.mainFramebuffer.colorTextures[0]);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, framebuffers.pingpongBuffers[!horizontal].colorTextures[0]);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, framebuffers.warpFrameBuffer.colorTextures[0]);
         blendShader.use();
         blendShader.setInt("hdrBuffer1", 1);
+        blendShader.setInt("hdrBuffer2", 2);
         framebufferQuad.draw();
-
-        // Draw warp effects
-        glDisable(GL_CULL_FACE);  
-        //if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
-        //    warpShader = Shader("./src/shaders/warp.vert", "./src/shaders/warp.frag");
-        //}
-        glEnable(GL_BLEND);
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.normalBlendFramebuffer.id);
-        glClear(GL_COLOR_BUFFER_BIT);
-        warpShader1.use();
-        warpShader1.setMat4("view", view);
-        warpShader1.setMat4("projection", projection);
-        warpShader1.setVec2("screenSize", {SCREEN_WIDTH, SCREEN_HEIGHT});
-        warpShader1.setInt("hdrBuffer", 1);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, framebuffers.mainFramebuffer.colorTextures[0]);
-        for (int i = 0; i < ships.size(); i++) {
-            ships[i].drawWarp(warpShader1, camera.Position);
-        }
-        glDisable(GL_BLEND);
-
-        // Copy over depth info so we don't render the warp effect over planets etc
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffers.mainFramebuffer.id);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        glBlitFramebuffer(
-                  0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST
-                );
-
-        glEnable(GL_DEPTH_TEST);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        warpShader2.use();
-        warpShader2.setMat4("view", view);
-        warpShader2.setMat4("projection", projection);
-        warpShader2.setVec2("screenSize", {SCREEN_WIDTH, SCREEN_HEIGHT});
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, framebuffers.mainFramebuffer.colorTextures[0]);
-        warpShader2.setInt("hdrBuffer", 1);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, framebuffers.normalBlendFramebuffer.colorTextures[0]);
-        warpShader2.setInt("normalAdjustBuffer", 2);
-        for (int i = 0; i < ships.size(); i++) {
-            ships[i].drawWarp(warpShader2, camera.Position);
-        }
 
         // check if any events are triggered
         glfwSwapBuffers(window);
