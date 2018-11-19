@@ -8,9 +8,17 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <unordered_map>
 
 
 using std::string;
+
+enum CommonUniforms
+{
+    UNIFORM_MODEL,
+    UNIFORM_VIEW,
+    UNIFORM_PROJECTION
+};
 
 class Shader
 {
@@ -28,6 +36,10 @@ class Shader
         void setMat4(const std::string &name, const glm::mat4 &mat) const;
         void setVec3(const std::string &name, const glm::vec3 &vec) const;
         void setVec2(const std::string &name, const glm::vec2 &vec) const;
+        void setCommon(CommonUniforms which, glm::mat4 val) const;
+    private:
+        void saveCommonUniformLocations();
+        std::unordered_map<CommonUniforms, unsigned int> locations;
 };
 
 #endif

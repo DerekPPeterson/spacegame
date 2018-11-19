@@ -33,7 +33,7 @@ class Mesh
 
         Mesh(vector<Vertex> vertices, vector<unsigned int> indices,
                 vector<Texture> textures);
-        void draw(Shader shader);
+        void draw(Shader& shader);
 
     private:
         unsigned int VAO, VBO, EBO;

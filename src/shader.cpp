@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+using namespace std;
+
 string read_whole_file(const char *path)
 {
     std::stringstream buf;
@@ -40,6 +42,19 @@ unsigned int compile_shader_from_filename(GLenum type, const char * path)
     return shaderID;
 }
 
+unordered_map<CommonUniforms, string> commonUniformNames = {
+    {UNIFORM_MODEL, "model"},
+    {UNIFORM_VIEW, "view"},
+    {UNIFORM_PROJECTION, "projection"}
+};
+
+void Shader::saveCommonUniformLocations()
+{
+    for (auto pair : commonUniformNames) {
+        locations[pair.first] = glGetUniformLocation(ID, pair.second.c_str());
+    }
+};
+
 unsigned int link_shaders(unsigned int vertexShader, unsigned int fragmentShader)
 {
     int success;
@@ -73,6 +88,7 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
     unsigned int fragmentShader = compile_shader_from_filename(GL_FRAGMENT_SHADER, fragmentPath);
     
     ID = link_shaders(vertexShader, fragmentShader);
+    saveCommonUniformLocations();
 }
 
 void Shader::use()
@@ -107,5 +123,9 @@ void Shader::setVec3(const std::string &name, const glm::vec3 &vec) const
 void Shader::setVec2(const std::string &name, const glm::vec2 &vec) const
 {
 	glUniform2f(glGetUniformLocation(ID, name.c_str()), vec[0], vec[1]);
+}
+void Shader::setCommon(CommonUniforms which, glm::mat4 val) const
+{
+	glUniformMatrix4fv((int) locations.at(which), 1, GL_FALSE, &val[0][0]);
 }
 

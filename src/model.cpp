@@ -56,7 +56,7 @@ void Mesh::setupMesh()
     glBindVertexArray(0);
 }
 
-void Mesh::draw(Shader shader)
+void Mesh::draw(Shader& shader)
 {
     int i_diffuse = 0;
     int i_specular = 0;

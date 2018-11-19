@@ -64,7 +64,7 @@ void System::draw(Shader shader)
         glm::mat4 planetModel = glm::translate(glm::mat4(1.0f), 
                 calcOrbitPosition(position, planet.orbit));
         planetModel = glm::scale(planetModel, glm::vec3(planet.radius, planet.radius, planet.radius));
-        shader.setMat4("model", planetModel);
+        shader.setCommon(UNIFORM_MODEL, planetModel);
         shader.setVec3("diffuseColor", planet.color);
         sphere.draw(shader);
     }
@@ -193,7 +193,7 @@ glm::mat4 SpaceShip::calcModelMat()
 
 void SpaceShip::draw(Shader shader)
 {
-    shader.setMat4("model", calcModelMat());
+    shader.setCommon(UNIFORM_MODEL, calcModelMat());
     models[type].draw(shader);
 }
 
@@ -212,7 +212,7 @@ void SpaceShip::drawWarp(Shader shader, glm::vec3 cameraPos)
 
     model = glm::rotate(model, angle, {1, 0, 0});
 
-    shader.setMat4("model", model);
+    shader.setCommon(UNIFORM_MODEL, model);
     sphere.draw(shader);
 }
 
