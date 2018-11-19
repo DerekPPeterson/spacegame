@@ -9,6 +9,8 @@ Framebuffers::Framebuffers(int width, int height)
     createMainFramebuffer(mainFramebuffer, 2, width, height);
     createMainFramebuffer(warpFrameBuffer, 2, width, height);
     // Bind bright color texture to both frame buffers so bloom is applied to warp effects
+    glBindFramebuffer(GL_FRAMEBUFFER, warpFrameBuffer.id);
+    glBindTexture(GL_TEXTURE_2D, mainFramebuffer.colorTextures[1]);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mainFramebuffer.colorTextures[1], 0);
     createNormalBlendingFramebuffer(width, height);
     createPingpongFramebuffer(width / 2, height / 2);
@@ -45,6 +47,9 @@ void Framebuffers::createMainFramebuffer(Framebuffer& buf, int nColorBuffers, in
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
             std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+
+    glClear(GL_COLOR_BUFFER_BIT);
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0); 
 };
 

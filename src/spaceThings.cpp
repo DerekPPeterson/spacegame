@@ -84,8 +84,8 @@ void System::setup()
     sphere = Model("./res/models/sphere.obj");
 }
 
-#define GRID_X 4
-#define GRID_Y 4
+#define GRID_X 2
+#define GRID_Y 2
 
 SpaceGrid::SpaceGrid()
 {
@@ -175,7 +175,12 @@ void SpaceShip::update(float deltaTime)
     }
     
     warp = calculateWarp(position, 4.5, prevSystem->getPosition(), curSystem->getPosition());
-    glm::vec3 displacement = direction * speed * warp * deltaTime;
+    float decelDist = speed * 0.20;
+    float curSpeed = speed;
+    if (glm::length(targetDisplacement) < decelDist) {
+        curSpeed = glm::length(targetDisplacement) / decelDist;
+    }
+    glm::vec3 displacement = direction * curSpeed * warp * deltaTime;
     if (glm::length(displacement) > glm::length(targetDisplacement)) {
         displacement = glm::length(targetDisplacement) * direction;
     }

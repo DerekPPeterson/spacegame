@@ -162,6 +162,11 @@ int main()
         processInput(window, camera, deltaTime);
         glm::mat4 view = camera.GetViewMatrix();
 
+        // Clear the warp framebuffer before drawing the rest of the scene
+        // because they both write to the same brightcolor texture
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.warpFrameBuffer.id);
+        glClear(GL_COLOR_BUFFER_BIT);
+
         // Actually render scene
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.mainFramebuffer.id);
         glEnable(GL_DEPTH_TEST);
@@ -248,7 +253,7 @@ int main()
 
         glEnable(GL_DEPTH_TEST);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.warpFrameBuffer.id);
-        glClear(GL_COLOR_BUFFER_BIT );
+        //glClear(GL_COLOR_BUFFER_BIT);
         warpShader2.use();
         warpShader2.setMat4("view", view);
         warpShader2.setMat4("projection", projection);
