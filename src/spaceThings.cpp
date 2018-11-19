@@ -3,6 +3,7 @@
 #include "timer.h"
 
 #include <cstdlib>
+#include <algorithm>
 #include <GLFW/glfw3.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -111,6 +112,7 @@ System* SpaceGrid::getSystem(int i, int j)
 }
 
 map<string, Model> SpaceShip::models;
+Model SpaceShip::sphere;
 
 map<string, string> MODEL_PATHS = {
     {"SS1", "./res/models/SS1_OBJ/SS1.obj"}
@@ -122,10 +124,14 @@ void SpaceShip::loadModel(string type)
     if (models.find(type) == models.end()) {
         models[type] = Model(MODEL_PATHS[type].c_str());
     }
+    static bool sphereLoaded = false;
+    if (not sphereLoaded) {
+        sphere = Model("./res/models/quad/quad.obj");
+    }
 }
 
 SpaceShip::SpaceShip(string type, System* system) :
-    type(type), curSystem(system)
+    type(type), curSystem(system), prevSystem(system)
 {
     this->type = type;
     loadModel(type);
@@ -133,6 +139,23 @@ SpaceShip::SpaceShip(string type, System* system) :
     orbit.phase = rand_float_between(0, 2 * 3.14);
     orbit.inclination = rand_float_between(0, 3.14 / 3);
     orbit.radius = rand_float_between(1, 3);
+}
+
+float calculateWarp(glm::vec3 position, float margin, glm::vec3 start, glm::vec3 end)
+{
+    float fromStart = glm::length(position - start) - margin;
+    float fromEnd = glm::length(position - end) - margin;
+    float warp = 1;
+    float maxWarpSpeed = 10;
+    float warpAccelerationDist = 3;
+    if (fromStart > 0 and fromEnd > 0) {
+        if (fromStart < fromEnd) {
+            warp += maxWarpSpeed * fromStart / warpAccelerationDist;
+        } else {
+            warp += maxWarpSpeed * fromEnd / warpAccelerationDist;
+        }
+    }
+    return min(warp, maxWarpSpeed);
 }
 
 void SpaceShip::update(float deltaTime)
@@ -149,26 +172,50 @@ void SpaceShip::update(float deltaTime)
     } else {
         direction = targetDirection;
     }
-
-    glm::vec3 displacement = direction * speed * deltaTime;
+    
+    warp = calculateWarp(position, 4.5, prevSystem->getPosition(), curSystem->getPosition());
+    glm::vec3 displacement = direction * speed * warp * deltaTime;
     if (glm::length(displacement) > glm::length(targetDisplacement)) {
         displacement = glm::length(targetDisplacement) * direction;
     }
     position += displacement;
 }
 
-void SpaceShip::draw(Shader shader)
+glm::mat4 SpaceShip::calcModelMat()
 {
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::inverse(glm::lookAt(position, direction + position, {0, 1, 0}));
     model = glm::rotate(model, (float) 3.1415 / 2, glm::vec3(0, 1, 0));
-    model = glm::scale(model, {length, length, length}), 
+    model = glm::scale(model, {length * warp, length, length});
+    return model;
+}
 
-    shader.setMat4("model", model);
+void SpaceShip::draw(Shader shader)
+{
+    shader.setMat4("model", calcModelMat());
     models[type].draw(shader);
 }
 
+void SpaceShip::drawWarp(Shader shader, glm::vec3 cameraPos)
+{
+    glm::mat4 model = calcModelMat();
+    model = glm::scale(model, glm::vec3(100));
+
+    glm::vec3 modelCameraPos = glm::vec3(glm::inverse(model) * glm::vec4(cameraPos, 1));
+    float angle = glm::orientedAngle({0, 0, 1}, glm::normalize(glm::vec3(0, modelCameraPos.y, modelCameraPos.z)), {1, 0, 0});
+
+    model = glm::rotate(model, angle, {1, 0, 0});
+
+    shader.setVec3("warpCentre", position);
+    shader.setMat4("model", model);
+    sphere.draw(shader);
+}
+
+
 void SpaceShip::gotoSystem(System *system)
 {
-    curSystem = system;
+    if (curSystem != system) {
+        prevSystem = curSystem;
+        curSystem = system;
+    }
 }

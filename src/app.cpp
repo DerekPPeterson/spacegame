@@ -18,8 +18,8 @@
 #include "spaceThings.h"
 #include "timer.h"
 
-int SCREEN_WIDTH = 1600;
-int SCREEN_HEIGHT = 900;
+int SCREEN_WIDTH = 800;
+int SCREEN_HEIGHT = 600;
 
 // camera
 Camera camera(glm::vec3(0.0f, 10.0f, 5));
@@ -88,7 +88,7 @@ int main()
 
     // Create window object
     GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, 
-            "LearnOpenGL", glfwGetPrimaryMonitor(), NULL);
+            "LearnOpenGL", NULL, NULL);
     if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -122,6 +122,7 @@ int main()
     Shader blurShader("src/shaders/framebuffer.vert", "src/shaders/blur.frag");
     Shader lampShader("src/shaders/lamp.vert", "src/shaders/lamp.frag");
     Shader skyboxShader("./src/shaders/skybox.vert", "./src/shaders/skybox.frag");
+    Shader warpShader("./src/shaders/warp.vert", "./src/shaders/warp.frag");
 
     // wireframe mode
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -135,7 +136,7 @@ int main()
     PointLight::setup();
     SpaceGrid spaceGrid = SpaceGrid();
     vector<SpaceShip> ships;
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 2; i++) {
         ships.push_back(SpaceShip("SS1", spaceGrid.getSystem(0, 0)));
     }
 
@@ -146,7 +147,6 @@ int main()
 	projection = glm::perspectiveRH((float) glm::radians(45.0), (float) SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 10000.0f);
 	//projection = glm::ortho(0.0f, (float) SCREEN_WIDTH, 0.0f, (float) SCREEN_HEIGHT, 0.1f, 10000.0f);
 
-    glEnable(GL_CULL_FACE);  
 
     vector<float> frameTimes;
 
@@ -156,6 +156,7 @@ int main()
     float offset = 0;
     while (!glfwWindowShouldClose(window))
     {
+        glEnable(GL_CULL_FACE);  
         // Calculatetime difference and  process camera movement based on it
         float deltaTime = Timer::getDelta("frametime");
         frameTimes.push_back(deltaTime);
@@ -192,7 +193,12 @@ int main()
         }
 
         for (int i = 0; i < ships.size(); i++) {
-            ships[i].gotoSystem(spaceGrid.getSystem(0, 1));
+            if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS) {
+                ships[i].gotoSystem(spaceGrid.getSystem(0, 0));
+            }
+            if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+                ships[i].gotoSystem(spaceGrid.getSystem(0, 1));
+            }
             ships[i].update(deltaTime);
             ships[i].draw(shader);
         }
@@ -250,7 +256,6 @@ int main()
 
         glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT );
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         // Merge bloom and scene and draw result
         glDisable(GL_DEPTH_TEST);
@@ -261,6 +266,22 @@ int main()
         blendShader.use();
         blendShader.setInt("hdrBuffer1", 1);
         framebufferQuad.draw();
+
+        // Draw warp effects
+        glDisable(GL_CULL_FACE);  
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+            warpShader = Shader("./src/shaders/warp.vert", "./src/shaders/warp.frag");
+        }
+        warpShader.use();
+        warpShader.setMat4("view", view);
+        warpShader.setMat4("projection", projection);
+        warpShader.setVec2("screenSize", {SCREEN_WIDTH, SCREEN_HEIGHT});
+        warpShader.setInt("hdrBuffer", 1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, framebuffers.mainFramebuffer.colorTextures[0]);
+        for (int i = 0; i < ships.size(); i++) {
+            ships[i].drawWarp(warpShader, camera.Position);
+        }
 
         // check if any events are triggered
         glfwSwapBuffers(window);

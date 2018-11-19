@@ -57,6 +57,7 @@ class SpaceShip : public Object
     public:
         SpaceShip(string type, System *system);
         void draw(Shader shader);
+        void drawWarp(Shader shader, glm::vec3 cameraPos);
         void gotoSystem(System *system);
         void update(float deltaTime);
     
@@ -65,15 +66,19 @@ class SpaceShip : public Object
         float length = 0.01;
         glm::vec3 position;
         System* curSystem;
+        System* prevSystem;
         Orbit orbit;
 
         // +xaxis of model will be front of ship
         glm::vec3 direction = {1, 0, 0};
         float speed = 2;
+        float warp = 1;
         float turnSpeed = 2 * 3.14;
 
+        glm::mat4 calcModelMat();
         static void loadModel(string type);
         static map<string, Model> models;
+        static Model sphere;
 };
 
 #endif
