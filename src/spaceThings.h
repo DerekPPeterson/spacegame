@@ -63,7 +63,7 @@ class SpaceShip : public Object
     
     private:
         string type;
-        float length = 0.01;
+        float length = 0.1;
         glm::vec3 position;
         System* curSystem;
         System* prevSystem;

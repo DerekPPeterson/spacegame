@@ -286,6 +286,14 @@ int main()
         }
         glDisable(GL_BLEND);
 
+        // Copy over depth info so we don't render the warp effect over planets etc
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffers.mainFramebuffer.id);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBlitFramebuffer(
+                  0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST
+                );
+
+        glEnable(GL_DEPTH_TEST);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         warpShader2.use();
         warpShader2.setMat4("view", view);
