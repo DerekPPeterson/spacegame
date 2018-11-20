@@ -8,12 +8,27 @@
 
 using namespace std;
 
+unordered_set<Object*> Object::objects;
 
+Object::Object()
+{
+    objects.insert(this);
+};
 
-//Object::Object()
-//{
-//    //objects.push_back
-//};
+void Object::setVisible(bool visible)
+{
+    this->visible = visible;
+}
+
+bool Object::isVisible()
+{
+    return visible;
+}
+
+const std::unordered_set<Object*>& Object::getObjects()
+{
+    return objects;
+}
 
 // TODO pretty sure these lights will never get destroyed automatically
 vector<shared_ptr<Light>> Light::allLights = {};
@@ -47,7 +62,7 @@ PointLight::PointLight(glm::vec3 position, glm::vec3 color)
     this->color = color;
 }
 
-void PointLight::setUniforms(Shader shader, int iPointLight)
+void PointLight::setUniforms(const Shader& shader, int iPointLight)
 {
     string arrayElem = "pointLights[" + to_string(iPointLight) + "]";
 
@@ -56,7 +71,7 @@ void PointLight::setUniforms(Shader shader, int iPointLight)
     shader.setVec3(arrayElem + ".attenuation", attenuation);
 }
 
-void PointLight::draw(Shader shader)
+void PointLight::draw(const Shader& shader)
 {
     shader.setVec3("color", color);
     glm::mat4 model = glm::translate(glm::mat4(1.0f), position);
@@ -75,7 +90,7 @@ void Cube::setup()
     model = Model("./res/models/cube.obj");
     isSetup = true;
 } 
-void Cube::draw(Shader shader)
+void Cube::draw(const Shader& shader)
 {
     glm::mat4 model = glm::translate(glm::mat4(1.0f), position);
     model = glm::scale(model, glm::vec3(0.1, 0.1, 0.1));

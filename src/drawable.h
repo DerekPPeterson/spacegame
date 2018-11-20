@@ -14,11 +14,15 @@
 class Object : public non_copyable
 {
     public:
-        virtual void draw(Shader Shader) const {};
-        bool visible = true;
+        Object();
+        virtual void draw(const Shader& shader) const {};
+        void setVisible(bool visible);
+        bool isVisible();
+
+        static const std::unordered_set<Object*>& getObjects();
 
     private:
-
+        bool visible = true;
         static std::unordered_set<Object*> objects;
 };
 
@@ -27,7 +31,7 @@ class Cube: public Object
     public:
         Cube() {};
         Cube(glm::vec3 position);
-        void draw(Shader shader);
+        void draw(const Shader& shader);
         static void setup();
 
     private:
@@ -43,7 +47,7 @@ class Quad: public Object
         Quad() {};
         Quad(glm::vec3 position);
         void draw();
-        void draw(Shader shader) {draw();};
+        void draw(const Shader& shader) {draw();};
         static void setup();
 
     private:
@@ -60,8 +64,8 @@ enum LightType {LIGHT_POINT};
 class Light
 {
     public:
-        virtual void draw(Shader shader) {};
-        virtual void setUniforms(Shader shader, int i) {};
+        virtual void draw(const Shader& shader) {};
+        virtual void setUniforms(const Shader& shader, int i) {};
 
         static std::shared_ptr<Light> makeLight(LightType type, glm::vec3 position, glm::vec3 color);
         static std::vector<std::shared_ptr<Light>> getAllLights();
@@ -73,8 +77,8 @@ class Light
 class PointLight: public Light
 {
     public:
-        void draw(Shader shader);
-        void setUniforms(Shader shader, int iPointLight);
+        void draw(const Shader& shader);
+        void setUniforms(const Shader& shader, int iPointLight);
         static void setup();
     
     protected:

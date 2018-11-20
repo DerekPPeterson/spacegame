@@ -59,7 +59,7 @@ void Skybox::setupSkybox(string path)
     skyboxCube.setup();
 }
 
-void Skybox::draw(Shader shader) 
+void Skybox::draw(const Shader& shader) 
 {
     glDepthMask(GL_FALSE);
     glDepthFunc(GL_LEQUAL);

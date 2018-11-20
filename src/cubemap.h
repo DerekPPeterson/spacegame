@@ -18,7 +18,7 @@ class Skybox
         {
             setupSkybox(path);
         }
-        void draw(Shader shader);
+        void draw(const Shader& shader) ;
 
     private:
         unsigned int VAO, VBO;

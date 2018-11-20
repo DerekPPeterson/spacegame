@@ -10,6 +10,8 @@
 #include <iostream>
 #include <unordered_map>
 
+#include "nocopy.h"
+
 
 enum CommonUniforms
 {
@@ -18,14 +20,14 @@ enum CommonUniforms
     UNIFORM_PROJECTION
 };
 
-class Shader
+class Shader : public non_copyable
 {
     public:
         unsigned int ID;
         
         Shader(const GLchar* vertexPath, const GLchar* fragmentPath);
 
-        void use();
+        void use() const;
 
         void setBool(const std::string &name, bool value) const;
         void setInt(const std::string &name, int value) const;

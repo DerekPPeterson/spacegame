@@ -60,7 +60,7 @@ glm::vec3 calcOrbitPosition(glm::vec3 systemPosition, Orbit &orbit)
     return position;
 }
 
-void System::draw(Shader shader) 
+void System::draw(const Shader& shader) 
 {
     for (auto planet : planets) {
         glm::mat4 planetModel = glm::translate(glm::mat4(1.0f), 
@@ -101,7 +101,7 @@ SpaceGrid::SpaceGrid()
 
 }
 
-void SpaceGrid::draw(Shader shader) {
+void SpaceGrid::draw(const Shader& shader) {
     for (int i = 0; i < GRID_X; i++) {
         for (int j = 0; j < GRID_Y; j++) {
             grid[i][j]->draw(shader);
@@ -199,13 +199,13 @@ glm::mat4 SpaceShip::calcModelMat() const
     return model;
 }
 
-void SpaceShip::draw(Shader shader) const
+void SpaceShip::draw(const Shader& shader) const
 {
     shader.setCommon(UNIFORM_MODEL, calcModelMat());
     models[type].draw(shader);
 }
 
-void SpaceShip::drawWarp(Shader shader, glm::vec3 cameraPos)
+void SpaceShip::drawWarp(const Shader& shader, glm::vec3 cameraPos)
 {
     if (warp < 1.1) {
         return;

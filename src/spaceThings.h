@@ -29,7 +29,7 @@ class System : public Object
     public:
         System() {};
         System(glm::vec3 position);
-        void draw(Shader shader);
+        void draw(const Shader& shader);
         glm::vec3 getPosition();
 
     private:
@@ -45,7 +45,7 @@ class SpaceGrid : public Object
 {
     public:
         SpaceGrid();
-        void draw(Shader shader);
+        void draw(const Shader& shader);
         System* getSystem(int i, int j);
     private:
         std::shared_ptr<System> grid[4][4];
@@ -56,8 +56,8 @@ class SpaceShip : public Object
 {
     public:
         SpaceShip(std::string type, System *system);
-        void draw(Shader shader) const override;
-        void drawWarp(Shader shader, glm::vec3 cameraPos);
+        void draw(const Shader& shader) const override;
+        void drawWarp(const Shader& shader, glm::vec3 cameraPos);
         void gotoSystem(System *system);
         void update(float deltaTime);
     

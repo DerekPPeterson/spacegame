@@ -91,7 +91,7 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
     saveCommonUniformLocations();
 }
 
-void Shader::use()
+void Shader::use() const
 {
     glUseProgram(ID);
 }
