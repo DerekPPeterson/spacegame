@@ -10,6 +10,8 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
+using namespace std;
+
 float rand_float_between(float LO, float HI)
 {
     return LO + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(HI-LO)));
@@ -92,7 +94,8 @@ SpaceGrid::SpaceGrid()
     float distance = 30;
     for (int i = 0; i < GRID_X; i++) {
         for (int j = 0; j < GRID_Y; j++) {
-            grid[i][j] = System(glm::vec3(i * distance + j * distance / 2 , 0, j * distance));
+            glm::vec3 position = glm::vec3(i * distance + j * distance / 2 , 0, j * distance);
+            grid[i][j] = shared_ptr<System>(new System(position));
         }
     }
 
@@ -101,14 +104,14 @@ SpaceGrid::SpaceGrid()
 void SpaceGrid::draw(Shader shader) {
     for (int i = 0; i < GRID_X; i++) {
         for (int j = 0; j < GRID_Y; j++) {
-            grid[i][j].draw(shader);
+            grid[i][j]->draw(shader);
         }
     }
 }
 
 System* SpaceGrid::getSystem(int i, int j)
 {
-    return &grid[i][j];
+    return grid[i][j].get();;
 }
 
 map<string, Model> SpaceShip::models;
@@ -187,7 +190,7 @@ void SpaceShip::update(float deltaTime)
     position += displacement;
 }
 
-glm::mat4 SpaceShip::calcModelMat()
+glm::mat4 SpaceShip::calcModelMat() const
 {
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::inverse(glm::lookAt(position, direction + position, {0, 1, 0}));
@@ -196,7 +199,7 @@ glm::mat4 SpaceShip::calcModelMat()
     return model;
 }
 
-void SpaceShip::draw(Shader shader)
+void SpaceShip::draw(Shader shader) const
 {
     shader.setCommon(UNIFORM_MODEL, calcModelMat());
     models[type].draw(shader);

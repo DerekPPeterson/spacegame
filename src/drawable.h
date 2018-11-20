@@ -3,24 +3,23 @@
 
 #include <vector>
 #include <memory>
+#include <unordered_set>
 
 #include <glm/gtc/type_ptr.hpp>
 
 #include "shader.h"
 #include "model.h"
+#include "nocopy.h"
 
-class Drawable
+class Object : public non_copyable
 {
     public:
-        virtual void draw(Shader shader) {};
-};
-
-class Object: public Drawable 
-{
-    public:
-        Object() {};
-        virtual void draw(Shader Shader) {};
+        virtual void draw(Shader Shader) const {};
         bool visible = true;
+
+    private:
+
+        static std::unordered_set<Object*> objects;
 };
 
 class Cube: public Object
@@ -64,11 +63,11 @@ class Light
         virtual void draw(Shader shader) {};
         virtual void setUniforms(Shader shader, int i) {};
 
-        static shared_ptr<Light> makeLight(LightType type, glm::vec3 position, glm::vec3 color);
-        static vector<shared_ptr<Light>> getAllLights();
+        static std::shared_ptr<Light> makeLight(LightType type, glm::vec3 position, glm::vec3 color);
+        static std::vector<std::shared_ptr<Light>> getAllLights();
 
     private:
-        static vector<shared_ptr<Light>> allLights;
+        static std::vector<std::shared_ptr<Light>> allLights;
 };
 
 class PointLight: public Light

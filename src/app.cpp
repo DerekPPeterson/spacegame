@@ -18,6 +18,8 @@
 #include "spaceThings.h"
 #include "timer.h"
 
+using namespace std;
+
 int SCREEN_WIDTH = 1600;
 int SCREEN_HEIGHT = 900;
 
@@ -133,10 +135,10 @@ int main()
     Cube::setup();
     Quad::setup();
     PointLight::setup();
-    SpaceGrid spaceGrid = SpaceGrid();
-    vector<SpaceShip> ships;
-    for (int i = 0; i < 50; i++) {
-        ships.push_back(SpaceShip("SS1", spaceGrid.getSystem(0, 0)));
+    SpaceGrid spaceGrid;
+    vector<SpaceShip*> ships;
+    for (int i = 0; i < 100; i++) {
+        ships.push_back(new SpaceShip("SS1", spaceGrid.getSystem(0, 0)));
     }
 
     Framebuffers framebuffers(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -155,7 +157,6 @@ int main()
     float offset = 0;
     while (!glfwWindowShouldClose(window))
     {
-        glEnable(GL_CULL_FACE);  
         // Calculatetime difference and  process camera movement based on it
         float deltaTime = Timer::getDelta("frametime");
         frameTimes.push_back(deltaTime);
@@ -170,6 +171,7 @@ int main()
         // Actually render scene
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.mainFramebuffer.id);
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);  
        
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -198,13 +200,13 @@ int main()
 
         for (int i = 0; i < ships.size(); i++) {
             if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS) {
-                ships[i].gotoSystem(spaceGrid.getSystem(0, 0));
+                ships[i]->gotoSystem(spaceGrid.getSystem(0, 0));
             }
             if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
-                ships[i].gotoSystem(spaceGrid.getSystem(0, 1));
+                ships[i]->gotoSystem(spaceGrid.getSystem(0, 1));
             }
-            ships[i].update(deltaTime);
-            ships[i].draw(shader);
+            ships[i]->update(deltaTime);
+            ships[i]->draw(shader);
         }
 
         simpleDiffuse.use();
@@ -240,7 +242,7 @@ int main()
         glBindTexture(GL_TEXTURE_2D, framebuffers.mainFramebuffer.colorTextures[0]);
         warpShader1.setInt("hdrBuffer", 1);
         for (int i = 0; i < ships.size(); i++) {
-            ships[i].drawWarp(warpShader1, camera.Position);
+            ships[i]->drawWarp(warpShader1, camera.Position);
         }
         glDisable(GL_BLEND);
 
@@ -265,7 +267,7 @@ int main()
         glBindTexture(GL_TEXTURE_2D, framebuffers.normalBlendFramebuffer.colorTextures[0]);
         warpShader2.setInt("normalAdjustBuffer", 2);
         for (int i = 0; i < ships.size(); i++) {
-            ships[i].drawWarp(warpShader2, camera.Position);
+            ships[i]->drawWarp(warpShader2, camera.Position);
         }
 
 		bool horizontal = true, first_iteration = true;

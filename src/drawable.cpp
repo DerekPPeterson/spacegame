@@ -8,6 +8,13 @@
 
 using namespace std;
 
+
+
+//Object::Object()
+//{
+//    //objects.push_back
+//};
+
 // TODO pretty sure these lights will never get destroyed automatically
 vector<shared_ptr<Light>> Light::allLights = {};
 

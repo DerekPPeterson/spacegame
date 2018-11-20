@@ -33,7 +33,7 @@ class System : public Object
         glm::vec3 getPosition();
 
     private:
-        shared_ptr<Light> sun;
+        std::shared_ptr<Light> sun;
         glm::vec3 position;
         std::vector<Planet> planets;
         static Model sphere;
@@ -48,21 +48,21 @@ class SpaceGrid : public Object
         void draw(Shader shader);
         System* getSystem(int i, int j);
     private:
-        System grid[4][4];
+        std::shared_ptr<System> grid[4][4];
 };
 
 
 class SpaceShip : public Object
 {
     public:
-        SpaceShip(string type, System *system);
-        void draw(Shader shader);
+        SpaceShip(std::string type, System *system);
+        void draw(Shader shader) const override;
         void drawWarp(Shader shader, glm::vec3 cameraPos);
         void gotoSystem(System *system);
         void update(float deltaTime);
     
     private:
-        string type;
+        std::string type;
         float length = 0.1;
         glm::vec3 position;
         System* curSystem;
@@ -75,9 +75,9 @@ class SpaceShip : public Object
         float warp = 1;
         float turnSpeed = 2 * 3.14;
 
-        glm::mat4 calcModelMat();
-        static void loadModel(string type);
-        static map<string, Model> models;
+        glm::mat4 calcModelMat() const;
+        static void loadModel(std::string type);
+        static std::map<std::string, Model> models;
         static Model sphere;
 };
 

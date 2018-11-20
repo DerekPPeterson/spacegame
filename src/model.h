@@ -11,7 +11,6 @@
 
 #include "shader.h"
 
-using namespace std;
 
 struct Vertex {
     glm::vec3 position;
@@ -21,18 +20,18 @@ struct Vertex {
 
 struct Texture {
     unsigned int id;
-    string type;
+    std::string type;
 };
 
 class Mesh
 {
     public:
-        vector<Vertex> vertices;
-        vector<unsigned int> indices;
-        vector<Texture> textures;
+        std::vector<Vertex> vertices;
+        std::vector<unsigned int> indices;
+        std::vector<Texture> textures;
 
-        Mesh(vector<Vertex> vertices, vector<unsigned int> indices,
-                vector<Texture> textures);
+        Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
+                std::vector<Texture> textures);
         void draw(Shader& shader);
 
     private:
@@ -52,16 +51,16 @@ class Model
 
     private:
         // Model Data
-        vector<Mesh> meshes;
-        string directory;
-        set<string> texture_paths;
+        std::vector<Mesh> meshes;
+        std::string directory;
+        std::set<std::string> texture_paths;
 
         //functions
-        void loadModel(string path);
+        void loadModel(std::string path);
         void processNode(aiNode *node, const aiScene *scene);
         Mesh processMesh(aiMesh *mesh, const aiScene *scene);
-        vector<Texture> loadMaterialTextures(aiMaterial *mat, 
-                aiTextureType type, string typeName);
+        std::vector<Texture> loadMaterialTextures(aiMaterial *mat, 
+                aiTextureType type, std::string typeName);
 };
 
 

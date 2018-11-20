@@ -11,7 +11,7 @@
 
 using namespace std;
 
-Cube skyboxCube = Cube(glm::vec3(0, 0, 0));
+Cube skyboxCube(glm::vec3(0, 0, 0));
 
 unsigned int loadCubemap(vector<std::string> faces)
 {
