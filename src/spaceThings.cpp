@@ -1,6 +1,7 @@
 #include "spaceThings.h"
 #include "drawable.h"
 #include "timer.h"
+#include "shapes.h"
 
 #include <cstdlib>
 #include <algorithm>
@@ -127,11 +128,6 @@ void SpaceShip::loadModel(string type)
     if (models.find(type) == models.end()) {
         models[type] = Model(MODEL_PATHS[type].c_str());
     }
-    static bool sphereLoaded = false;
-    if (not sphereLoaded) {
-        sphere = Model("./res/models/quad/quad.obj");
-        sphereLoaded = true;
-    }
 }
 
 SpaceShip::SpaceShip(string type, System* system) :
@@ -221,7 +217,7 @@ void SpaceShip::drawWarp(const Shader& shader, glm::vec3 cameraPos)
     model = glm::rotate(model, angle, {1, 0, 0});
 
     shader.setCommon(UNIFORM_MODEL, model);
-    sphere.draw(shader);
+    shapes::quad3DXYTexCoord.draw();
 }
 
 

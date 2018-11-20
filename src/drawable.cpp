@@ -8,6 +8,100 @@
 
 using namespace std;
 
+DrawableFromVertexArray::DrawableFromVertexArray(
+		const float* vertices, int nVertices, int vertexSize)
+{
+	this->nVertices = nVertices;
+	this->vertexSize = vertexSize;
+
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, vertexSize * nVertices * sizeof(float), 
+			vertices, GL_STATIC_DRAW);
+}
+
+void DrawableFromVertexArray::addAttribute(unsigned int size)
+{
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glVertexAttribPointer(curAttribute, size, GL_FLOAT, GL_FALSE, 
+			vertexSize * sizeof(float), (void*) (curOffset * sizeof(float)));
+	glEnableVertexAttribArray(curAttribute);
+	curOffset += size;
+	curAttribute++;
+}
+
+std::unordered_map<int, int> DrawableInstance::indexCounts;
+std::unordered_map<int, std::vector<glm::mat4>> DrawableInstance::modelMats;
+
+DrawableInstance::DrawableInstance(unsigned int VAO, int indexCount, glm::mat4 model)
+{
+    this->VAO = VAO;
+    this->model = model;
+
+    // If we have't added the extra model attributes to this VAO do that
+    indexCounts[VAO] = indexCount;
+
+    // Update vertex attributes
+    glBindVertexArray(VAO);
+    for (int i = 0; i < 4; i ++) {
+         glEnableVertexAttribArray(i + 3); 
+         glVertexAttribPointer(i + 3, 4, GL_FLOAT, GL_FALSE, 
+                 4 * sizeof(glm::vec4), (void*)(i * sizeof(glm::vec4)));
+         glVertexAttribDivisor(i+3, 1);
+    }
+}
+
+void DrawableInstance::queueDraw()
+{
+    modelMats[VAO].push_back(model);
+}
+
+void DrawableInstance::drawQueue()
+{
+    // foreach VAO
+    for (auto pair : modelMats) {
+        unsigned int VAO = pair.first;
+        vector<glm::mat4> models = pair.second;
+
+        // Create model matrix buffer
+        unsigned int modelBuffer;
+        glGenBuffers(1, &modelBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, modelBuffer);
+        glBufferData(GL_ARRAY_BUFFER, models.size() * sizeof(glm::mat4),
+                &models[0], GL_STATIC_DRAW);
+
+        // Draw instances
+        glBindVertexArray(VAO);
+        glDrawElementsInstanced(GL_TRIANGLES, indexCounts[VAO], GL_UNSIGNED_INT, 
+                0, models.size());
+    }
+}
+
+vector<float> DrawableFromVertexArray::queue;
+
+void DrawableFromVertexArray::queueDraw()
+{
+	queue.push_back(VAO);
+	queue.push_back(nVertices);
+}
+
+void DrawableFromVertexArray::drawQueue()
+{
+	for (int i = 0; i < queue.size(); i += 2) {
+		glBindVertexArray(queue[i]);
+		glDrawArrays(GL_TRIANGLES, 0, queue[i+1]);
+	}
+    queue.clear();
+}
+
+void DrawableFromVertexArray::draw()
+{
+	glBindVertexArray(VAO);
+	glDrawArrays(GL_TRIANGLES, 0, nVertices);
+}
+
 unordered_set<Object*> Object::objects;
 
 Object::Object()
@@ -28,6 +122,11 @@ bool Object::isVisible()
 const std::unordered_set<Object*>& Object::getObjects()
 {
     return objects;
+}
+
+std::vector<Drawable> Object::getDrawables()
+{
+    return vector<Drawable>();
 }
 
 // TODO pretty sure these lights will never get destroyed automatically

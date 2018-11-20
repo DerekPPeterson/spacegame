@@ -11,7 +11,7 @@
 
 using namespace std;
 
-Cube skyboxCube(glm::vec3(0, 0, 0));
+Cube *skyboxCube;
 
 unsigned int loadCubemap(vector<std::string> faces)
 {
@@ -56,7 +56,8 @@ void Skybox::setupSkybox(string path)
 		path + "/back.png"
 	};
 	textureId = loadCubemap(faces);  
-    skyboxCube.setup();
+    skyboxCube = new Cube({0, 0, 0});
+    skyboxCube->setup();
 }
 
 void Skybox::draw(const Shader& shader) 
@@ -68,7 +69,7 @@ void Skybox::draw(const Shader& shader)
     shader.use();
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
     glActiveTexture(GL_TEXTURE0);
-    skyboxCube.draw(shader);
+    skyboxCube->draw(shader);
 
     glCullFace(GL_BACK);
     glDepthMask(GL_TRUE);

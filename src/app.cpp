@@ -17,6 +17,7 @@
 #include "framebuffer.h"
 #include "spaceThings.h"
 #include "timer.h"
+#include "shapes.h"
 
 using namespace std;
 
@@ -131,6 +132,7 @@ int main()
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // Load Models/textures
+    shapes::setup();
     Skybox skybox("./res/textures/lightblue");
     Cube::setup();
     Quad::setup();
@@ -142,7 +144,6 @@ int main()
     }
 
     Framebuffers framebuffers(SCREEN_WIDTH, SCREEN_HEIGHT);
-    Quad framebufferQuad({0, 0, 0});
 
 	glm::mat4 projection(1.0);
 	projection = glm::perspectiveRH((float) glm::radians(45.0), (float) SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 10000.0f);
@@ -285,7 +286,7 @@ int main()
         framebufferShader.setInt("hdrBuffer", 0);
         //glGenerateMipmap(GL_TEXTURE_2D);
         //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 1);
-        framebufferQuad.draw();
+        shapes::quad2DTexCoords.draw();
 
         // Blur bright areas for bloom
 		blurShader.use();
@@ -307,14 +308,6 @@ int main()
         //// Merge bloom and scene and draw result
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); 
         glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT );
-        //glDisable(GL_DEPTH_TEST);
-        //glActiveTexture(GL_TEXTURE0);
-        //glBindTexture(GL_TEXTURE_2D, framebuffers.warpFrameBuffer.colorTextures[0]);
-        //glActiveTexture(GL_TEXTURE1);
-        //glBindTexture(GL_TEXTURE_2D, framebuffers.pingpongBuffers[!horizontal].colorTextures[0]);
-        //blendShader.use();
-        //blendShader.setInt("hdrBuffer1", 1);
-        //framebufferQuad.draw();
         
         glDisable(GL_DEPTH_TEST);
         glActiveTexture(GL_TEXTURE0);
@@ -326,7 +319,7 @@ int main()
         blendShader.use();
         blendShader.setInt("hdrBuffer1", 1);
         blendShader.setInt("hdrBuffer2", 2);
-        framebufferQuad.draw();
+        shapes::quad2DTexCoords.draw();
 
         // check if any events are triggered
         glfwSwapBuffers(window);

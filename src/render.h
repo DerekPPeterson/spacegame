@@ -1,18 +1,27 @@
 #ifndef RENDER_H
 #define RENDER_H
 
-#include <vector>
+#include <unordered_set>
 
+
+enum RenderStage {
+    RENDER_NONE,
+    RENDER_SCENE,
+    RENDER_WARP
+};
+
+#ifndef JUST_RENDER_STAGES
+#define JUST_RENDER_STAGES
+
+#include "drawable.h"
 #include "framebuffer.h"
-#include "drawable.cpp"
-
 
 class Renderer
 {
     public:
         Renderer();
-    private:
-        vector<Object*>& objects;
+        void setup();
+        void loop();
 };
-
+#endif
 #endif

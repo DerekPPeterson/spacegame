@@ -3,13 +3,79 @@
 
 #include <vector>
 #include <memory>
+#include <unordered_map>
 #include <unordered_set>
 
 #include <glm/gtc/type_ptr.hpp>
 
 #include "shader.h"
 #include "model.h"
+#define JUST_RENDER_STAGES
+#include "render.h"
 #include "nocopy.h"
+
+class Drawable
+{
+    public:
+		Drawable() {};
+        virtual void queueDraw() {};
+        virtual void draw() 
+        {
+            queueDraw();
+            drawQueue();
+        };
+        virtual void setShader(const Shader *shader) {
+            this->shader = shader;
+        }
+        virtual void setRenderStage(RenderStage stage) {
+            this->stage = stage;
+        }
+        RenderStage stage = RENDER_NONE;
+
+        static void drawQueue() {};
+        void (*drawQueuePtr)() = drawQueue;;
+    private:
+        const Shader *shader = NULL;
+
+};
+
+class DrawableFromVertexArray : public Drawable
+{
+    public:
+		DrawableFromVertexArray() {};
+        DrawableFromVertexArray(const float* vertices, int nVertices, int vertexSize);
+        void addAttribute(unsigned int size);
+
+        virtual void queueDraw() override;
+        virtual void draw() override;
+
+        static void drawQueue();
+        void (*drawQueuePtr)() = drawQueue;
+    private:
+        int nVertices, vertexSize;
+		int curAttribute = 0;
+		int curOffset = 0;
+        unsigned int VAO, VBO;
+
+		static std::vector<float> queue;
+};
+
+class DrawableInstance : public Drawable
+{
+    public:
+        DrawableInstance() {};
+        DrawableInstance(unsigned int VAO, int indexCount, glm::mat4 model);
+        virtual void queueDraw() override;
+
+        static void drawQueue();
+        void (*drawQueuePtr)() = drawQueue;
+    private:
+        unsigned int VAO;
+        glm::mat4 model;
+
+        static std::unordered_map<int, int> indexCounts;
+        static std::unordered_map<int, std::vector<glm::mat4>> modelMats;
+};
 
 class Object : public non_copyable
 {
@@ -18,6 +84,7 @@ class Object : public non_copyable
         virtual void draw(const Shader& shader) const {};
         void setVisible(bool visible);
         bool isVisible();
+        virtual std::vector<Drawable> getDrawables();
 
         static const std::unordered_set<Object*>& getObjects();
 
