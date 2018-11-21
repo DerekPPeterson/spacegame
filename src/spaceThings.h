@@ -24,17 +24,16 @@ typedef struct Planet {
 } Planet;
 
 
-class System : public Object
-{
+class System : public Object , public Selectable {
     public:
         System() {};
         System(glm::vec3 position);
         void draw(Shader shader);
         glm::vec3 getPosition();
 
-    private:
+    protected:
         std::shared_ptr<Light> sun;
-        glm::vec3 position;
+        //glm::vec3 position;
         std::vector<Planet> planets;
         static Model sphere;
         static bool isSetup;
@@ -47,6 +46,7 @@ class SpaceGrid : public Object
         SpaceGrid();
         void draw(Shader shader);
         System* getSystem(int i, int j);
+        std::vector<System*> getAllSystems();
     private:
         std::shared_ptr<System> grid[4][4];
 };
@@ -61,7 +61,7 @@ class SpaceShip : public Object
         void gotoSystem(System *system);
         void update(float deltaTime);
     
-    private:
+    protected:
         std::string type;
         float length = 0.1;
         glm::vec3 position;

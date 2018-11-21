@@ -8,7 +8,22 @@
 
 using namespace std;
 
+bool Selectable::checkSetHover(const glm::mat4& projection, const glm::mat4& view, 
+        float mouseX, float mouseY,
+        int screenWidth, int screenHeight) 
+{
+    glm::vec4 clipCoords = 
+        projection * view * glm::vec4(position, 1);
+    glm::vec2 screenCoords(
+            (clipCoords.x / clipCoords.w + 1) / 2 * screenWidth, 
+            screenHeight - (clipCoords.y / clipCoords.w + 1) / 2 * screenHeight);
+    
+    cout << "Screen coords: " << screenCoords.x << " " << screenCoords.y << endl;
+    cout << "Mouse coords: " << mouseX << " " << mouseY << endl;
 
+    isHovered = glm::length(screenCoords - glm::vec2(mouseX, mouseY)) <= targetRadius;
+    return isHovered;
+}
 
 //Object::Object()
 //{
@@ -63,6 +78,11 @@ void PointLight::draw(Shader shader)
     model = glm::scale(model, glm::vec3(size, size, size));
     shader.setMat4("model", model);
     sphere.draw(shader);
+}
+
+void Light::setColor(glm::vec3 color)
+{
+    this->color = color;
 }
 
 Cube::Cube(glm::vec3 position)

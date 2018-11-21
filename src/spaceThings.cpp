@@ -70,6 +70,12 @@ void System::draw(Shader shader)
         shader.setVec3("diffuseColor", planet.color);
         sphere.draw(shader);
     }
+
+    if (isHovered) {
+        sun->setColor({5, 5, 15});
+    } else {
+        sun->setColor({10, 10, 10});
+    }
 }
 
 glm::vec3 System::getPosition()
@@ -112,6 +118,18 @@ void SpaceGrid::draw(Shader shader) {
 System* SpaceGrid::getSystem(int i, int j)
 {
     return grid[i][j].get();;
+}
+
+vector<System*> SpaceGrid::getAllSystems()
+{
+    vector<System*> systems;
+    systems.reserve(GRID_X * GRID_Y);
+    for (int i = 0; i < GRID_X; i++) {
+        for (int j = 0; j < GRID_Y; j++) {
+            systems.push_back(grid[i][j].get());
+        }
+    }
+    return systems;
 }
 
 map<string, Model> SpaceShip::models;

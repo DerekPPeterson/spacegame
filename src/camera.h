@@ -16,8 +16,8 @@ enum Camera_Movement {
 };
 
 // Default camera values
-const float YAW         = -90.0f;
-const float PITCH       =  0.0f;
+const float YAW         = 0.0f;
+const float PITCH       = -45.0;
 const float SPEED       =  50;
 const float SENSITIVITY =  0.1f;
 const float ZOOM        =  45.0f;
@@ -71,13 +71,13 @@ public:
     {
         float velocity = MovementSpeed * deltaTime;
         if (direction == FORWARD)
-            Position += Front * velocity;
+            Position += glm::vec3(1, 0, 0) * velocity;
         if (direction == BACKWARD)
-            Position -= Front * velocity;
+            Position -= glm::vec3(1, 0, 0) * velocity;
         if (direction == LEFT)
-            Position -= Right * velocity;
+            Position -= glm::vec3(0, 0, 1) * velocity;
         if (direction == RIGHT)
-            Position += Right * velocity;
+            Position += glm::vec3(0, 0, 1) * velocity;
     }
 
     // Processes input received from a mouse input system. Expects the offset value in both the x and y direction.
@@ -105,12 +105,7 @@ public:
     // Processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
     void ProcessMouseScroll(float yoffset)
     {
-        if (Zoom >= 1.0f && Zoom <= 45.0f)
-            Zoom -= yoffset;
-        if (Zoom <= 1.0f)
-            Zoom = 1.0f;
-        if (Zoom >= 45.0f)
-            Zoom = 45.0f;
+        Position += Front * SPEED * yoffset * 0.05f;
     }
 
 private:

@@ -20,11 +20,11 @@
 
 using namespace std;
 
-int SCREEN_WIDTH = 1600;
-int SCREEN_HEIGHT = 900;
+int SCREEN_WIDTH = 1000;
+int SCREEN_HEIGHT = 800;
 
 // camera
-Camera camera(glm::vec3(0.0f, 10.0f, 5));
+Camera camera(glm::vec3(-100.0f, 100.0f, 0));
 float lastX = SCREEN_WIDTH / 2.0f;
 float lastY = SCREEN_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -76,7 +76,13 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     lastX = xpos;
     lastY = ypos;
 
-    camera.ProcessMouseMovement(xoffset, yoffset);
+    //camera.ProcessMouseMovement(xoffset, yoffset);
+    cout << "Mouse position: " << xpos << " " << ypos << endl;
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    camera.ProcessMouseScroll(yoffset);
 }
 
 int main()
@@ -90,7 +96,7 @@ int main()
 
     // Create window object
     GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, 
-            "LearnOpenGL", glfwGetPrimaryMonitor(), NULL);
+            "LearnOpenGL", NULL, NULL);
     if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -100,7 +106,8 @@ int main()
     // set callback to resize viewport to window size if the window size is changed
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetScrollCallback(window, scroll_callback);
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 
     // Initialize GLAD : loads all opengl function pointers
@@ -197,14 +204,22 @@ int main()
         for (int i = 0; i < lights.size(); i++) {
             lights[i]->setUniforms(shader, i);
         }
+        for (auto s : spaceGrid.getAllSystems()) {
+            if (s->checkSetHover(projection, view, lastX, lastY, 
+                        SCREEN_WIDTH, SCREEN_HEIGHT)) {
+                for (int i = 0; i < ships.size(); i++) {
+                    ships[i]->gotoSystem(s);
+                }
+            }
+        }
 
         for (int i = 0; i < ships.size(); i++) {
-            if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS) {
-                ships[i]->gotoSystem(spaceGrid.getSystem(0, 0));
-            }
-            if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
-                ships[i]->gotoSystem(spaceGrid.getSystem(0, 1));
-            }
+            //if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS) {
+            //    ships[i]->gotoSystem(spaceGrid.getSystem(0, 0));
+            //}
+            //if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+            //    ships[i]->gotoSystem(spaceGrid.getSystem(0, 1));
+            //}
             ships[i]->update(deltaTime);
             ships[i]->draw(shader);
         }
