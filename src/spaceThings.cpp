@@ -207,20 +207,20 @@ void SpaceShip::draw(Shader shader) const
 
 void SpaceShip::drawWarp(Shader shader, glm::vec3 cameraPos)
 {
-    if (warp < 1.1) {
+    if (warp < 1.05) {
         return;
     }
-    glm::mat4 model = calcModelMat();
-    float warpScale = (10 / ((warp-3)*(warp-3) + 1) + warp) * 0.2;
-    model = glm::scale(model, glm::vec3(warpScale));
-    model = glm::scale(model, glm::vec3(1, 2, 1));
 
-    glm::vec3 modelCameraPos = glm::vec3(glm::inverse(model) * glm::vec4(cameraPos, 1));
-    float angle = glm::orientedAngle({0, 0, 1}, glm::normalize(glm::vec3(0, modelCameraPos.y, modelCameraPos.z)), {1, 0, 0});
+    glm::mat4 transforms = calcModelMat();
 
-    model = glm::rotate(model, angle, {1, 0, 0});
+    glm::vec3 modelCameraPos = glm::vec3(glm::inverse(transforms) * glm::vec4(cameraPos, 1));
+    glm::mat4 model = glm::inverse(glm::lookAt({0, 0, 0}, modelCameraPos, {0, 1, 0}));
+    
+    float warpScale = (10 / ((warp-3)*(warp-3) + 1) + warp) * 0.2 * min(warp - 1, 1.0f);
+    transforms = glm::scale(transforms, glm::vec3(warpScale));
+    transforms = glm::scale(transforms, glm::vec3(1, 2, 2));
 
-    shader.setCommon(UNIFORM_MODEL, model);
+    shader.setCommon(UNIFORM_MODEL, transforms * model);
     sphere.draw(shader);
 }
 
