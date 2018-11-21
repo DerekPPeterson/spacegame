@@ -60,7 +60,7 @@ glm::vec3 calcOrbitPosition(glm::vec3 systemPosition, Orbit &orbit)
     return position;
 }
 
-void System::draw(Shader shader) 
+void System::draw(Shader shader) const
 {
     for (auto planet : planets) {
         glm::mat4 planetModel = glm::translate(glm::mat4(1.0f), 
@@ -71,10 +71,22 @@ void System::draw(Shader shader)
         sphere.draw(shader);
     }
 
+}
+
+void System::update(float deltaTime)
+{
+    glm::vec3 colorChangeSpeed(-5, 10, 10);
+    float minblue = 10;
+    float maxBlue = 20;
+
     if (isHovered) {
-        sun->setColor({5, 5, 15});
+        if (sun->color.b <= maxBlue) {
+            sun->color += colorChangeSpeed * deltaTime;
+        }
     } else {
-        sun->setColor({10, 10, 10});
+        if (sun->color.b >= minblue) {
+            sun->color -= colorChangeSpeed * deltaTime;
+        }
     }
 }
 

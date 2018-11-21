@@ -29,6 +29,10 @@ float lastX = SCREEN_WIDTH / 2.0f;
 float lastY = SCREEN_HEIGHT / 2.0f;
 bool firstMouse = true;
 
+float rand_float_between2(float LO, float HI)
+{
+    return LO + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(HI-LO)));
+}
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -160,6 +164,8 @@ int main()
 
     Timer::create("frametime");
 
+    float intensityX = 0;
+
     // Keep going until window should close
     float offset = 0;
     while (!glfwWindowShouldClose(window))
@@ -205,6 +211,7 @@ int main()
             lights[i]->setUniforms(shader, i);
         }
         for (auto s : spaceGrid.getAllSystems()) {
+            s->update(deltaTime);
             if (s->checkSetHover(projection, view, lastX, lastY, 
                         SCREEN_WIDTH, SCREEN_HEIGHT)) {
                 for (int i = 0; i < ships.size(); i++) {
@@ -304,6 +311,7 @@ int main()
 
         // Blur bright areas for bloom
 		blurShader.use();
+        //float intensityChange = rand_float_between2(0, 2.0 * 3.141 * deltaTime);
 		for (unsigned int i = 0; i < amount; i++)
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.pingpongBuffers[horizontal].id); 

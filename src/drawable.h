@@ -27,6 +27,7 @@ class Object : public non_copyable
 {
     public:
         virtual void draw(Shader Shader) const {};
+        virtual void update(float deltaTime) {};
         bool visible = true;
 
     private:
@@ -79,7 +80,6 @@ class Light
         static std::shared_ptr<Light> makeLight(LightType type, glm::vec3 position, glm::vec3 color);
         static std::vector<std::shared_ptr<Light>> getAllLights();
 
-    protected:
         glm::vec3 color;
 
     private:
