@@ -23,11 +23,17 @@ class Selectable
         glm::vec3 position;
 };
 
+struct UpdateInfo
+{
+    float deltaTime;
+    float curTime;
+};
+
 class Object : public non_copyable
 {
     public:
         virtual void draw(Shader Shader) const {};
-        virtual void update(float deltaTime) {};
+        virtual void update(UpdateInfo& info) {};
         bool visible = true;
 
     private:

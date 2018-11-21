@@ -29,7 +29,7 @@ class System : public Object , public Selectable {
         System() {};
         System(glm::vec3 position);
         virtual void draw(Shader shader) const override;
-        virtual void update(float deltaTime) override;
+        virtual void update(UpdateInfo& info) override;
         glm::vec3 getPosition();
 
     protected:
@@ -60,7 +60,7 @@ class SpaceShip : public Object
         void draw(Shader shader) const override;
         void drawWarp(Shader shader, glm::vec3 cameraPos);
         void gotoSystem(System *system);
-        virtual void update(float deltaTime) override;
+        virtual void update(UpdateInfo& info) override;
     
     protected:
         std::string type;

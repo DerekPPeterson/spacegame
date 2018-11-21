@@ -73,19 +73,19 @@ void System::draw(Shader shader) const
 
 }
 
-void System::update(float deltaTime)
+void System::update(UpdateInfo& info)
 {
-    glm::vec3 colorChangeSpeed(-5, 10, 10);
+    glm::vec3 colorChangeSpeed(-5, 15, 20);
     float minblue = 10;
-    float maxBlue = 20;
+    float maxBlue = 50;
 
     if (isHovered) {
         if (sun->color.b <= maxBlue) {
-            sun->color += colorChangeSpeed * deltaTime;
+            sun->color += colorChangeSpeed * info.deltaTime;
         }
     } else {
         if (sun->color.b >= minblue) {
-            sun->color -= colorChangeSpeed * deltaTime;
+            sun->color -= colorChangeSpeed * info.deltaTime;
         }
     }
 }
@@ -192,31 +192,39 @@ float calculateWarp(glm::vec3 position, float margin, glm::vec3 start, glm::vec3
     return min(warp, maxWarpSpeed);
 }
 
-void SpaceShip::update(float deltaTime)
+void SpaceShip::update(UpdateInfo& info)
 {
     glm::vec3 targetPosition = calcOrbitPosition(curSystem->getPosition(), orbit);
     glm::vec3 targetDisplacement = targetPosition - position;
     glm::vec3 targetDirection = normalize(targetDisplacement);
     float targetAngle = glm::orientedAngle(direction, targetDirection, {0, 1, 0});
-    if (abs(targetAngle) > turnSpeed * deltaTime) {
-        float angle = turnSpeed * deltaTime * targetAngle / abs(targetAngle);
+
+    // Limit turn speed
+    if (abs(targetAngle) > turnSpeed * info.deltaTime) {
+        float angle = turnSpeed * info.deltaTime * targetAngle / abs(targetAngle);
         direction = glm::rotate(glm::mat4(1.0f), angle, {0, 1, 0}) * glm::vec4(direction, 1);
-        direction[1] = targetDirection[1];
+        direction[1] = targetDirection[1]; // Do not limit pitch change speed
         direction = normalize(direction);
     } else {
         direction = targetDirection;
     }
     
+    // Warp affects speed when far from planets
     warp = calculateWarp(position, 4.5, prevSystem->getPosition(), curSystem->getPosition());
+    
+    // Reduce speed when approching target position
     float decelDist = speed * 0.20;
     float curSpeed = speed;
     if (glm::length(targetDisplacement) < decelDist) {
         curSpeed = glm::length(targetDisplacement) / decelDist;
     }
-    glm::vec3 displacement = direction * curSpeed * warp * deltaTime;
+
+    // Do not overshoot target position
+    glm::vec3 displacement = direction * curSpeed * warp * info.deltaTime;
     if (glm::length(displacement) > glm::length(targetDisplacement)) {
         displacement = glm::length(targetDisplacement) * direction;
     }
+
     position += displacement;
 }
 

@@ -175,6 +175,9 @@ int main()
         frameTimes.push_back(deltaTime);
         processInput(window, camera, deltaTime);
         glm::mat4 view = camera.GetViewMatrix();
+        UpdateInfo updateInfo;
+        updateInfo.deltaTime = deltaTime;
+        updateInfo.curTime = Timer::get("start");
 
         // Clear the warp framebuffer before drawing the rest of the scene
         // because they both write to the same brightcolor texture
@@ -211,7 +214,7 @@ int main()
             lights[i]->setUniforms(shader, i);
         }
         for (auto s : spaceGrid.getAllSystems()) {
-            s->update(deltaTime);
+            s->update(updateInfo);
             if (s->checkSetHover(projection, view, lastX, lastY, 
                         SCREEN_WIDTH, SCREEN_HEIGHT)) {
                 for (int i = 0; i < ships.size(); i++) {
@@ -227,7 +230,7 @@ int main()
             //if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
             //    ships[i]->gotoSystem(spaceGrid.getSystem(0, 1));
             //}
-            ships[i]->update(deltaTime);
+            ships[i]->update(updateInfo);
             ships[i]->draw(shader);
         }
 
