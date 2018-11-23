@@ -3,6 +3,7 @@
 #include <string>
 #include <set>
 #include <stdio.h>
+#include <memory>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -12,6 +13,12 @@
 #include <assimp/postprocess.h>
 
 using namespace std;
+
+
+unique_ptr<Renderable> Mesh::getRenderable()
+{
+    return unique_ptr<Renderable>(new MeshRenderable(VAO, indices.size()));
+}
 
 Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices,
                 vector<Texture> textures) 
@@ -208,5 +215,15 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial *mat,
         textures.push_back(texture);
     }
     return textures;
+}
+
+
+vector<unique_ptr<Renderable>> Model::getRenderables()
+{
+     vector<unique_ptr<Renderable>> renderables;
+     for (auto mesh : meshes) {
+         renderables.push_back(move(mesh.getRenderable()));
+     }
+     return renderables;
 }
 

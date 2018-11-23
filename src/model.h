@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <set>
+#include <memory>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -10,6 +11,7 @@
 #include <assimp/scene.h>
 
 #include "shader.h"
+#include "renderables.h"
 
 
 struct Vertex {
@@ -33,6 +35,7 @@ class Mesh
         Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
                 std::vector<Texture> textures);
         void draw(Shader& shader);
+        std::unique_ptr<Renderable> getRenderable();
 
     private:
         unsigned int VAO, VBO, EBO;
@@ -48,6 +51,7 @@ class Model
             loadModel(path);
         }
         void draw(Shader shader);
+        std::vector<std::unique_ptr<Renderable>> getRenderables();
 
     private:
         // Model Data
