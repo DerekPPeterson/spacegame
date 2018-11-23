@@ -25,7 +25,7 @@ struct Texture {
     std::string type;
 };
 
-class Mesh
+class Mesh : virtual public MeshRenderable
 {
     public:
         std::vector<Vertex> vertices;
@@ -34,15 +34,14 @@ class Mesh
 
         Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
                 std::vector<Texture> textures);
-        void draw(Shader& shader);
-        std::unique_ptr<Renderable> getRenderable();
+        void draw(Shader& shader) override;
 
     private:
-        unsigned int VAO, VBO, EBO;
+        unsigned int VBO, EBO;
         void setupMesh();
 };
 
-class Model
+class Model : public Renderable
 {
     public:
         Model() {};
@@ -50,8 +49,7 @@ class Model
         {
             loadModel(path);
         }
-        void draw(Shader shader);
-        std::vector<std::unique_ptr<Renderable>> getRenderables();
+        void draw(Shader& shader) override;
 
     private:
         // Model Data

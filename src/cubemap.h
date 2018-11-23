@@ -11,32 +11,34 @@
 #include "shader.h"
 #include "nocopy.h"
 #include "renderables.h"
+#include "model.h"
 
-class SkyboxRenderable : public Renderable
-{
-    public:
-        SkyboxRenderable(unsigned int VAO, unsigned int textureId) :
-            VAO(VAO), textureId(textureId) {};
-        virtual void draw() override;
-    private:
-        unsigned int VAO, textureId;
-};
+//class SkyboxRenderable : virtual public Renderable
+//{
+//    public:
+//        SkyboxRenderable(std::unique_ptr<Renderable> cube, unsigned int textureId) :
+//            cube(std::move(cube)), textureId(textureId) {};
+//        virtual void draw() override;
+//    private:
+//        unsigned int textureId;
+//        std::unique_ptr<Renderable> cube;
+//};
 
-class Skybox  
+class Skybox: public Renderable
 {
     public:
 		unsigned int textureId;
 
-        Skybox(std::string path)
+        Skybox(std::string path) :
+            cubeModel(Model("./res/models/cube.obj"))
         {
             setupSkybox(path);
+            stage = SHADER_SKYBOX;
         }
-        void draw(Shader shader);
-        std::unique_ptr<Renderable*> getRenderable();
+        void draw(Shader& shader) override;
         
-
     private:
-        unsigned int VAO, VBO;
+        Model cubeModel;
         void setupSkybox(std::string path);
 };
 

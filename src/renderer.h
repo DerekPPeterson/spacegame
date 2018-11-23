@@ -19,24 +19,6 @@
 //#include "model.h"
 #include "renderables.h"
 
-/** 
- * Each enum refers to a particular shader
- * Also used as an indication in a RenderableInstance as to when it should
- * be rendered
- */
-enum ShaderEnum {
-    SHADER_LIGHTING, // Main scene
-    SHADER_SIMPLE_DIFFUSE,  // Main scene
-    SHADER_BLEND,
-    SHADER_FRAMEBUFFER,
-    SHADER_BLUR,
-    SHADER_LAMP,            // Main scene
-    SHADER_SKYBOX,
-    SHADER_WARP_STEP1,      // During warp step
-    SHADER_WARP_STEP2
-};
-
-
 struct RenderOptions
 {
     int screenWidth = 1000;
@@ -50,6 +32,7 @@ class Renderer
         Renderer(RenderOptions options, Camera& camera);
         void start(std::function<void()>);
         void stop();
+        std::vector<Renderable*> toRender;
 
     private:
         RenderOptions options;
@@ -64,9 +47,10 @@ class Renderer
         void loop(std::function<void()>);
 
         void renderMainScene();
-        void renderWarpEffects(glm::mat4 view, glm::mat4 projection);
+        void renderWarpEffects();
         int renderBloom();
         void mergeEffects(int);
+        std::vector<Renderable*> getRenderablesForStage(ShaderEnum stage);
 };
 
 #endif 

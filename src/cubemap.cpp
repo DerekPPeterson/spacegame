@@ -13,21 +13,26 @@ using namespace std;
 
 Cube skyboxCube(glm::vec3(0, 0, 0));
 
-void SkyboxRenderable::draw() 
-{
-    glDepthMask(GL_FALSE);
-    glDepthFunc(GL_LEQUAL);
-    glCullFace(GL_FRONT);
+//void SkyboxRenderable::draw(Shader shader) 
+//{
+//    glDepthMask(GL_FALSE);
+//    glDepthFunc(GL_LEQUAL);
+//    glCullFace(GL_FRONT);
+//
+//    //TODO fix this
+//    glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
+//    glActiveTexture(GL_TEXTURE0);
+//    cube->draw();
+//
+//    glCullFace(GL_BACK);
+//    glDepthMask(GL_TRUE);
+//}
 
-    //TODO fix this
-    //shader.use();
-    glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
-    glActiveTexture(GL_TEXTURE0);
-    //skyboxCube.draw(shader);
 
-    glCullFace(GL_BACK);
-    glDepthMask(GL_TRUE);
-}
+//std::unique_ptr<Renderable> Skybox::getRenderable()
+//{
+//    return unique_ptr<Renderable>(new SkyboxRenderable(std::, textureId));
+//}
 
 unsigned int loadCubemap(vector<std::string> faces)
 {
@@ -75,7 +80,7 @@ void Skybox::setupSkybox(string path)
     skyboxCube.setup();
 }
 
-void Skybox::draw(Shader shader) 
+void Skybox::draw(Shader& shader) 
 {
     glDepthMask(GL_FALSE);
     glDepthFunc(GL_LEQUAL);
@@ -84,7 +89,7 @@ void Skybox::draw(Shader shader)
     shader.use();
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
     glActiveTexture(GL_TEXTURE0);
-    skyboxCube.draw(shader);
+    cubeModel.draw(shader);
 
     glCullFace(GL_BACK);
     glDepthMask(GL_TRUE);

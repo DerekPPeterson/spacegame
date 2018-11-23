@@ -15,13 +15,9 @@
 using namespace std;
 
 
-unique_ptr<Renderable> Mesh::getRenderable()
-{
-    return unique_ptr<Renderable>(new MeshRenderable(VAO, indices.size()));
-}
-
 Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices,
-                vector<Texture> textures) 
+                vector<Texture> textures) :
+    MeshRenderable(0 /* VAO set by setupMesh */, indices.size()) 
 {
     this->vertices = vertices;
     this->indices = indices;
@@ -89,7 +85,7 @@ void Mesh::draw(Shader& shader)
     glBindVertexArray(0);
 }
 
-void Model::draw(Shader shader)
+void Model::draw(Shader& shader)
 {
     for (int i = 0; i < meshes.size(); i++) {
         meshes[i].draw(shader);
@@ -216,14 +212,3 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial *mat,
     }
     return textures;
 }
-
-
-vector<unique_ptr<Renderable>> Model::getRenderables()
-{
-     vector<unique_ptr<Renderable>> renderables;
-     for (auto mesh : meshes) {
-         renderables.push_back(move(mesh.getRenderable()));
-     }
-     return renderables;
-}
-

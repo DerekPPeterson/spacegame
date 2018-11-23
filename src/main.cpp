@@ -13,7 +13,7 @@
 //#include "shader.h"
 //#include "camera.h"
 //#include "model.h"
-//#include "cubemap.h"
+#include "cubemap.h"
 //#include "drawable.h"
 //#include "framebuffer.h"
 //#include "spaceThings.h"
@@ -21,6 +21,8 @@
 
 
 #include "renderer.h"
+
+using namespace std;
 
 GLFWwindow* setupOpenGlContext(int SCREEN_WIDTH, int SCREEN_HEIGHT)
 {
@@ -73,6 +75,9 @@ int main()
     Renderer renderer(
             {.screenWidth=1000, .screenHeight=800, .fullscreen=false},
             camera);
+
+    Skybox skybox("./res/textures/lightblue/");
+    renderer.toRender.push_back(&skybox);
 
     auto swapWindowsCallback = [window]() {glfwSwapBuffers(window);};
     renderer.start(swapWindowsCallback);

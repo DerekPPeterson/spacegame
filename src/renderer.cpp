@@ -24,6 +24,7 @@ MeshRenderable createFramebufferQuad()
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
 
+    glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices[0], GL_STATIC_DRAW);
 
@@ -37,7 +38,7 @@ MeshRenderable createFramebufferQuad()
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 
             (void*) (sizeof(float) * 2));
     
-    return MeshRenderable(VAO, sizeof(indices) / sizeof(float));
+    return MeshRenderable(VAO, sizeof(indices) / sizeof(indices[0]));
 };
 
 void Renderer::compileLinkShaders()
@@ -93,13 +94,21 @@ void Renderer::renderMainScene()
     glEnable(GL_CULL_FACE);  
    
     glClearColor(0, 0, 0, 1);
-    glClear(GL_DEPTH_BUFFER_BIT);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
     // TODO render main scene
     // TODO render skybox
+
+    shaders[SHADER_SKYBOX].use();
+    glm::mat4 skyboxView = glm::mat4(glm::mat3(camera.GetViewMatrix()));  
+    shaders[SHADER_SKYBOX].setMat4("view", skyboxView);
+    shaders[SHADER_SKYBOX].setMat4("projection", projection);
+    for (auto r : getRenderablesForStage(SHADER_SKYBOX)) {
+        r->draw(shaders[SHADER_SKYBOX]);
+    }
 }
 
-void Renderer::renderWarpEffects(glm::mat4 view, glm::mat4 projection)
+void Renderer::renderWarpEffects()
 {
     Shader warpShader1 = shaders[SHADER_WARP_STEP1];
     Shader warpShader2 = shaders[SHADER_WARP_STEP2];
@@ -108,7 +117,7 @@ void Renderer::renderWarpEffects(glm::mat4 view, glm::mat4 projection)
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.normalBlendFramebuffer.id);
     glClear(GL_COLOR_BUFFER_BIT);
     warpShader1.use();
-    warpShader1.setMat4("view", view);
+    warpShader1.setMat4("view", camera.GetViewMatrix());
     warpShader1.setMat4("projection", projection);
     warpShader1.setVec2("screenSize", {options.screenWidth, options.screenHeight});
     glActiveTexture(GL_TEXTURE1);
@@ -133,7 +142,7 @@ void Renderer::renderWarpEffects(glm::mat4 view, glm::mat4 projection)
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.warpFrameBuffer.id);
     //glClear(GL_COLOR_BUFFER_BIT);
     warpShader2.use();
-    warpShader2.setMat4("view", view);
+    warpShader2.setMat4("view", camera.GetViewMatrix());
     warpShader2.setMat4("projection", projection);
     warpShader2.setVec2("screenSize", {options.screenWidth, options.screenHeight});
     glActiveTexture(GL_TEXTURE1);
@@ -167,7 +176,7 @@ int Renderer::renderBloom()
     framebufferShader.setInt("hdrBuffer", 0);
     //glGenerateMipmap(GL_TEXTURE_2D);
     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 1);
-    framebufferQuad.draw();
+    framebufferQuad.draw(framebufferShader);
 
     // Blur bright areas for bloom
     blurShader.use();
@@ -181,7 +190,7 @@ int Renderer::renderBloom()
         ); 
 
         glActiveTexture(GL_TEXTURE0);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        framebufferQuad.draw(blurShader);
 
         horizontal = !horizontal;
     }
@@ -213,18 +222,30 @@ void Renderer::mergeEffects(int bloomOutputTextureNo)
     blendShader.use();
     blendShader.setInt("hdrBuffer1", 1);
     blendShader.setInt("hdrBuffer2", 2);
-    framebufferQuad.draw();
+    framebufferQuad.draw(blendShader);
 }
 
 void Renderer::loop(function<void()> swapWindowBufferCallback) 
 {
     renderMainScene();
-    renderWarpEffects(camera.GetViewMatrix(), projection);
+    renderWarpEffects();
     // TODO better way to pass this info?
     int buffno = renderBloom();
     mergeEffects(buffno);
 
     // TODO swap buffer function here?
     swapWindowBufferCallback();
+}
+
+
+std::vector<Renderable*> Renderer::getRenderablesForStage(ShaderEnum stage)
+{
+    vector<Renderable*> ret;
+    for (auto r : toRender) {
+        if (r->stage == stage) {
+            ret.push_back(r);
+        }
+    }
+    return ret;
 }
 
