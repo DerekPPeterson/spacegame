@@ -89,7 +89,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
     camera.ProcessMouseScroll(yoffset);
 }
 
-int main()
+//int main()
+int main_old()
 {
     srand(time(0));
     //Initialize glfw
