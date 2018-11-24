@@ -87,15 +87,6 @@ void Renderer::renderMainScene()
     //glClearColor(0, 0, 0, 1);
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    for (auto r : toRender) {
-        if (r->stage & (SHADER_LIGHTING | 
-                        SHADER_SIMPLE_DIFFUSE | 
-                        SHADER_LAMP |
-                        SHADER_SKYBOX)) {
-            r->queueDraw();
-        }
-    }
-
     // TODO improve uniform setting
     shaders[SHADER_LAMP].use();
     shaders[SHADER_LAMP].setMat4("view", camera.GetViewMatrix());
@@ -147,6 +138,7 @@ void Renderer::renderWarpEffects()
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, framebuffers.mainFramebuffer.colorTextures[0]);
     warpShader1.setInt("hdrBuffer", 1);
+    Renderable::drawStage(SHADER_WARP_STEP1, shaders[SHADER_WARP_STEP1]);
 
     // TODO draw warp effects
     
@@ -175,10 +167,7 @@ void Renderer::renderWarpEffects()
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, framebuffers.normalBlendFramebuffer.colorTextures[0]);
     warpShader2.setInt("normalAdjustBuffer", 2);
-    //TODO draw warpeffects
-    //for (int i = 0; i < ships.size(); i++) {
-    //    ships[i]->drawWarp(warpShader2, camera.Position);
-    //}
+    Renderable::drawStage(SHADER_WARP_STEP2, shaders[SHADER_WARP_STEP2]);
 }
 
 int Renderer::renderBloom()
@@ -252,6 +241,9 @@ void Renderer::mergeEffects(int bloomOutputTextureNo)
 void Renderer::renderFrame() 
 {
     toRenderMutex.lock();
+    for (auto r : toRender) {
+        r->queueDraw();
+    }
     renderMainScene();
     renderWarpEffects();
     toRenderMutex.unlock();

@@ -134,9 +134,12 @@ int main()
     while(not glfwWindowShouldClose(window))
     {
         // TODO come up with a general update setup
-        UpdateInfo info = {1.0f / 60, Timer::get("frametime")};
-        cout << "Time: " << info.curTime << endl;
-        cout << "DeltaTime: " << info.deltaTime << endl;
+        // TODO fix the deltatime not working
+        UpdateInfo info; 
+        info.deltaTime = Timer::getDelta("frametime");
+        info.curTime = Timer::get("frametime");
+        info.cameraPos = camera.Position;
+
         for (auto& s : ships) {
             s->update(info);
         }
@@ -156,7 +159,7 @@ int main()
         renderer.renderFrame();
         glfwSwapBuffers(window);
         glfwPollEvents();
-        processInput(window, camera, Timer::getDelta("frametime"));
+        processInput(window, camera, info.deltaTime);
     };
 
     return 0;

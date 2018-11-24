@@ -191,11 +191,11 @@ SpaceShip::SpaceShip(string type, System* system) :
 {
     this->type = type;
     loadModel(type);
-    position = calcOrbitPosition(curSystem->getPosition(), orbit);
     orbit.phase = rand_float_between(0, 2 * 3.14);
     orbit.inclination = rand_float_between(0, 3.14 / 3);
     orbit.radius = rand_float_between(1, 3);
-    stage = SHADER_LIGHTING;
+    position = calcOrbitPosition(curSystem->getPosition(), orbit);
+    stage = SHADER_LIGHTING | SHADER_WARP_STEP1;
 }
 
 float calculateWarp(glm::vec3 position, float margin, glm::vec3 start, glm::vec3 end)
@@ -249,6 +249,9 @@ void SpaceShip::update(UpdateInfo& info)
     }
 
     position += displacement;
+
+    // Update camera pos for later use during drawWarp
+    cameraPos = info.cameraPos;
 }
 
 glm::mat4 SpaceShip::calcModelMat() const
@@ -266,7 +269,7 @@ void SpaceShip::draw(Shader& shader)
     models[type].draw(shader);
 }
 
-void SpaceShip::drawWarp(Shader shader, glm::vec3 cameraPos)
+void SpaceShip::drawWarp(Shader& shader)
 {
     if (warp < 1.05) {
         return;

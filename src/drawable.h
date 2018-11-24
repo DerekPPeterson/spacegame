@@ -27,6 +27,7 @@ struct UpdateInfo
 {
     float deltaTime;
     float curTime;
+    glm::vec3 cameraPos;
 };
 
 class Object : public non_copyable

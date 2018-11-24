@@ -63,7 +63,7 @@ class SpaceShip : public Object, public Renderable
     public:
         SpaceShip(std::string type, System *system);
         virtual void draw(Shader& shader) override;
-        void drawWarp(Shader shader, glm::vec3 cameraPos);
+        virtual void drawWarp(Shader& shader) override;
         void gotoSystem(System *system);
         virtual void update(UpdateInfo& info) override;
     
@@ -74,6 +74,7 @@ class SpaceShip : public Object, public Renderable
         System* curSystem;
         System* prevSystem;
         Orbit orbit;
+        glm::vec3 cameraPos;
 
         // +xaxis of model will be front of ship
         glm::vec3 direction = {1, 0, 0};

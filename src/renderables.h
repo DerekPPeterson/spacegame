@@ -1,7 +1,11 @@
 #ifndef RENDERERABLES_H
 #define RENDERERABLES_H
 
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <vector>
+#include <memory>
 #include <unordered_map>
 #include "shader.h"
 
@@ -26,8 +30,8 @@ enum ShaderEnum {
 class Renderable;
 
 // Map shader type -> queue draw function -> pointers to renderables to draw
-typedef std::unordered_map<ShaderEnum, 
-        std::unordered_map<void (*)(Shader&, std::vector<Renderable*>), 
+typedef std::unordered_map<int, 
+        std::unordered_map<void (*)(ShaderEnum, Shader&, std::vector<Renderable*>), 
             std::vector<Renderable*>>> RenderableQueues;
 
 class Renderable
@@ -35,12 +39,16 @@ class Renderable
     public:
         virtual void queueDraw();
         virtual void draw(Shader& shader) {};
+        virtual void drawWarp(Shader& shader) {};
         static void drawStage(ShaderEnum stage, Shader& shader);
-        ShaderEnum stage = SHADER_NONE;
+        virtual void setStage(ShaderEnum stage) {this->stage = stage;};
+        unsigned int stage = SHADER_NONE;
     private:
         static RenderableQueues queues;
 
-        static void drawQueue(Shader& shader, std::vector<Renderable*> queue);
+        static void drawQueue(ShaderEnum drawingStage, Shader& shader, std::vector<Renderable*> queue);
+
+        friend class WarpRenderable;
 };
 
 class MeshRenderable : virtual public Renderable
