@@ -4,25 +4,26 @@
 
 using namespace std;
 
-std::unordered_map<void (*)(Shader&, std::vector<Renderable>), 
-    std::vector<Renderable>> Renderable::drawQueues;
+RenderableQueues Renderable::queues;
 
-void Renderable::queueDraw()
-{
-    drawQueues[drawQueue].push_back(*this);
+void Renderable::queueDraw() {
+    queues[stage][drawQueue].push_back(this);
 }
 
-void Renderable::drawAllQueues(Shader& shader)
+void Renderable::drawStage(ShaderEnum stage, Shader& shader)
 {
-    for (auto p : drawQueues) {
+    for (auto p : queues[stage]) {
         p.first(shader, p.second);
     }
+    queues[stage].clear();
 };
 
-void Renderable::drawQueue(Shader& shader, vector<Renderable> renderables)
+void Renderable::drawQueue(Shader& shader, vector<Renderable*> renderables)
 {
     for (auto renderable : renderables) {
-        renderable.draw(shader);
+        // TODO probably want to not print this all the time
+        cout << "Rendering a " << typeid(*renderable).name() << endl;
+        renderable->draw(shader);
     }
 }
 

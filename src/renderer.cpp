@@ -2,6 +2,10 @@
 #include "timer.h"
 #include "model.h"
 
+// TODO change drawable name
+#include "drawable.h"
+
+
 using namespace std;
 
 MeshRenderable createFramebufferQuad()
@@ -66,19 +70,7 @@ Renderer::Renderer(RenderOptions options, Camera& camera) :
             (float) options.screenWidth / options.screenHeight, 0.1f, 10000.0f);
     compileLinkShaders(); // TODO auto gen cpp code for shaders
     Timer::create("renderer_start");
-}
-
-void Renderer::start(function<void()> swapWindowBufferCallback)
-{
-    //TODO end condition /multithread
-    while (true) {
-        loop(swapWindowBufferCallback);
-    }
-}
-
-void Renderer::stop() 
-{
-    //TODO fill in if using threads
+    PointLight::setup();
 }
 
 void Renderer::renderMainScene()
@@ -88,24 +80,56 @@ void Renderer::renderMainScene()
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.warpFrameBuffer.id);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // Actually render scene
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.mainFramebuffer.id);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);  
    
-    glClearColor(0, 0, 0, 1);
-    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    //glClearColor(0, 0, 0, 1);
+    glClear(GL_DEPTH_BUFFER_BIT);
 
-    // TODO render main scene
-    // TODO render skybox
+    for (auto r : toRender) {
+        if (r->stage & (SHADER_LIGHTING | 
+                        SHADER_SIMPLE_DIFFUSE | 
+                        SHADER_LAMP |
+                        SHADER_SKYBOX)) {
+            r->queueDraw();
+        }
+    }
+
+    // TODO improve uniform setting
+    shaders[SHADER_LAMP].use();
+    shaders[SHADER_LAMP].setMat4("view", camera.GetViewMatrix());
+    shaders[SHADER_LAMP].setMat4("projection", projection);
+    Renderable::drawStage(SHADER_LAMP, shaders[SHADER_LAMP]);
+
+    std::vector<std::shared_ptr<Light>> lights = Light::getAllLights();
+    shaders[SHADER_SIMPLE_DIFFUSE].use();
+    for (int i = 0; i < lights.size(); i++) {
+        lights[i]->setUniforms(shaders[SHADER_SIMPLE_DIFFUSE], i);
+    }
+    shaders[SHADER_SIMPLE_DIFFUSE].setMat4("view", camera.GetViewMatrix());
+    shaders[SHADER_SIMPLE_DIFFUSE].setMat4("projection", projection);
+    shaders[SHADER_SIMPLE_DIFFUSE].setVec3("viewPos", camera.Position);
+    shaders[SHADER_SIMPLE_DIFFUSE].setInt("numPointLights", lights.size());
+    shaders[SHADER_SIMPLE_DIFFUSE].setFloat("ambientStrength", 0.0);
+    Renderable::drawStage(SHADER_SIMPLE_DIFFUSE, shaders[SHADER_SIMPLE_DIFFUSE]);
+    
+    shaders[SHADER_LIGHTING].use();
+    shaders[SHADER_LIGHTING].setMat4("view", camera.GetViewMatrix());
+    shaders[SHADER_LIGHTING].setMat4("projection", projection);
+    shaders[SHADER_LIGHTING].setVec3("viewPos", camera.Position);
+    shaders[SHADER_LIGHTING].setInt("numPointLights", lights.size());
+    shaders[SHADER_LIGHTING].setFloat("ambientStrength", 0.00);
+    for (int i = 0; i < lights.size(); i++) {
+        lights[i]->setUniforms(shaders[SHADER_LIGHTING], i);
+    }
+    Renderable::drawStage(SHADER_LIGHTING, shaders[SHADER_SIMPLE_DIFFUSE]);
 
     shaders[SHADER_SKYBOX].use();
     glm::mat4 skyboxView = glm::mat4(glm::mat3(camera.GetViewMatrix()));  
     shaders[SHADER_SKYBOX].setMat4("view", skyboxView);
     shaders[SHADER_SKYBOX].setMat4("projection", projection);
-    for (auto r : getRenderablesForStage(SHADER_SKYBOX)) {
-        r->draw(shaders[SHADER_SKYBOX]);
-    }
+    Renderable::drawStage(SHADER_SKYBOX, shaders[SHADER_SKYBOX]);
 }
 
 void Renderer::renderWarpEffects()
@@ -225,16 +249,15 @@ void Renderer::mergeEffects(int bloomOutputTextureNo)
     framebufferQuad.draw(blendShader);
 }
 
-void Renderer::loop(function<void()> swapWindowBufferCallback) 
+void Renderer::renderFrame() 
 {
+    toRenderMutex.lock();
     renderMainScene();
     renderWarpEffects();
+    toRenderMutex.unlock();
     // TODO better way to pass this info?
     int buffno = renderBloom();
     mergeEffects(buffno);
-
-    // TODO swap buffer function here?
-    swapWindowBufferCallback();
 }
 
 
@@ -247,5 +270,11 @@ std::vector<Renderable*> Renderer::getRenderablesForStage(ShaderEnum stage)
         }
     }
     return ret;
+}
+
+void Renderer::addRenderable(Renderable* r)
+{
+    std::lock_guard<std::mutex> guard(toRenderMutex);
+    toRender.push_back(r);
 }
 

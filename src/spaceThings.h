@@ -11,6 +11,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "renderables.h"
+
 typedef struct Orbit {
     float radius;
     float phase;
@@ -24,16 +26,17 @@ typedef struct Planet {
 } Planet;
 
 
-class System : public Object , public Selectable {
+class System : public Object , public Selectable, public Renderable{
     public:
         System() {};
         System(glm::vec3 position);
-        virtual void draw(Shader shader) const override;
+        virtual void draw(Shader& shader) override;
+        virtual void queueDraw() override;
         virtual void update(UpdateInfo& info) override;
         glm::vec3 getPosition();
 
     protected:
-        std::shared_ptr<Light> sun;
+        std::shared_ptr<PointLight> sun;
         //glm::vec3 position;
         std::vector<Planet> planets;
         static Model sphere;
@@ -41,11 +44,12 @@ class System : public Object , public Selectable {
         void setup();
 };
 
-class SpaceGrid : public Object
+class SpaceGrid : public Object, public Renderable
 {
     public:
         SpaceGrid();
-        void draw(Shader shader);
+        void draw(Shader& shader) override;
+        void queueDraw() override;
         System* getSystem(int i, int j);
         std::vector<System*> getAllSystems();
     private:
@@ -53,11 +57,12 @@ class SpaceGrid : public Object
 };
 
 
-class SpaceShip : public Object
+// TODO use an instance renderer
+class SpaceShip : public Object, public Renderable
 {
     public:
         SpaceShip(std::string type, System *system);
-        void draw(Shader shader) const override;
+        virtual void draw(Shader& shader) override;
         void drawWarp(Shader shader, glm::vec3 cameraPos);
         void gotoSystem(System *system);
         virtual void update(UpdateInfo& info) override;

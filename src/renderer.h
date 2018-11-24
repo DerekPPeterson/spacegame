@@ -4,6 +4,8 @@
 #include <string>
 #include <unordered_map>
 #include <functional>
+#include <thread>
+#include <mutex>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -30,9 +32,10 @@ class Renderer
 {
     public:
         Renderer(RenderOptions options, Camera& camera);
-        void start(std::function<void()>);
-        void stop();
-        std::vector<Renderable*> toRender;
+        void renderFrame();
+        void addRenderable(Renderable* r);
+        // TODO best interface for this?
+        glm::mat4 getProjection() {return projection;};
 
     private:
         RenderOptions options;
@@ -40,11 +43,11 @@ class Renderer
         Framebuffers framebuffers;
         glm::mat4 projection;
         std::unordered_map<ShaderEnum, Shader> shaders;
-        // TODO remove this for a Renderable
         MeshRenderable framebufferQuad;
+        std::vector<Renderable*> toRender;
+        std::mutex toRenderMutex;
 
         void compileLinkShaders();
-        void loop(std::function<void()>);
 
         void renderMainScene();
         void renderWarpEffects();

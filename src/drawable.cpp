@@ -60,6 +60,7 @@ PointLight::PointLight(glm::vec3 position, glm::vec3 color)
 {
     this->position = position;
     this->color = color;
+    stage = SHADER_LAMP;
 }
 
 void PointLight::setUniforms(Shader shader, int iPointLight)
@@ -71,7 +72,7 @@ void PointLight::setUniforms(Shader shader, int iPointLight)
     shader.setVec3(arrayElem + ".attenuation", attenuation);
 }
 
-void PointLight::draw(Shader shader)
+void PointLight::draw(Shader& shader)
 {
     shader.setVec3("color", color);
     glm::mat4 model = glm::translate(glm::mat4(1.0f), position);

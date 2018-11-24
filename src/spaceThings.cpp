@@ -18,12 +18,14 @@ float rand_float_between(float LO, float HI)
 }
 
 System::System(glm::vec3 position)
-{ if (not isSetup) {
+{ 
+    if (not isSetup) {
         setup();
     };
 
     this->position = position;
-    sun = Light::makeLight(LIGHT_POINT, position, glm::vec3(10, 10, 10));
+    sun = dynamic_pointer_cast<PointLight>(
+            Light::makeLight(LIGHT_POINT, position, glm::vec3(10, 10, 10)));
 
     int nPlanets = rand() % 7 + 1;
     float spacing = 1.6;
@@ -43,6 +45,8 @@ System::System(glm::vec3 position)
 
         planets.push_back(new_planet);
     }
+
+    stage = SHADER_SIMPLE_DIFFUSE;
 }
 
 glm::vec3 calcOrbitPosition(glm::vec3 systemPosition, Orbit &orbit)
@@ -60,7 +64,7 @@ glm::vec3 calcOrbitPosition(glm::vec3 systemPosition, Orbit &orbit)
     return position;
 }
 
-void System::draw(Shader shader) const
+void System::draw(Shader& shader) 
 {
     for (auto planet : planets) {
         glm::mat4 planetModel = glm::translate(glm::mat4(1.0f), 
@@ -70,7 +74,17 @@ void System::draw(Shader shader) const
         shader.setVec3("diffuseColor", planet.color);
         sphere.draw(shader);
     }
+}
 
+void System::queueDraw()
+{
+    sun->queueDraw();
+    for (auto& planet : planets) {
+        //TODO queue instance draw for each planet
+        //planet.queueDraw();
+    }
+    // Instead use current method to draw planets
+    Renderable::queueDraw();
 }
 
 void System::update(UpdateInfo& info)
@@ -116,13 +130,21 @@ SpaceGrid::SpaceGrid()
             grid[i][j] = shared_ptr<System>(new System(position));
         }
     }
-
+    stage = SHADER_LAMP;
 }
 
-void SpaceGrid::draw(Shader shader) {
+void SpaceGrid::draw(Shader& shader) {
     for (int i = 0; i < GRID_X; i++) {
         for (int j = 0; j < GRID_Y; j++) {
             grid[i][j]->draw(shader);
+        }
+    }
+}
+
+void SpaceGrid::queueDraw() {
+    for (int i = 0; i < GRID_X; i++) {
+        for (int j = 0; j < GRID_Y; j++) {
+            grid[i][j]->queueDraw();
         }
     }
 }
@@ -173,6 +195,7 @@ SpaceShip::SpaceShip(string type, System* system) :
     orbit.phase = rand_float_between(0, 2 * 3.14);
     orbit.inclination = rand_float_between(0, 3.14 / 3);
     orbit.radius = rand_float_between(1, 3);
+    stage = SHADER_LIGHTING;
 }
 
 float calculateWarp(glm::vec3 position, float margin, glm::vec3 start, glm::vec3 end)
@@ -237,7 +260,7 @@ glm::mat4 SpaceShip::calcModelMat() const
     return model;
 }
 
-void SpaceShip::draw(Shader shader) const
+void SpaceShip::draw(Shader& shader)
 {
     shader.setCommon(UNIFORM_MODEL, calcModelMat());
     models[type].draw(shader);

@@ -11,29 +11,36 @@
  * be rendered for renderables produced by objects
  */
 enum ShaderEnum {
-    SHADER_LIGHTING, // Main scene
-    SHADER_SIMPLE_DIFFUSE,  // Main scene
-    SHADER_BLEND,
-    SHADER_FRAMEBUFFER,
-    SHADER_BLUR,
-    SHADER_LAMP,            // Main scene
-    SHADER_SKYBOX,          // Main scene
-    SHADER_WARP_STEP1,      // During warp step
-    SHADER_WARP_STEP2
+    SHADER_NONE           = 0,
+    SHADER_LIGHTING       = 1 << 1,  // Main scene
+    SHADER_SIMPLE_DIFFUSE = 1 << 2,  // Main scene
+    SHADER_BLEND          = 1 << 3, 
+    SHADER_FRAMEBUFFER    = 1 << 4, 
+    SHADER_BLUR           = 1 << 5, 
+    SHADER_LAMP           = 1 << 6,  // Main scene
+    SHADER_SKYBOX         = 1 << 7,  // Main scene
+    SHADER_WARP_STEP1     = 1 << 8,  // During warp step
+    SHADER_WARP_STEP2     = 1 << 9, 
 };
+
+class Renderable;
+
+// Map shader type -> queue draw function -> pointers to renderables to draw
+typedef std::unordered_map<ShaderEnum, 
+        std::unordered_map<void (*)(Shader&, std::vector<Renderable*>), 
+            std::vector<Renderable*>>> RenderableQueues;
 
 class Renderable
 {
     public:
         virtual void queueDraw();
         virtual void draw(Shader& shader) {};
-        ShaderEnum stage = SHADER_LIGHTING;
+        static void drawStage(ShaderEnum stage, Shader& shader);
+        ShaderEnum stage = SHADER_NONE;
     private:
-        static std::unordered_map<void (*)(Shader&, std::vector<Renderable>), 
-            std::vector<Renderable>> drawQueues;
+        static RenderableQueues queues;
 
-        static void drawQueue(Shader& shader, std::vector<Renderable> queue);
-        static void drawAllQueues(Shader& shader);
+        static void drawQueue(Shader& shader, std::vector<Renderable*> queue);
 };
 
 class MeshRenderable : virtual public Renderable
