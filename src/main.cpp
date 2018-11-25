@@ -103,6 +103,12 @@ GLFWwindow* setupOpenGlContext(int SCREEN_WIDTH, int SCREEN_HEIGHT)
     return window;
 }
 
+void updateObjects(vector<shared_ptr<Object>> objects, UpdateInfo info) {
+    for (auto o : objects) {
+        o->update(info);
+    }
+}
+
 int main()
 {
 
@@ -125,12 +131,16 @@ int main()
     SpaceGrid spacegrid;
     renderer.addRenderable(&spacegrid);
     vector<std::shared_ptr<Object>> ships;
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 30; i++) {
         ships.emplace_back(new SpaceShip("SS1", spacegrid.getSystem(0, 0)));
         renderer.addRenderable(dynamic_cast<Renderable*>(ships.back().get()));
     }
 
+    int nUpdateThreads = 0;
+    vector<thread> updateThreads(nUpdateThreads);
+
     Timer::create("frametime");
+    vector<float> frameTimes;
     while(not glfwWindowShouldClose(window))
     {
         // TODO come up with a general update setup
@@ -139,10 +149,7 @@ int main()
         info.deltaTime = Timer::getDelta("frametime");
         info.curTime = Timer::get("frametime");
         info.cameraPos = camera.Position;
-
-        for (auto& s : ships) {
-            s->update(info);
-        }
+        frameTimes.push_back(info.deltaTime);
 
         for (auto& s : spacegrid.getAllSystems()) {
             if (s->checkSetHover(
@@ -156,11 +163,36 @@ int main()
             s->update(info);
         }
 
+        if (nUpdateThreads) {
+            int portionSize = ships.size() / nUpdateThreads;
+            for (int i=0; i < nUpdateThreads; i++) {
+                vector<shared_ptr<Object>> portion(ships.begin() + i * portionSize, 
+                        ships.begin() + (i+1) * portionSize + (i==nUpdateThreads-1 ? ships.size() % nUpdateThreads : 0));
+                updateThreads[i] = thread(updateObjects, portion, info);
+            }
+        } else {
+            updateObjects(ships, info);
+        }
+
         renderer.renderFrame();
         glfwSwapBuffers(window);
         glfwPollEvents();
         processInput(window, camera, info.deltaTime);
+
+        for (auto& t : updateThreads) {
+            t.join();
+        }
+
     };
+
+    float average = 0;
+    for (auto t : frameTimes) {
+        average += t;
+    }
+    average /= frameTimes.size();
+    cout << "Average frametime: " << average << endl;
+
+    glfwTerminate();
 
     return 0;
 }
