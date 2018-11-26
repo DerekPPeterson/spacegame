@@ -10,6 +10,7 @@
 #include "shader.h"
 #include "model.h"
 #include "nocopy.h"
+#include "camera.h"
 
 class Selectable
 {
@@ -27,7 +28,11 @@ struct UpdateInfo
 {
     float deltaTime;
     float curTime;
-    glm::vec3 cameraPos;
+    Camera* camera;
+    glm::mat4 projection;
+    glm::vec2 mousePos;
+    int screenWidth;
+    int screenHeight;
 };
 
 class Object : public non_copyable

@@ -51,7 +51,7 @@ class SpaceGrid : public Object, public Renderable
         void draw(Shader& shader) override;
         void queueDraw() override;
         System* getSystem(int i, int j);
-        std::vector<System*> getAllSystems();
+        std::vector<std::shared_ptr<Object>> getAllSystems();
     private:
         std::shared_ptr<System> grid[4][4];
 };

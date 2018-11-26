@@ -18,6 +18,7 @@
 //#include "framebuffer.h"
 #include "spaceThings.h"
 #include "timer.h"
+#include "objectupdater.h"
 
 
 #include "renderer.h"
@@ -67,7 +68,7 @@ void processInput(GLFWwindow *window, Camera &camera, float deltaTime)
     }
 }
 
-GLFWwindow* setupOpenGlContext(int SCREEN_WIDTH, int SCREEN_HEIGHT)
+GLFWwindow* setupOpenGlContext(RenderOptions options)
 {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -75,8 +76,14 @@ GLFWwindow* setupOpenGlContext(int SCREEN_WIDTH, int SCREEN_HEIGHT)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Create window object
-    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, 
-            "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window;
+    if (options.fullscreen) {
+        window = glfwCreateWindow(options.screenWidth, options.screenHeight, 
+                "LearnOpenGL", glfwGetPrimaryMonitor(), NULL);
+    } else {
+        window = glfwCreateWindow(options.screenWidth, options.screenHeight, 
+                "LearnOpenGL", NULL, NULL);
+    }
     if (window == NULL) {
         glfwTerminate();
         throw std::runtime_error("Failed to create GLFW window");
@@ -99,92 +106,99 @@ GLFWwindow* setupOpenGlContext(int SCREEN_WIDTH, int SCREEN_HEIGHT)
     //Timer::create("start");
 
     // set size of opengl viewport to size of window
-    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glViewport(0, 0, options.screenWidth, options.screenHeight);
     return window;
-}
-
-void updateObjects(vector<shared_ptr<Object>> objects, UpdateInfo info) {
-    for (auto o : objects) {
-        o->update(info);
-    }
 }
 
 int main()
 {
 
     RenderOptions options = {
-        .screenWidth=1000, 
-        .screenHeight=800, 
-        .fullscreen=false
+        .screenWidth=1680, 
+        .screenHeight=1050, 
+        .fullscreen=true
     };
 
-    GLFWwindow *window = setupOpenGlContext(options.screenWidth, options.screenHeight);
+    GLFWwindow *window = setupOpenGlContext(options);
 
     // TODO initialize camera not as global
     //Camera camera(glm::vec3(-100.0f, 100.0f, 0));
-    Renderer renderer(
-            {.screenWidth=1000, .screenHeight=800, .fullscreen=false},
-            camera);
+    Renderer renderer(options, camera);
 
+    // TODO move this stuff into a dedicated game logic setup areaa
     Skybox skybox("./res/textures/lightblue/");
     renderer.addRenderable(&skybox);
+
+    vector<std::shared_ptr<Object>> objects;
     SpaceGrid spacegrid;
     renderer.addRenderable(&spacegrid);
-    vector<std::shared_ptr<Object>> ships;
-    for (int i = 0; i < 30; i++) {
-        ships.emplace_back(new SpaceShip("SS1", spacegrid.getSystem(0, 0)));
-        renderer.addRenderable(dynamic_cast<Renderable*>(ships.back().get()));
+    vector<std::shared_ptr<Object>> systems = spacegrid.getAllSystems();
+    objects.insert(objects.end(), make_move_iterator(systems.begin()), 
+            make_move_iterator(systems.end()));
+    for (int i = 0; i < 1000; i++) {
+        objects.emplace_back(new SpaceShip("SS1", spacegrid.getSystem(0, 0)));
+        // TODO how will we remove objects that don't need to be rendered
+        renderer.addRenderable(dynamic_cast<Renderable*>(objects.back().get()));
     }
+    cout << "Will render " << objects.size() << endl;
 
-    int nUpdateThreads = 0;
-    vector<thread> updateThreads(nUpdateThreads);
+    ObjectUpdater updater(1);
 
     Timer::create("frametime");
     vector<float> frameTimes;
+    UpdateInfo info; 
+    info.camera = &camera;
+    info.screenWidth = options.screenWidth;
+    info.screenHeight = options.screenHeight;
+    info.projection = renderer.getProjection();
+
     while(not glfwWindowShouldClose(window))
     {
         // TODO come up with a general update setup
         // TODO fix the deltatime not working
-        UpdateInfo info; 
         info.deltaTime = Timer::getDelta("frametime");
         info.curTime = Timer::get("frametime");
-        info.cameraPos = camera.Position;
+        info.mousePos.x = MOUSE_X;
+        info.mousePos.y = MOUSE_Y;
         frameTimes.push_back(info.deltaTime);
+        cout << "Frametime: " << info.deltaTime << endl;
 
-        for (auto& s : spacegrid.getAllSystems()) {
-            if (s->checkSetHover(
-                        renderer.getProjection(), camera.GetViewMatrix(), 
-                        MOUSE_X, MOUSE_Y, 
-                        options.screenWidth, options.screenHeight)) {
-                for (int i = 0; i < ships.size(); i++) {
-                    dynamic_cast<SpaceShip*>(ships[i].get())->gotoSystem(s);
-                }
-            }
-            s->update(info);
-        }
+        //for (auto& s : spacegrid.getAllSystems()) {
+        //    if (s->checkSetHover(
+        //                renderer.getProjection(), camera.GetViewMatrix(), 
+        //                MOUSE_X, MOUSE_Y, 
+        //                options.screenWidth, options.screenHeight)) {
+        //        for (int i = 0; i < ships.size(); i++) {
+        //            dynamic_cast<SpaceShip*>(ships[i].get())->gotoSystem(s);
+        //        }
+        //    }
+        //    s->update(info);
+        //}
 
-        if (nUpdateThreads) {
-            int portionSize = ships.size() / nUpdateThreads;
-            for (int i=0; i < nUpdateThreads; i++) {
-                vector<shared_ptr<Object>> portion(ships.begin() + i * portionSize, 
-                        ships.begin() + (i+1) * portionSize + (i==nUpdateThreads-1 ? ships.size() % nUpdateThreads : 0));
-                updateThreads[i] = thread(updateObjects, portion, info);
-            }
-        } else {
-            updateObjects(ships, info);
-        }
+        //if (nUpdateThreads) {
+        //    int portionSize = ships.size() / nUpdateThreads;
+        //    for (int i=0; i < nUpdateThreads; i++) {
+        //        vector<shared_ptr<Object>> portion(ships.begin() + i * portionSize, 
+        //                ships.begin() + (i+1) * portionSize + (i==nUpdateThreads-1 ? ships.size() % nUpdateThreads : 0));
+        //        updateThreads[i] = thread(updateObjects, portion, info);
+        //    }
+        //} else {
+        //    updateObjects(ships, info);
+        //}
+        //
+        updater.updateObjects(info, objects);
 
         renderer.renderFrame();
         glfwSwapBuffers(window);
         glfwPollEvents();
         processInput(window, camera, info.deltaTime);
 
-        for (auto& t : updateThreads) {
-            t.join();
-        }
-
+       // for (auto& t : updateThreads) {
+       //     t.join();
+       // }
+       updater.waitForUpdates();
     };
-
+    
     float average = 0;
     for (auto t : frameTimes) {
         average += t;

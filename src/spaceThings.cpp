@@ -89,6 +89,10 @@ void System::queueDraw()
 
 void System::update(UpdateInfo& info)
 {
+    checkSetHover(info.camera->GetViewMatrix(), info.projection,
+            info.mousePos.x, info.mousePos.y, 
+            info.screenWidth, info.screenHeight);
+
     glm::vec3 colorChangeSpeed(-5, 15, 20);
     float minblue = 10;
     float maxBlue = 50;
@@ -154,13 +158,13 @@ System* SpaceGrid::getSystem(int i, int j)
     return grid[i][j].get();;
 }
 
-vector<System*> SpaceGrid::getAllSystems()
+vector<shared_ptr<Object>> SpaceGrid::getAllSystems()
 {
-    vector<System*> systems;
+    vector<shared_ptr<Object>> systems;
     systems.reserve(GRID_X * GRID_Y);
     for (int i = 0; i < GRID_X; i++) {
         for (int j = 0; j < GRID_Y; j++) {
-            systems.push_back(grid[i][j].get());
+            systems.push_back(grid[i][j]);
         }
     }
     return systems;
@@ -251,7 +255,7 @@ void SpaceShip::update(UpdateInfo& info)
     position += displacement;
 
     // Update camera pos for later use during drawWarp
-    cameraPos = info.cameraPos;
+    cameraPos = info.camera->Position;
 }
 
 glm::mat4 SpaceShip::calcModelMat() const
