@@ -103,7 +103,7 @@ GLFWwindow* setupOpenGlContext(RenderOptions options)
         throw std::runtime_error("Failed to initialize GLAD");
     }
 
-    //Timer::create("start");
+    Timer::create("start");
 
     // set size of opengl viewport to size of window
     glViewport(0, 0, options.screenWidth, options.screenHeight);
@@ -114,16 +114,21 @@ int main()
 {
 
     RenderOptions options = {
-        .screenWidth=1680, 
-        .screenHeight=1050, 
-        .fullscreen=true
+        .screenWidth=1000, 
+        .screenHeight=800, 
+        .fullscreen=false
     };
 
     GLFWwindow *window = setupOpenGlContext(options);
 
+
     // TODO initialize camera not as global
     //Camera camera(glm::vec3(-100.0f, 100.0f, 0));
     Renderer renderer(options, camera);
+    
+    // TODO testing only
+    LineModel card("./res/models/card/card.obj");
+    renderer.addRenderable(&card);
 
     // TODO move this stuff into a dedicated game logic setup areaa
     Skybox skybox("./res/textures/lightblue/");
@@ -131,21 +136,21 @@ int main()
 
     vector<std::shared_ptr<Object>> objects;
     SpaceGrid spacegrid;
-    renderer.addRenderable(&spacegrid);
+    //renderer.addRenderable(&spacegrid);
     vector<std::shared_ptr<Object>> systems = spacegrid.getAllSystems();
     objects.insert(objects.end(), make_move_iterator(systems.begin()), 
             make_move_iterator(systems.end()));
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 30; i++) {
         objects.emplace_back(new SpaceShip("SS1", spacegrid.getSystem(0, 0)));
         // TODO how will we remove objects that don't need to be rendered
-        renderer.addRenderable(dynamic_cast<Renderable*>(objects.back().get()));
+        //renderer.addRenderable(dynamic_cast<Renderable*>(objects.back().get()));
     }
     cout << "Will render " << objects.size() << endl;
 
-    ObjectUpdater updater(1);
+    ObjectUpdater updater(1); // Using 1 other thread for updating objects
 
     Timer::create("frametime");
-    vector<float> frameTimes;
+    vector<float> frameTimes; // Used for calculating average frametime
     UpdateInfo info; 
     info.camera = &camera;
     info.screenWidth = options.screenWidth;
@@ -154,8 +159,7 @@ int main()
 
     while(not glfwWindowShouldClose(window))
     {
-        // TODO come up with a general update setup
-        // TODO fix the deltatime not working
+        // Prepare update data to update all objects for movement and such
         info.deltaTime = Timer::getDelta("frametime");
         info.curTime = Timer::get("frametime");
         info.mousePos.x = MOUSE_X;
@@ -163,29 +167,6 @@ int main()
         frameTimes.push_back(info.deltaTime);
         cout << "Frametime: " << info.deltaTime << endl;
 
-        //for (auto& s : spacegrid.getAllSystems()) {
-        //    if (s->checkSetHover(
-        //                renderer.getProjection(), camera.GetViewMatrix(), 
-        //                MOUSE_X, MOUSE_Y, 
-        //                options.screenWidth, options.screenHeight)) {
-        //        for (int i = 0; i < ships.size(); i++) {
-        //            dynamic_cast<SpaceShip*>(ships[i].get())->gotoSystem(s);
-        //        }
-        //    }
-        //    s->update(info);
-        //}
-
-        //if (nUpdateThreads) {
-        //    int portionSize = ships.size() / nUpdateThreads;
-        //    for (int i=0; i < nUpdateThreads; i++) {
-        //        vector<shared_ptr<Object>> portion(ships.begin() + i * portionSize, 
-        //                ships.begin() + (i+1) * portionSize + (i==nUpdateThreads-1 ? ships.size() % nUpdateThreads : 0));
-        //        updateThreads[i] = thread(updateObjects, portion, info);
-        //    }
-        //} else {
-        //    updateObjects(ships, info);
-        //}
-        //
         updater.updateObjects(info, objects);
 
         renderer.renderFrame();
@@ -193,10 +174,7 @@ int main()
         glfwPollEvents();
         processInput(window, camera, info.deltaTime);
 
-       // for (auto& t : updateThreads) {
-       //     t.join();
-       // }
-       updater.waitForUpdates();
+        updater.waitForUpdates();
     };
     
     float average = 0;

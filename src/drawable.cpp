@@ -8,7 +8,7 @@
 
 using namespace std;
 
-bool Selectable::checkSetHover(const glm::mat4& projection, const glm::mat4& view, 
+bool Selectable::checkSetHover(const glm::mat4 projection, const glm::mat4 view, 
         float mouseX, float mouseY,
         int screenWidth, int screenHeight) 
 {

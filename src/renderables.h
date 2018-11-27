@@ -37,6 +37,7 @@ typedef std::unordered_map<int,
 class Renderable
 {
     public:
+        Renderable() {};
         virtual void queueDraw();
         virtual void draw(Shader& shader) {};
         virtual void drawWarp(Shader& shader) {};
@@ -54,6 +55,7 @@ class Renderable
 class MeshRenderable : virtual public Renderable
 {
     public:
+        MeshRenderable() {};
         MeshRenderable(unsigned int VAO, unsigned int nIndices) : 
             VAO(VAO), nIndices(nIndices) {};
         virtual void draw(Shader& shader) override;

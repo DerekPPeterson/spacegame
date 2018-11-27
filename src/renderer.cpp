@@ -172,7 +172,7 @@ void Renderer::renderWarpEffects()
 
 int Renderer::renderBloom()
 {
-    bool horizontal = true, first_iteration = true;
+    bool horizontal = true;
     int amount = 4;
 
     // Downscale bright image

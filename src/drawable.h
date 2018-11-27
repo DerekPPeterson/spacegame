@@ -15,7 +15,7 @@
 class Selectable
 {
     public:
-        bool checkSetHover(const glm::mat4& view, const glm::mat4& projection, 
+        bool checkSetHover(const glm::mat4 view, const glm::mat4 projection, 
                 float x, float y, int screenWidth, int screenHeight);
     protected:
         bool isHovered = false;
@@ -43,6 +43,7 @@ class Object : public non_copyable
         bool visible = true;
 
     private:
+        static void setup();
 
         static std::unordered_set<Object*> objects;
 };

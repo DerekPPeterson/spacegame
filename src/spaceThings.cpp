@@ -79,17 +79,17 @@ void System::draw(Shader& shader)
 void System::queueDraw()
 {
     sun->queueDraw();
-    for (auto& planet : planets) {
-        //TODO queue instance draw for each planet
-        //planet.queueDraw();
-    }
+    //for (auto& planet : planets) {
+    //    //TODO queue instance draw for each planet
+    //    //planet.queueDraw();
+    //}
     // Instead use current method to draw planets
     Renderable::queueDraw();
 }
 
 void System::update(UpdateInfo& info)
 {
-    checkSetHover(info.camera->GetViewMatrix(), info.projection,
+    checkSetHover(info.projection, info.camera->GetViewMatrix(), 
             info.mousePos.x, info.mousePos.y, 
             info.screenWidth, info.screenHeight);
 

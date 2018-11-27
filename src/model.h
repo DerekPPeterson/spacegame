@@ -41,6 +41,24 @@ class Mesh : virtual public MeshRenderable
         void setupMesh();
 };
 
+// TODO probably have to create a new Renderable class for this
+class LineMesh : virtual public MeshRenderable
+{
+    public:
+        LineMesh() {};
+        std::vector<glm::vec3> vertices;
+        std::vector<unsigned int> indices;
+
+        LineMesh(std::vector<glm::vec3> vertices, 
+                std::vector<unsigned int> indices);
+        void draw(Shader& shader) override;
+
+    private:
+        unsigned int VBO, EBO;
+        void setupMesh();
+};
+
+// TODO this will have to change into an instance renderable at some point
 class Model : public Renderable
 {
     public:
@@ -63,6 +81,25 @@ class Model : public Renderable
         Mesh processMesh(aiMesh *mesh, const aiScene *scene);
         std::vector<Texture> loadMaterialTextures(aiMaterial *mat, 
                 aiTextureType type, std::string typeName);
+};
+
+class LineModel : public Renderable
+{
+    public:
+        LineModel(const char *path)
+        {
+            loadModel(path);
+            stage = SHADER_LAMP;
+        }
+        void draw(Shader& shader) override;
+
+    private:
+        // Model Data
+        LineMesh mesh;
+
+        //functions
+        void loadModel(std::string path);
+        LineMesh processMesh(aiMesh *mesh, const aiScene *scene);
 };
 
 

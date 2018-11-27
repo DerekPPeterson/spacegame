@@ -38,9 +38,9 @@ void ObjectUpdater::updateFunc(int tid)
 ObjectUpdater::ObjectUpdater(int nThreads) :
     nThreads(nThreads), threads(nThreads)
 {
+    hasRun = {true, true, true};
+    go = true;
     for (int i = 0; i < nThreads; i++) {
-        hasRun = {true, true, true};
-        go = true;
         threads[i] = thread([this, i] {updateFunc(i);});
     }
 };
@@ -56,6 +56,8 @@ ObjectUpdater::~ObjectUpdater()
 
 void ObjectUpdater::updateObjects(UpdateInfo info, vector<shared_ptr<Object>> objects)
 {
+    waitForUpdates();
+    
     this->info = info;
     this->objects = objects;
 
