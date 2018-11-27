@@ -19,6 +19,7 @@
 #include "spaceThings.h"
 #include "timer.h"
 #include "objectupdater.h"
+#include "cards.h"
 
 
 #include "renderer.h"
@@ -125,25 +126,27 @@ int main()
     // TODO initialize camera not as global
     //Camera camera(glm::vec3(-100.0f, 100.0f, 0));
     Renderer renderer(options, camera);
+
+    vector<std::shared_ptr<Object>> objects;
     
     // TODO testing only
-    LineModel card("./res/models/card/card.obj");
-    renderer.addRenderable(&card);
+    shared_ptr<Object> card(new Card());
+    renderer.addRenderable(dynamic_cast<Renderable*>(card.get()));
+    objects.push_back(card);
 
     // TODO move this stuff into a dedicated game logic setup areaa
     Skybox skybox("./res/textures/lightblue/");
     renderer.addRenderable(&skybox);
 
-    vector<std::shared_ptr<Object>> objects;
     SpaceGrid spacegrid;
-    //renderer.addRenderable(&spacegrid);
+    renderer.addRenderable(&spacegrid);
     vector<std::shared_ptr<Object>> systems = spacegrid.getAllSystems();
     objects.insert(objects.end(), make_move_iterator(systems.begin()), 
             make_move_iterator(systems.end()));
     for (int i = 0; i < 30; i++) {
         objects.emplace_back(new SpaceShip("SS1", spacegrid.getSystem(0, 0)));
         // TODO how will we remove objects that don't need to be rendered
-        //renderer.addRenderable(dynamic_cast<Renderable*>(objects.back().get()));
+        renderer.addRenderable(dynamic_cast<Renderable*>(objects.back().get()));
     }
     cout << "Will render " << objects.size() << endl;
 

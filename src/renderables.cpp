@@ -13,7 +13,8 @@ void Renderable::queueDraw() {
         SHADER_SIMPLE_DIFFUSE,
         SHADER_LAMP,
         SHADER_SKYBOX,
-        SHADER_WARP_STEP1
+        SHADER_WARP_STEP1,
+        SHADER_CARD,
     };
     for (auto s : stageList) {
         if (s & stage) {

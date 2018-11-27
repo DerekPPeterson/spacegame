@@ -57,6 +57,7 @@ void Renderer::compileLinkShaders()
     shaders.try_emplace(SHADER_SKYBOX, "./src/shaders/skybox.vert", "./src/shaders/skybox.frag");
     shaders.try_emplace(SHADER_WARP_STEP1, "./src/shaders/warp.vert", "./src/shaders/warp1.frag");
     shaders.try_emplace(SHADER_WARP_STEP2, "./src/shaders/warp.vert", "./src/shaders/warp2.frag");
+    shaders.try_emplace(SHADER_CARD, "./src/shaders/card.vert", "./src/shaders/card.frag");
 }
 
 Renderer::Renderer(RenderOptions options, Camera& camera) :
@@ -70,7 +71,11 @@ Renderer::Renderer(RenderOptions options, Camera& camera) :
             (float) options.screenWidth / options.screenHeight, 0.1f, 10000.0f);
     compileLinkShaders(); // TODO auto gen cpp code for shaders
     Timer::create("renderer_start");
-    PointLight::setup();
+    PointLight::setup(); // TODO should this really be done here?
+
+    // Enable some options for good line drawing
+    glEnable(GL_LINE_SMOOTH);
+    glLineWidth(2.5);
 }
 
 void Renderer::renderMainScene()
@@ -115,6 +120,11 @@ void Renderer::renderMainScene()
         lights[i]->setUniforms(shaders[SHADER_LIGHTING], i);
     }
     Renderable::drawStage(SHADER_LIGHTING, shaders[SHADER_SIMPLE_DIFFUSE]);
+
+    shaders[SHADER_CARD].use();
+    shaders[SHADER_CARD].setMat4("view", camera.GetViewMatrix());
+    shaders[SHADER_CARD].setMat4("projection", projection);
+    Renderable::drawStage(SHADER_CARD, shaders[SHADER_CARD]);
 
     shaders[SHADER_SKYBOX].use();
     glm::mat4 skyboxView = glm::mat4(glm::mat3(camera.GetViewMatrix()));  

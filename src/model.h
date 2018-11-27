@@ -86,6 +86,7 @@ class Model : public Renderable
 class LineModel : public Renderable
 {
     public:
+        LineModel() {};
         LineModel(const char *path)
         {
             loadModel(path);

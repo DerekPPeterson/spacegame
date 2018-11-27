@@ -119,7 +119,6 @@ void LineMesh::setupMesh()
 void LineMesh::draw(Shader& shader)
 {
     glBindVertexArray(VAO);
-    shader.setVec3("color", glm::vec3(7, 0, 0));
     glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
 }
 
@@ -263,11 +262,7 @@ void LineModel::loadModel(string path)
 
 void LineModel::draw(Shader& shader)
 {
-    glEnable(GL_LINE_SMOOTH);
-    glLineWidth(2.0f);
-    shader.setCommon(UNIFORM_MODEL, glm::rotate(glm::mat4(1.0f), (float) Timer::get("start"), {0.5, 0.2, 0}));
     mesh.draw(shader);
-    glDisable(GL_LINE_SMOOTH);
 }
 
 

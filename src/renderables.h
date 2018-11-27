@@ -25,6 +25,7 @@ enum ShaderEnum {
     SHADER_SKYBOX         = 1 << 7,  // Main scene
     SHADER_WARP_STEP1     = 1 << 8,  // During warp step
     SHADER_WARP_STEP2     = 1 << 9, 
+    SHADER_CARD           = 1 << 10,
 };
 
 class Renderable;
