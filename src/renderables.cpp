@@ -1,6 +1,7 @@
 #include "renderables.h"
 
 #include <glad/glad.h>
+#include <plog/Log.h>
 
 using namespace std;
 
@@ -55,11 +56,11 @@ void Renderable::drawQueue(ShaderEnum drawingStage, Shader& shader, vector<Rende
             case SHADER_WARP_STEP1:
             case SHADER_WARP_STEP2:
                 renderable->drawWarp(shader);
-                cout << "Rendering during warp a: " << typeid(*renderable).name() << endl;
+                LOG_VERBOSE << "Rendering during warp a: " << typeid(*renderable).name();
                 break;
             default:
                 renderable->draw(shader);
-                cout << "Rendering a: " << typeid(*renderable).name() << endl;
+                LOG_VERBOSE << "Rendering a: " << typeid(*renderable).name();
         }
     }
 }

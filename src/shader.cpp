@@ -4,6 +4,8 @@
 #include "shader.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <plog/Log.h>
+
 
 using namespace std;
 
@@ -34,8 +36,8 @@ unsigned int compile_shader_from_filename(GLenum type, const char * path)
     glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(shaderID, 512, NULL, infoLog);
-        std::cout << "ERROR: Failed to compile " << path << "\n" << 
-            infoLog << std::endl;
+        LOG_ERROR << "Failed to compile " << path << "\n" << 
+            infoLog;
         throw std::exception();
     }
 
@@ -72,7 +74,7 @@ unsigned int link_shaders(unsigned int vertexShader, unsigned int fragmentShader
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "ERROR: Shader linking failed\n" << infoLog << std::endl;
+        LOG_ERROR << "Shader linking failed\n" << infoLog;
         throw std::exception();
     }
     // Shaders are not needed after they are linked

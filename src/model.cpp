@@ -5,6 +5,7 @@
 #include <set>
 #include <stdio.h>
 #include <memory>
+#include <plog/Log.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -136,7 +137,7 @@ void Model::loadModel(string path)
             aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
 
     if (!scene or scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE or !scene->mRootNode) {
-        cout << "ERROR::ASSIMP::" << importer.GetErrorString() << endl;
+        LOG_ERROR << importer.GetErrorString();
         return;
     }
     directory = path.substr(0, path.find_last_of('/'));
@@ -209,10 +210,10 @@ unsigned int loadTextureFromFile(string path, string directory)
     string full_path = directory + "/" + path;
     unsigned char *data = stbi_load(full_path.c_str(), &width, &height, &nrChannels, 0); 
     if (not data) {
-        std::cout << "Failed to load texture: " << full_path << std::endl;
+        LOG_ERROR << "Failed to load texture: " << full_path;
     }
 
-	std::cout << "Loading texture" << full_path << std::endl;
+	LOG_INFO << "Loading texture" << full_path;
 
 	// Create texture from image
     unsigned int texture;

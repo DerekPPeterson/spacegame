@@ -1,6 +1,7 @@
 #include "cubemap.h"
 
 #include <glad/glad.h>
+#include <plog/Log.h>
 
 #include <stb_image.h>
 #include <string>
@@ -53,7 +54,7 @@ unsigned int loadCubemap(vector<std::string> faces)
         }
         else
         {
-            std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
+            LOG_ERROR << "Cubemap texture failed to load at path: " << faces[i];
             stbi_image_free(data);
         }
     }

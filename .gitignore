@@ -9,3 +9,4 @@ src/hello_triangle.cpp
 tags
 assimp/
 *.trace
+*.log

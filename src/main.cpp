@@ -10,6 +10,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <plog/Log.h>
+
 //#include "shader.h"
 //#include "camera.h"
 //#include "model.h"
@@ -39,12 +41,12 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
     MOUSE_X = xpos;
     MOUSE_Y = ypos;
-    cout << "Mouse position: " << xpos << " " << ypos << endl;
+    LOG_VERBOSE << "Mouse position: " << xpos << " " << ypos;
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    cout << "Camera offset: " << yoffset << endl;
+    LOG_VERBOSE << "Camera offset: " << yoffset;
     camera.ProcessMouseScroll(yoffset);
 }
 
@@ -113,6 +115,7 @@ GLFWwindow* setupOpenGlContext(RenderOptions options)
 
 int main()
 {
+    plog::init(plog::verbose, "./spacegame.log");
 
     RenderOptions options = {
         .screenWidth=1000, 
@@ -156,7 +159,7 @@ int main()
         // TODO how will we remove objects that don't need to be rendered
         renderer.addRenderable(dynamic_cast<Renderable*>(objects.back().get()));
     }
-    cout << "Will render " << objects.size() << endl;
+    LOG_INFO << "Will render " << objects.size();
 
     ObjectUpdater updater(1); // Using 1 other thread for updating objects
 
@@ -176,7 +179,7 @@ int main()
         info.mousePos.x = MOUSE_X;
         info.mousePos.y = MOUSE_Y;
         frameTimes.push_back(info.deltaTime);
-        cout << "Frametime: " << info.deltaTime << endl;
+        LOG_INFO << "Frametime: " << info.deltaTime;
 
         updater.updateObjects(info, objects);
 
@@ -193,7 +196,7 @@ int main()
         average += t;
     }
     average /= frameTimes.size();
-    cout << "Average frametime: " << average << endl;
+    LOG_INFO << "Average frametime: " << average;
 
     glfwTerminate();
 

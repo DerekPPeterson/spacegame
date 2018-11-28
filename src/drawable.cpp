@@ -41,7 +41,6 @@ bool pointInsideQuad(glm::vec2 point, vector<glm::vec2> quad)
             return false;
         }
         lastz = zcross;
-        printf("v1: %s, v2: %s, zcross %f\n", glm::to_string(v1).c_str(), glm::to_string(v2).c_str(), zcross);
     }
     return true;
 }
