@@ -1,6 +1,7 @@
 #include "spaceThings.h"
 #include "drawable.h"
 #include "timer.h"
+#include "util.h"
 
 #include <cstdlib>
 #include <algorithm>
@@ -12,10 +13,6 @@
 
 using namespace std;
 
-float rand_float_between(float LO, float HI)
-{
-    return LO + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(HI-LO)));
-}
 
 System::System(glm::vec3 position)
 { 

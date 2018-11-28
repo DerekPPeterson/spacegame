@@ -20,6 +20,7 @@ class Card : public Renderable , public Object, public Dragable {
         glm::vec3 color = {0.5, 5, 5.5};
         float size = 0.2;
         float xspeed = 0;
+        float phase = 0;
 
         friend class Hand;
 };
@@ -33,6 +34,7 @@ class Hand : public Object
         std::vector<std::shared_ptr<Object>> getAllCards();
     private:
         std::vector<std::shared_ptr<Card>> cards;
+        std::vector<float> calculateSpringCardAccelerations(std::vector<Card*> cards);
         float right = 2.5;
 };
 

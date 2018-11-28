@@ -89,16 +89,25 @@ bool Selectable::checkSetHoverCircle(const glm::mat4 projection, const glm::mat4
     return isHovered;
 }
 
+
+Dragable* Dragable::beingDragged = NULL;
+
 void Dragable::checkSetDrag(const glm::mat4 view, const glm::mat4 projection, 
         MouseInfo mouse, int screenWidth, int screenHeight)
 {
     glm::vec3 curDragPos = calcWorldSpaceCoords(mouse.position, position.z,
             projection, view, screenWidth, screenHeight);
     cout << "curDragPos" << glm::to_string(curDragPos) << endl;
-    if (isHovered && mouse.clicked) {
+    if (isHovered and mouse.clicked and (not beingDragged or beingDragged == this)) {
         cout << "Dragging" << endl;
         dragging = true;
+        beingDragged = this;
         position += lastDragPos - curDragPos;
+    } else {
+        dragging = false;
+        if (beingDragged == this) {
+            beingDragged = NULL;
+        }
     }
     lastDragPos = curDragPos;
 }

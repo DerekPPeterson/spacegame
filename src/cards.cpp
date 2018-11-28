@@ -2,6 +2,8 @@
 
 #include "timer.h"
 
+#include "util.h"
+
 using namespace std;
 
 LineModel Card::cardModel;
@@ -47,13 +49,13 @@ void Card::updateModel()
 {
     glm::mat4 model(1.0f);
     glm::vec3 tmpPosition = position;
-    tmpPosition.y += 0.1 * sin(3.14 / 4 * Timer::get("start"));
+    //tmpPosition.y += 0.1 * sin(3.14 / 4 * Timer::get("start") + phase);
     model = glm::translate(model, tmpPosition);
     model = glm::scale(model, {size, size, size});
-    float angleY = 3.1415f / 16 * sin(3.14159 / 2 * Timer::get("start"));
+    float angleY = 3.1415f / 16 * sin(3.14159 / 2 * Timer::get("start") + phase);
     model = glm::rotate(model, angleY, {0, 1, 0});
     if (isHovered) {
-        float angleX = 3.1415f / 16 * sin(3.14159 * Timer::get("start"));
+        float angleX = 3.1415f / 16 * sin(3.14159 * Timer::get("start") + phase);
         model = glm::rotate(model, angleX, {1, 0, 0});
     }
     setModel(model);
@@ -99,6 +101,9 @@ void Hand::addCard(shared_ptr<Card> card)
 
 void Hand::update(UpdateInfo& info)
 {
+    sort(cards.begin(), cards.end(), [](const shared_ptr<Card> a, const shared_ptr<Card> b) 
+            {return a->getPos().x < b->getPos().x;});
+
     float cardSpacing = 0.2; // fraction of card size
     float springiness = 20;
     float width = 2;

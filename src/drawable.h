@@ -16,7 +16,7 @@
 class has_position
 {
     public:
-        glm::vec3 getPos() {return this->position;};
+        glm::vec3 getPos() const {return position;};
         void setPos(glm::vec3 pos) {this->position = pos;};
     protected:
         glm::vec3 position = glm::vec3(1.0f);
@@ -25,7 +25,7 @@ class has_position
 class has_model_mat
 {
     protected:
-        glm::mat4 getModel() {return this->model;};
+        glm::mat4 getModel() const {return model;};
         void setModel(glm::mat4 m) {model = m;};
         glm::mat4 model = glm::mat4(1.0f);
 };
@@ -51,6 +51,7 @@ class Dragable : public Selectable
         bool dragging = false;
         glm::vec3 dragDisplacement;
         glm::vec3 lastDragPos;
+        static Dragable* beingDragged; // Points to current dragable being dragged
 };
 
 struct UpdateInfo
