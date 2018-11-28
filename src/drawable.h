@@ -41,6 +41,7 @@ class Selectable : public virtual has_position, public virtual has_model_mat
         bool isSelected = true;
         float targetRadius = 50; // For circle func
         std::vector<glm::vec3> quadVertices; // for quad test
+        static Selectable* beingHovered; // Points to current selectable being hovered
 };
 
 class Dragable : public Selectable

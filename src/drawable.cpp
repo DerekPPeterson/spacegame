@@ -67,25 +67,40 @@ bool Selectable::checkSetHoverQuad(const glm::mat4 projection, const glm::mat4 v
         float mouseX, float mouseY,
         int screenWidth, int screenHeight) 
 {
-    vector<glm::vec2> screenQuadCoords;
-    for (auto quadVertex : quadVertices) {
-        screenQuadCoords.push_back(calcScreenSpaceCoords(
-                    getModel() * glm::vec4(quadVertex, 1),
-                    projection, view, screenWidth, screenHeight));
+    if (isHovered or beingHovered == this or not beingHovered) {
+        vector<glm::vec2> screenQuadCoords;
+        for (auto quadVertex : quadVertices) {
+            screenQuadCoords.push_back(calcScreenSpaceCoords(
+                        getModel() * glm::vec4(quadVertex, 1),
+                        projection, view, screenWidth, screenHeight));
+        }
+        isHovered = pointInsideQuad(glm::vec2(mouseX, mouseY), screenQuadCoords);
+        if (isHovered) {
+            beingHovered = this;
+        } else {
+            beingHovered = NULL;
+        }
     }
-    isHovered = pointInsideQuad(glm::vec2(mouseX, mouseY), screenQuadCoords);
     return isHovered;
 }
 
+Selectable* Selectable::beingHovered = NULL;
 
 bool Selectable::checkSetHoverCircle(const glm::mat4 projection, const glm::mat4 view, 
         float mouseX, float mouseY,
         int screenWidth, int screenHeight) 
 {
-    glm::vec2 screenCoords = calcScreenSpaceCoords(position,
-            projection, view, screenWidth, screenHeight);
-    
-    isHovered = glm::length(screenCoords - glm::vec2(mouseX, mouseY)) <= targetRadius;
+    if (isHovered and (beingHovered == this or not beingHovered)) {
+        glm::vec2 screenCoords = calcScreenSpaceCoords(position,
+                projection, view, screenWidth, screenHeight);
+        
+        isHovered = glm::length(screenCoords - glm::vec2(mouseX, mouseY)) <= targetRadius;
+        if (isHovered) {
+            beingHovered = this;
+        } else {
+            beingHovered = NULL;
+        }
+    }
     return isHovered;
 }
 

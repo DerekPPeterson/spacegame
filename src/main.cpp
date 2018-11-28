@@ -12,6 +12,8 @@
 
 #include <plog/Log.h>
 
+#include <cxxopts.hpp>
+
 //#include "shader.h"
 //#include "camera.h"
 //#include "model.h"
@@ -74,15 +76,23 @@ GLFWwindow* setupOpenGlContext(RenderOptions options)
     return window;
 }
 
-int main()
+int main(int argc, char **argv)
 {
     plog::init(plog::verbose, "./spacegame.log");
     LOG_INFO << "Starting program";
 
+    cxxopts::Options opts("Spacegame", "A game");
+    opts.add_options()
+        ("w,screenwidth", "Horizontal display resolution", cxxopts::value<int>()->default_value("1000"))
+        ("h,screenheight", "Vertical display resolution", cxxopts::value<int>()->default_value("800"))
+        ("f,fullscreen", "Enable fullscreen")
+        ;
+    auto result = opts.parse(argc, argv);
+
     RenderOptions options = {
-        .screenWidth=1000, 
-        .screenHeight=800, 
-        .fullscreen=false
+        .screenWidth=result["screenwidth"].as<int>(),
+        .screenHeight=result["screenheight"].as<int>(), 
+        .fullscreen=(result.count("fullscreen") > 0)
     };
     Camera camera(glm::vec3(-100.0f, 100.0f, 0));
 

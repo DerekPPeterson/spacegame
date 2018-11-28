@@ -55,6 +55,7 @@ void Card::updateModel()
     float angleY = 3.1415f / 16 * sin(3.14159 / 2 * Timer::get("start") + phase);
     model = glm::rotate(model, angleY, {0, 1, 0});
     if (isHovered) {
+        model = glm::translate(model, tmpPosition);
         float angleX = 3.1415f / 16 * sin(3.14159 * Timer::get("start") + phase);
         model = glm::rotate(model, angleX, {1, 0, 0});
     }
@@ -105,10 +106,10 @@ void Hand::update(UpdateInfo& info)
             {return a->getPos().x < b->getPos().x;});
 
     float cardSpacing = 0.2; // fraction of card size
-    float springiness = 20;
-    float width = 2;
-    float damping = 2;
-    float left = right;
+    float springiness = 20; // spring constant (ish)
+    float width = 2;        // width of card model
+    float damping = 2;      // force to slow down cards
+    float left = right;     
     for (int i = 0; i < cards.size(); i++) {
         left -= width * cards[i]->size * (1 + cardSpacing);
     }

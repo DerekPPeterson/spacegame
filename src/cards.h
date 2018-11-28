@@ -34,7 +34,6 @@ class Hand : public Object
         std::vector<std::shared_ptr<Object>> getAllCards();
     private:
         std::vector<std::shared_ptr<Card>> cards;
-        std::vector<float> calculateSpringCardAccelerations(std::vector<Card*> cards);
         float right = 2.5;
 };
 
