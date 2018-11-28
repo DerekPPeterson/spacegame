@@ -12,7 +12,24 @@
 #include "nocopy.h"
 #include "camera.h"
 
-class Selectable
+class has_position
+{
+    public:
+        glm::vec3 getPos() {return this->position;};
+        void setPos(glm::vec3 pos) {this->position = pos;};
+    protected:
+        glm::vec3 position = glm::vec3(1.0f);
+};
+
+class has_model_mat
+{
+    protected:
+        glm::mat4 getModel() {return this->model;};
+        void setModel(glm::mat4 m) {model = m;};
+        glm::mat4 model = glm::mat4(1.0f);
+};
+
+class Selectable : public virtual has_position, public virtual has_model_mat
 {
     public:
         bool checkSetHoverCircle(const glm::mat4 view, const glm::mat4 projection, 
@@ -24,7 +41,6 @@ class Selectable
         bool isSelected = true;
         float targetRadius = 50; // For circle func
         std::vector<glm::vec3> quadVertices; // for quad test
-        glm::vec3 position;
 };
 
 struct UpdateInfo

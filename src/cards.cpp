@@ -6,26 +6,19 @@ using namespace std;
 
 LineModel Card::cardModel;
 
-vector<glm::vec3> cardModelQuadVertices = {
-    {-1, 1.6, 0},
-    {1, 1.6, 0},
-    {1, -1.6, 0},
-    {-1, -1.6, 0},
-};
 
 void Card::setup()
 {
     static bool isSetup = false;
     if (not isSetup) {
-        // make sure to update the quad vertices above if the model changes
+        // make sure to update the quad vertices if the model changes
         cardModel = LineModel("./res/models/card/card.obj");
         isSetup = true;
     }
 }
 
-void Card::draw(Shader& shader)
+void Card::updateModel()
 {
-    shader.setVec3("color", color);
     glm::mat4 model(1.0f);
     glm::vec3 tmpPosition = position;
     tmpPosition.y += 0.1 * sin(3.14 / 4 * Timer::get("start"));
@@ -37,11 +30,16 @@ void Card::draw(Shader& shader)
         float angleX = 3.1415f / 16 * sin(3.14159 * Timer::get("start"));
         model = glm::rotate(model, angleX, {1, 0, 0});
     }
+    setModel(model);
+}
+
+void Card::draw(Shader& shader)
+{
+    shader.setVec3("color", color);
     shader.setCommon(UNIFORM_MODEL, model);
     cardModel.draw(shader);
 
-    shader.setVec3("color", {1, 0, 0});
-    shader.setCommon(UNIFORM_MODEL, glm::translate(glm::mat4(1.0f), position));
+    shader.setVec3("color", {10, 0, 0});
     LineMesh clickbox(quadVertices, {0, 1, 1, 2, 2, 3, 3, 0});
     clickbox.draw(shader);
 
@@ -53,11 +51,17 @@ Card::Card()
     setup();
     stage = SHADER_CARD;
     position = {-1, -1, -5};
-    quadVertices = cardModelQuadVertices;
+    quadVertices = {
+        {-1, 1.6, 0},
+        {1, 1.6, 0},
+        {1, -1.6, 0},
+        {-1, -1.6, 0},
+    };
 }
 
 void Card::update(UpdateInfo& info)
 {
+    updateModel();
     checkSetHoverQuad(info.projection, glm::mat4(1.0f), 
             info.mousePos.x, info.mousePos.y, 
             info.screenWidth, info.screenHeight);
@@ -81,10 +85,6 @@ void Card::update(UpdateInfo& info)
         if (size > targetSize) {
             size = targetSize;
         }
-    }
-    quadVertices.clear();
-    for (auto v : cardModelQuadVertices) {
-        quadVertices.push_back(v * size);
     }
 }
 

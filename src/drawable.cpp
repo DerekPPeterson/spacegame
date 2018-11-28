@@ -50,12 +50,11 @@ bool Selectable::checkSetHoverQuad(const glm::mat4 projection, const glm::mat4 v
         float mouseX, float mouseY,
         int screenWidth, int screenHeight) 
 {
-    glm::vec2 screenCoords = calcScreenSpaceCoords(position,
-            projection, view, screenWidth, screenHeight);
     vector<glm::vec2> screenQuadCoords;
     for (auto quadVertex : quadVertices) {
-        screenQuadCoords.push_back(calcScreenSpaceCoords(quadVertex + position,
-            projection, view, screenWidth, screenHeight));
+        screenQuadCoords.push_back(calcScreenSpaceCoords(
+                    getModel() * glm::vec4(quadVertex, 1),
+                    projection, view, screenWidth, screenHeight));
     }
     isHovered = pointInsideQuad(glm::vec2(mouseX, mouseY), screenQuadCoords);
     return isHovered;
