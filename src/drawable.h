@@ -13,6 +13,14 @@
 #include "camera.h"
 #include "input.h"
 
+glm::vec2 calcScreenSpaceCoords(glm::vec3 position, 
+        glm::mat4 projection, glm::mat4 view,
+        int screenWidth, int screenHeight);
+
+glm::vec3 calcWorldSpaceCoords(glm::vec2 screenCoords, float worldDepth,
+        glm::mat4 projection, glm::mat4 view,
+        int screenWidth, int screenHeight);
+
 class has_position
 {
     public:

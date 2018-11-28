@@ -109,7 +109,7 @@ int main(int argc, char **argv)
     
     // TODO testing only
 
-    shared_ptr<Hand> hand(new Hand());
+    shared_ptr<Hand> hand(new Hand(options.screenWidth, options.screenHeight, renderer.getProjection()));
 
     for (int i = 0; i < 7; i++) {
         shared_ptr<Card> card(new Card());

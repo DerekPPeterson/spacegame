@@ -75,7 +75,7 @@ Renderer::Renderer(RenderOptions options, Camera& camera) :
 
     // Enable some options for good line drawing
     glEnable(GL_LINE_SMOOTH);
-    glLineWidth(2.5);
+    glLineWidth(1);
 }
 
 void Renderer::renderMainScene()

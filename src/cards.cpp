@@ -55,7 +55,6 @@ void Card::updateModel()
     float angleY = 3.1415f / 16 * sin(3.14159 / 2 * Timer::get("start") + phase);
     model = glm::rotate(model, angleY, {0, 1, 0});
     if (isHovered) {
-        model = glm::translate(model, tmpPosition);
         float angleX = 3.1415f / 16 * sin(3.14159 * Timer::get("start") + phase);
         model = glm::rotate(model, angleX, {1, 0, 0});
     }
@@ -86,17 +85,25 @@ void Card::update(UpdateInfo& info)
         if (size < targetSize) {
             size = targetSize;
         }
+        position.y -= size * 2 * info.deltaTime;
     } else if (size < targetSize) {
         size *= (1 + sizeChangeRate * info.deltaTime);
+        position.y += size * 3 * info.deltaTime;
         if (size > targetSize) {
             size = targetSize;
         }
     }
 }
 
+Hand::Hand(int screenWidth, int screenHeight, glm::mat4 projection)
+{
+    handPos = calcWorldSpaceCoords({screenWidth, screenHeight * 0.9}, 5,
+        projection, glm::mat4(1.0f), screenWidth, screenHeight);
+}
+
 void Hand::addCard(shared_ptr<Card> card)
 {
-    card->position.x = right;
+    card->position = handPos;
     cards.push_back(card);
 }
 
@@ -108,39 +115,42 @@ void Hand::update(UpdateInfo& info)
     float cardSpacing = 0.2; // fraction of card size
     float springiness = 20; // spring constant (ish)
     float width = 2;        // width of card model
-    float damping = 2;      // force to slow down cards
+    float damping = sqrt(springiness);      // force to slow down cards
+    float right = handPos.x;
     float left = right;     
     for (int i = 0; i < cards.size(); i++) {
         left -= width * cards[i]->size * (1 + cardSpacing);
     }
-    vector<float> newPositions(cards.size());
+    vector<glm::vec3> newPositions(cards.size());
     for (int i = 0; i < cards.size(); i++) {
-        float acceleration = 0;
+        glm::vec3 acceleration = {0, 0, 0};
         if (i > 0) {
-            acceleration -= springiness * (cards[i]->position.x - cards[i-1]->position.x - width * cards[i]->size * (1 + cardSpacing));
+            acceleration.x -= springiness * (cards[i]->position.x - cards[i-1]->position.x - width * cards[i]->size * (1 + cardSpacing));
         } else {
-            acceleration += springiness * (-cards[i]->position.x + left - width * cards[i]->size * (1 + cardSpacing));
+            acceleration.x += springiness * (-cards[i]->position.x + left - width * cards[i]->size * (1 + cardSpacing));
         }
 
 
         if (i < cards.size() - 1) {
-            acceleration += springiness * (-cards[i]->position.x + cards[i+1]->position.x - width * cards[i]->size * (1 + cardSpacing));
+            acceleration.x += springiness * (-cards[i]->position.x + cards[i+1]->position.x - width * cards[i]->size * (1 + cardSpacing));
         } else {
-            acceleration += springiness * (-cards[i]->position.x + right - width * cards[i]->size * (1 + cardSpacing));
+            acceleration.x += springiness * (-cards[i]->position.x + right - width * cards[i]->size * (1 + cardSpacing));
         }
 
         if (cards[i]->isHovered) {
-            acceleration = 0;
+            acceleration.x = 0;
+        } else {
+            acceleration.y = -springiness * (cards[i]->getPos().y - handPos.y);
         }
 
-        acceleration -= cards[i]->xspeed * damping;
+        acceleration -= cards[i]->speed * damping;
         acceleration *= info.deltaTime;
-        cards[i]->xspeed += acceleration;
-        newPositions[i] = cards[i]->position.x + cards[i]->xspeed * info.deltaTime;
+        cards[i]->speed += acceleration;
+        newPositions[i] = cards[i]->position + cards[i]->speed * info.deltaTime;
     }
 
     for (int i = 0; i < cards.size(); i++) {
-        cards[i]->position.x = newPositions[i];
+        cards[i]->position = newPositions[i];
     }
 }
 
