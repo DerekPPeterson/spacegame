@@ -90,7 +90,7 @@ void System::queueDraw()
 void System::update(UpdateInfo& info)
 {
     checkSetHoverCircle(info.projection, info.camera->GetViewMatrix(), 
-            info.mousePos.x, info.mousePos.y, 
+            info.mouse.position.x, info.mouse.position.y, 
             info.screenWidth, info.screenHeight);
 
     glm::vec3 colorChangeSpeed(-5, 15, 20);

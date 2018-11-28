@@ -22,55 +22,18 @@
 #include "timer.h"
 #include "objectupdater.h"
 #include "cards.h"
+#include "input.h"
 
 
 #include "renderer.h"
 
 using namespace std;
 
-// TODO clean up this global var as well
-Camera camera(glm::vec3(-100.0f, 100.0f, 0));
 //
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------
 
-// TODO clean up these global vars
-double MOUSE_X = -1;
-double MOUSE_Y = -1;
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-    MOUSE_X = xpos;
-    MOUSE_Y = ypos;
-    LOG_VERBOSE << "Mouse position: " << xpos << " " << ypos;
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-    LOG_VERBOSE << "Camera offset: " << yoffset;
-    camera.ProcessMouseScroll(yoffset);
-}
-
-void processInput(GLFWwindow *window, Camera &camera, float deltaTime) 
-{
-    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS or
-       glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, true);
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        camera.ProcessKeyboard(LEFT, deltaTime);
-    }
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        camera.ProcessKeyboard(RIGHT, deltaTime);
-    }
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        camera.ProcessKeyboard(FORWARD, deltaTime);
-    }
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
-    }
-}
-
+// TODO isolate these mouse/keyboard functions
 GLFWwindow* setupOpenGlContext(RenderOptions options)
 {
     glfwInit();
@@ -94,8 +57,6 @@ GLFWwindow* setupOpenGlContext(RenderOptions options)
     glfwMakeContextCurrent(window);
     // set callback to resize viewport to window size if the window size is changed
     //glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
     //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 
@@ -122,8 +83,11 @@ int main()
         .screenHeight=800, 
         .fullscreen=false
     };
+    Camera camera(glm::vec3(-100.0f, 100.0f, 0));
 
     GLFWwindow *window = setupOpenGlContext(options);
+
+    Input input(window, &camera);
 
 
     // TODO initialize camera not as global
@@ -176,8 +140,7 @@ int main()
         // Prepare update data to update all objects for movement and such
         info.deltaTime = Timer::getDelta("frametime");
         info.curTime = Timer::get("frametime");
-        info.mousePos.x = MOUSE_X;
-        info.mousePos.y = MOUSE_Y;
+        info.mouse = input.mouse;
         frameTimes.push_back(info.deltaTime);
         LOG_INFO << "Frametime: " << info.deltaTime;
 
@@ -185,8 +148,7 @@ int main()
 
         renderer.renderFrame();
         glfwSwapBuffers(window);
-        glfwPollEvents();
-        processInput(window, camera, info.deltaTime);
+        input.process(info.deltaTime);
 
         updater.waitForUpdates();
     };

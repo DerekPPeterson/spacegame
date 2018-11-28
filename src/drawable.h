@@ -11,6 +11,7 @@
 #include "model.h"
 #include "nocopy.h"
 #include "camera.h"
+#include "input.h"
 
 class has_position
 {
@@ -49,7 +50,7 @@ struct UpdateInfo
     float curTime;
     Camera* camera;
     glm::mat4 projection;
-    glm::vec2 mousePos;
+    MouseInfo mouse;
     int screenWidth;
     int screenHeight;
 };
