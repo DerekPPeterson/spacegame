@@ -18,12 +18,14 @@ float rand_float_between(float LO, float HI)
 }
 
 System::System(glm::vec3 position)
-{ if (not isSetup) {
+{ 
+    if (not isSetup) {
         setup();
     };
 
     this->position = position;
-    sun = Light::makeLight(LIGHT_POINT, position, glm::vec3(10, 10, 10));
+    sun = dynamic_pointer_cast<PointLight>(
+            Light::makeLight(LIGHT_POINT, position, glm::vec3(10, 10, 10)));
 
     int nPlanets = rand() % 7 + 1;
     float spacing = 1.6;
@@ -43,6 +45,8 @@ System::System(glm::vec3 position)
 
         planets.push_back(new_planet);
     }
+
+    stage = SHADER_SIMPLE_DIFFUSE;
 }
 
 glm::vec3 calcOrbitPosition(glm::vec3 systemPosition, Orbit &orbit)
@@ -60,7 +64,7 @@ glm::vec3 calcOrbitPosition(glm::vec3 systemPosition, Orbit &orbit)
     return position;
 }
 
-void System::draw(Shader shader) const
+void System::draw(Shader& shader) 
 {
     for (auto planet : planets) {
         glm::mat4 planetModel = glm::translate(glm::mat4(1.0f), 
@@ -70,11 +74,25 @@ void System::draw(Shader shader) const
         shader.setVec3("diffuseColor", planet.color);
         sphere.draw(shader);
     }
+}
 
+void System::queueDraw()
+{
+    sun->queueDraw();
+    //for (auto& planet : planets) {
+    //    //TODO queue instance draw for each planet
+    //    //planet.queueDraw();
+    //}
+    // Instead use current method to draw planets
+    Renderable::queueDraw();
 }
 
 void System::update(UpdateInfo& info)
 {
+    checkSetHoverCircle(info.projection, info.camera->GetViewMatrix(), 
+            info.mousePos.x, info.mousePos.y, 
+            info.screenWidth, info.screenHeight);
+
     glm::vec3 colorChangeSpeed(-5, 15, 20);
     float minblue = 10;
     float maxBlue = 50;
@@ -116,13 +134,21 @@ SpaceGrid::SpaceGrid()
             grid[i][j] = shared_ptr<System>(new System(position));
         }
     }
-
+    stage = SHADER_LAMP;
 }
 
-void SpaceGrid::draw(Shader shader) {
+void SpaceGrid::draw(Shader& shader) {
     for (int i = 0; i < GRID_X; i++) {
         for (int j = 0; j < GRID_Y; j++) {
             grid[i][j]->draw(shader);
+        }
+    }
+}
+
+void SpaceGrid::queueDraw() {
+    for (int i = 0; i < GRID_X; i++) {
+        for (int j = 0; j < GRID_Y; j++) {
+            grid[i][j]->queueDraw();
         }
     }
 }
@@ -132,13 +158,13 @@ System* SpaceGrid::getSystem(int i, int j)
     return grid[i][j].get();;
 }
 
-vector<System*> SpaceGrid::getAllSystems()
+vector<shared_ptr<Object>> SpaceGrid::getAllSystems()
 {
-    vector<System*> systems;
+    vector<shared_ptr<Object>> systems;
     systems.reserve(GRID_X * GRID_Y);
     for (int i = 0; i < GRID_X; i++) {
         for (int j = 0; j < GRID_Y; j++) {
-            systems.push_back(grid[i][j].get());
+            systems.push_back(grid[i][j]);
         }
     }
     return systems;
@@ -169,10 +195,11 @@ SpaceShip::SpaceShip(string type, System* system) :
 {
     this->type = type;
     loadModel(type);
-    position = calcOrbitPosition(curSystem->getPosition(), orbit);
     orbit.phase = rand_float_between(0, 2 * 3.14);
     orbit.inclination = rand_float_between(0, 3.14 / 3);
     orbit.radius = rand_float_between(1, 3);
+    position = calcOrbitPosition(curSystem->getPosition(), orbit);
+    stage = SHADER_LIGHTING | SHADER_WARP_STEP1;
 }
 
 float calculateWarp(glm::vec3 position, float margin, glm::vec3 start, glm::vec3 end)
@@ -226,6 +253,9 @@ void SpaceShip::update(UpdateInfo& info)
     }
 
     position += displacement;
+
+    // Update camera pos for later use during drawWarp
+    cameraPos = info.camera->Position;
 }
 
 glm::mat4 SpaceShip::calcModelMat() const
@@ -237,13 +267,13 @@ glm::mat4 SpaceShip::calcModelMat() const
     return model;
 }
 
-void SpaceShip::draw(Shader shader) const
+void SpaceShip::draw(Shader& shader)
 {
     shader.setCommon(UNIFORM_MODEL, calcModelMat());
     models[type].draw(shader);
 }
 
-void SpaceShip::drawWarp(Shader shader, glm::vec3 cameraPos)
+void SpaceShip::drawWarp(Shader& shader)
 {
     if (warp < 1.05) {
         return;

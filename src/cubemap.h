@@ -3,25 +3,42 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include "shader.h"
+#include "nocopy.h"
+#include "renderables.h"
+#include "model.h"
 
-class Skybox
+//class SkyboxRenderable : virtual public Renderable
+//{
+//    public:
+//        SkyboxRenderable(std::unique_ptr<Renderable> cube, unsigned int textureId) :
+//            cube(std::move(cube)), textureId(textureId) {};
+//        virtual void draw() override;
+//    private:
+//        unsigned int textureId;
+//        std::unique_ptr<Renderable> cube;
+//};
+
+class Skybox: public Renderable
 {
     public:
 		unsigned int textureId;
 
-        Skybox(std::string path)
+        Skybox(std::string path) :
+            cubeModel(Model("./res/models/cube.obj"))
         {
             setupSkybox(path);
+            stage = SHADER_SKYBOX;
         }
-        void draw(Shader shader);
-
+        void draw(Shader& shader) override;
+        
     private:
-        unsigned int VAO, VBO;
+        Model cubeModel;
         void setupSkybox(std::string path);
 };
 

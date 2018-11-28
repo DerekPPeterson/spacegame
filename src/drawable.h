@@ -10,16 +10,20 @@
 #include "shader.h"
 #include "model.h"
 #include "nocopy.h"
+#include "camera.h"
 
 class Selectable
 {
     public:
-        bool checkSetHover(const glm::mat4& view, const glm::mat4& projection, 
+        bool checkSetHoverCircle(const glm::mat4 view, const glm::mat4 projection, 
+                float x, float y, int screenWidth, int screenHeight);
+        bool checkSetHoverQuad(const glm::mat4 view, const glm::mat4 projection, 
                 float x, float y, int screenWidth, int screenHeight);
     protected:
         bool isHovered = false;
         bool isSelected = true;
-        float targetRadius = 50;
+        float targetRadius = 50; // For circle func
+        std::vector<glm::vec3> quadVertices; // for quad test
         glm::vec3 position;
 };
 
@@ -27,16 +31,22 @@ struct UpdateInfo
 {
     float deltaTime;
     float curTime;
+    Camera* camera;
+    glm::mat4 projection;
+    glm::vec2 mousePos;
+    int screenWidth;
+    int screenHeight;
 };
 
 class Object : public non_copyable
 {
     public:
-        virtual void draw(Shader Shader) const {};
+        //virtual void draw(Shader Shader) const {};
         virtual void update(UpdateInfo& info) {};
         bool visible = true;
 
     private:
+        static void setup();
 
         static std::unordered_set<Object*> objects;
 };
@@ -79,7 +89,6 @@ enum LightType {LIGHT_POINT};
 class Light
 {
     public:
-        virtual void draw(Shader shader) {};
         virtual void setUniforms(Shader shader, int i) {};
         virtual void setColor(glm::vec3 color);
 
@@ -93,11 +102,11 @@ class Light
         
 };
 
-class PointLight: public Light
+class PointLight: public Light , public Renderable
 {
     public:
-        void draw(Shader shader);
-        void setUniforms(Shader shader, int iPointLight);
+        void draw(Shader& shader) override;
+        void setUniforms(Shader shader, int iPointLight) override;
         static void setup();
     
     protected:

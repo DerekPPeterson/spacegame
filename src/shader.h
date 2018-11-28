@@ -23,6 +23,7 @@ class Shader
     public:
         unsigned int ID;
         
+        Shader() {};
         Shader(const GLchar* vertexPath, const GLchar* fragmentPath);
 
         void use();

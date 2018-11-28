@@ -11,6 +11,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "renderables.h"
+
 typedef struct Orbit {
     float radius;
     float phase;
@@ -24,16 +26,17 @@ typedef struct Planet {
 } Planet;
 
 
-class System : public Object , public Selectable {
+class System : public Object , public Selectable, public Renderable{
     public:
         System() {};
         System(glm::vec3 position);
-        virtual void draw(Shader shader) const override;
+        virtual void draw(Shader& shader) override;
+        virtual void queueDraw() override;
         virtual void update(UpdateInfo& info) override;
         glm::vec3 getPosition();
 
     protected:
-        std::shared_ptr<Light> sun;
+        std::shared_ptr<PointLight> sun;
         //glm::vec3 position;
         std::vector<Planet> planets;
         static Model sphere;
@@ -41,24 +44,26 @@ class System : public Object , public Selectable {
         void setup();
 };
 
-class SpaceGrid : public Object
+class SpaceGrid : public Object, public Renderable
 {
     public:
         SpaceGrid();
-        void draw(Shader shader);
+        void draw(Shader& shader) override;
+        void queueDraw() override;
         System* getSystem(int i, int j);
-        std::vector<System*> getAllSystems();
+        std::vector<std::shared_ptr<Object>> getAllSystems();
     private:
         std::shared_ptr<System> grid[4][4];
 };
 
 
-class SpaceShip : public Object
+// TODO use an instance renderer
+class SpaceShip : public Object, public Renderable
 {
     public:
         SpaceShip(std::string type, System *system);
-        void draw(Shader shader) const override;
-        void drawWarp(Shader shader, glm::vec3 cameraPos);
+        virtual void draw(Shader& shader) override;
+        virtual void drawWarp(Shader& shader) override;
         void gotoSystem(System *system);
         virtual void update(UpdateInfo& info) override;
     
@@ -69,6 +74,7 @@ class SpaceShip : public Object
         System* curSystem;
         System* prevSystem;
         Orbit orbit;
+        glm::vec3 cameraPos;
 
         // +xaxis of model will be front of ship
         glm::vec3 direction = {1, 0, 0};

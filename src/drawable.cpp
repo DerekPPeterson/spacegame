@@ -6,21 +6,69 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
+
+
 using namespace std;
 
-bool Selectable::checkSetHover(const glm::mat4& projection, const glm::mat4& view, 
-        float mouseX, float mouseY,
-        int screenWidth, int screenHeight) 
+glm::vec2 calcScreenSpaceCoords(glm::vec3 position, 
+        glm::mat4 projection, glm::mat4 view,
+        int screenWidth, int screenHeight)
 {
     glm::vec4 clipCoords = 
         projection * view * glm::vec4(position, 1);
     glm::vec2 screenCoords(
             (clipCoords.x / clipCoords.w + 1) / 2 * screenWidth, 
             screenHeight - (clipCoords.y / clipCoords.w + 1) / 2 * screenHeight);
-    
-    cout << "Screen coords: " << screenCoords.x << " " << screenCoords.y << endl;
-    cout << "Mouse coords: " << mouseX << " " << mouseY << endl;
+    return screenCoords;
+}
 
+bool pointInsideQuad(glm::vec2 point, vector<glm::vec2> quad)
+{
+    glm::vec3 p(point, 0);
+    float lastz = 1;;
+    for (int i=0; i < 4; i++) {
+        glm::vec3 v1(quad[i], 0);
+        glm::vec3 v2;
+        if (i != 3) {
+            v2 = glm::vec3(quad[i+1], 0);
+        } else {
+            v2 = glm::vec3(quad[0], 0);
+        }
+        float zcross = (p.x - v1.x) * (v2.y - v1.y) - (v2.x - v1.x) * (p.y - v1.y);
+        if (i > 0  and zcross * lastz < 0) {
+            return false;
+        }
+        lastz = zcross;
+        printf("v1: %s, v2: %s, zcross %f\n", glm::to_string(v1).c_str(), glm::to_string(v2).c_str(), zcross);
+    }
+    return true;
+}
+
+bool Selectable::checkSetHoverQuad(const glm::mat4 projection, const glm::mat4 view, 
+        float mouseX, float mouseY,
+        int screenWidth, int screenHeight) 
+{
+    glm::vec2 screenCoords = calcScreenSpaceCoords(position,
+            projection, view, screenWidth, screenHeight);
+    vector<glm::vec2> screenQuadCoords;
+    for (auto quadVertex : quadVertices) {
+        screenQuadCoords.push_back(calcScreenSpaceCoords(quadVertex + position,
+            projection, view, screenWidth, screenHeight));
+    }
+    isHovered = pointInsideQuad(glm::vec2(mouseX, mouseY), screenQuadCoords);
+    return isHovered;
+}
+
+
+bool Selectable::checkSetHoverCircle(const glm::mat4 projection, const glm::mat4 view, 
+        float mouseX, float mouseY,
+        int screenWidth, int screenHeight) 
+{
+    glm::vec2 screenCoords = calcScreenSpaceCoords(position,
+            projection, view, screenWidth, screenHeight);
+    
     isHovered = glm::length(screenCoords - glm::vec2(mouseX, mouseY)) <= targetRadius;
     return isHovered;
 }
@@ -60,6 +108,7 @@ PointLight::PointLight(glm::vec3 position, glm::vec3 color)
 {
     this->position = position;
     this->color = color;
+    stage = SHADER_LAMP;
 }
 
 void PointLight::setUniforms(Shader shader, int iPointLight)
@@ -71,7 +120,7 @@ void PointLight::setUniforms(Shader shader, int iPointLight)
     shader.setVec3(arrayElem + ".attenuation", attenuation);
 }
 
-void PointLight::draw(Shader shader)
+void PointLight::draw(Shader& shader)
 {
     shader.setVec3("color", color);
     glm::mat4 model = glm::translate(glm::mat4(1.0f), position);

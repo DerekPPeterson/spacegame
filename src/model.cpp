@@ -1,8 +1,10 @@
 #include "model.h"
+#include "lineobjload.h"
 
 #include <string>
 #include <set>
 #include <stdio.h>
+#include <memory>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -13,8 +15,10 @@
 
 using namespace std;
 
+
 Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices,
-                vector<Texture> textures) 
+                vector<Texture> textures) :
+    MeshRenderable(0 /* VAO set by setupMesh */, indices.size()) 
 {
     this->vertices = vertices;
     this->indices = indices;
@@ -82,7 +86,43 @@ void Mesh::draw(Shader& shader)
     glBindVertexArray(0);
 }
 
-void Model::draw(Shader shader)
+LineMesh::LineMesh(vector<glm::vec3> vertices, vector<unsigned int> indices) :
+    MeshRenderable(0 /* VAO set by setupMesh */, indices.size()) 
+{
+    this->vertices = vertices;
+    this->indices = indices;
+    setupMesh();
+    stage = SHADER_LAMP;
+}
+
+void LineMesh::setupMesh()
+{
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), 
+            &vertices[0], GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
+            &indices[0], GL_STATIC_DRAW);
+
+    // Vertex positions
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*) 0);
+}
+
+void LineMesh::draw(Shader& shader)
+{
+    glBindVertexArray(VAO);
+    glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0);
+}
+
+void Model::draw(Shader& shader)
 {
     for (int i = 0; i < meshes.size(); i++) {
         meshes[i].draw(shader);
@@ -103,6 +143,7 @@ void Model::loadModel(string path)
 
     processNode(scene->mRootNode, scene);
 }
+
 
 void Model::processNode(aiNode *node, const aiScene *scene)
 {
@@ -209,4 +250,19 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial *mat,
     }
     return textures;
 }
+
+void LineModel::loadModel(string path)
+{
+    LineObj model = readLineObj(path);
+    mesh = LineMesh(model.vertices, model.indices);
+}
+
+// TODO debug transform, remove
+#include "timer.h"
+
+void LineModel::draw(Shader& shader)
+{
+    mesh.draw(shader);
+}
+
 

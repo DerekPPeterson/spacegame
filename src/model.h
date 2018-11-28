@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <set>
+#include <memory>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -10,6 +11,7 @@
 #include <assimp/scene.h>
 
 #include "shader.h"
+#include "renderables.h"
 
 
 struct Vertex {
@@ -23,7 +25,7 @@ struct Texture {
     std::string type;
 };
 
-class Mesh
+class Mesh : virtual public MeshRenderable
 {
     public:
         std::vector<Vertex> vertices;
@@ -32,14 +34,32 @@ class Mesh
 
         Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
                 std::vector<Texture> textures);
-        void draw(Shader& shader);
+        void draw(Shader& shader) override;
 
     private:
-        unsigned int VAO, VBO, EBO;
+        unsigned int VBO, EBO;
         void setupMesh();
 };
 
-class Model
+// TODO probably have to create a new Renderable class for this
+class LineMesh : virtual public MeshRenderable
+{
+    public:
+        LineMesh() {};
+        std::vector<glm::vec3> vertices;
+        std::vector<unsigned int> indices;
+
+        LineMesh(std::vector<glm::vec3> vertices, 
+                std::vector<unsigned int> indices);
+        void draw(Shader& shader) override;
+
+    private:
+        unsigned int VBO, EBO;
+        void setupMesh();
+};
+
+// TODO this will have to change into an instance renderable at some point
+class Model : public Renderable
 {
     public:
         Model() {};
@@ -47,7 +67,7 @@ class Model
         {
             loadModel(path);
         }
-        void draw(Shader shader);
+        void draw(Shader& shader) override;
 
     private:
         // Model Data
@@ -61,6 +81,26 @@ class Model
         Mesh processMesh(aiMesh *mesh, const aiScene *scene);
         std::vector<Texture> loadMaterialTextures(aiMaterial *mat, 
                 aiTextureType type, std::string typeName);
+};
+
+class LineModel : public Renderable
+{
+    public:
+        LineModel() {};
+        LineModel(const char *path)
+        {
+            loadModel(path);
+            stage = SHADER_LAMP;
+        }
+        void draw(Shader& shader) override;
+
+    private:
+        // Model Data
+        LineMesh mesh;
+
+        //functions
+        void loadModel(std::string path);
+        LineMesh processMesh(aiMesh *mesh, const aiScene *scene);
 };
 
 
