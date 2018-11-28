@@ -23,9 +23,9 @@ void Card::draw(Shader& shader)
     shader.setCommon(UNIFORM_MODEL, model);
     cardModel.draw(shader);
 
-    shader.setVec3("color", {10, 0, 0});
-    LineMesh clickbox(quadVertices, {0, 1, 1, 2, 2, 3, 3, 0});
-    clickbox.draw(shader);
+    //shader.setVec3("color", {10, 0, 0});
+    //LineMesh clickbox(quadVertices, {0, 1, 1, 2, 2, 3, 3, 0});
+    //clickbox.draw(shader);
 
 }
 
@@ -65,6 +65,8 @@ void Card::update(UpdateInfo& info)
     updateModel();
     checkSetHoverQuad(info.projection, glm::mat4(1.0f), 
             info.mouse.position.x, info.mouse.position.y, 
+            info.screenWidth, info.screenHeight);
+    checkSetDrag(info.projection, glm::mat4(1.0f), info.mouse,
             info.screenWidth, info.screenHeight);
     
     float sizeChangeRate = 3;

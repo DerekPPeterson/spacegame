@@ -8,7 +8,7 @@
 #include <memory>
 
 
-class Card : public Renderable , public Object, public Selectable{
+class Card : public Renderable , public Object, public Dragable {
     public:
         Card();
         virtual void draw(Shader& shader) override;

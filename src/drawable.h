@@ -32,16 +32,25 @@ class has_model_mat
 
 class Selectable : public virtual has_position, public virtual has_model_mat
 {
-    public:
+    protected:
         bool checkSetHoverCircle(const glm::mat4 view, const glm::mat4 projection, 
                 float x, float y, int screenWidth, int screenHeight);
         bool checkSetHoverQuad(const glm::mat4 view, const glm::mat4 projection, 
                 float x, float y, int screenWidth, int screenHeight);
-    protected:
         bool isHovered = false;
         bool isSelected = true;
         float targetRadius = 50; // For circle func
         std::vector<glm::vec3> quadVertices; // for quad test
+};
+
+class Dragable : public Selectable
+{
+    protected:
+        void checkSetDrag(const glm::mat4 view, const glm::mat4 projection, 
+                MouseInfo mouse, int screenWidth, int screenHeight);
+        bool dragging = false;
+        glm::vec3 dragDisplacement;
+        glm::vec3 lastDragPos;
 };
 
 struct UpdateInfo

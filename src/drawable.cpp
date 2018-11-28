@@ -9,6 +9,8 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 
+#include <plog/Log.h>
+
 
 using namespace std;
 
@@ -22,6 +24,22 @@ glm::vec2 calcScreenSpaceCoords(glm::vec3 position,
             (clipCoords.x / clipCoords.w + 1) / 2 * screenWidth, 
             screenHeight - (clipCoords.y / clipCoords.w + 1) / 2 * screenHeight);
     return screenCoords;
+}
+
+glm::vec3 calcWorldSpaceCoords(glm::vec2 screenCoords, float worldDepth,
+        glm::mat4 projection, glm::mat4 view,
+        int screenWidth, int screenHeight)
+{
+    glm::vec4 clipVec = projection * view * glm::vec4(0, 0, -worldDepth, 1);
+    float clipDepth = clipVec.z / clipVec.w;
+    glm::vec4 clipCoords = glm::vec4(
+            (2 * screenCoords.x / screenWidth - 1) /* * screenCoords.w */ ,
+            -(2 * screenCoords.y / screenHeight - 1) /* * screenCoords.w */ ,
+            clipDepth, 1);
+    cout << "clipCoords" << glm::to_string(clipCoords) << endl;
+    glm::vec4 worldCoords = glm::inverse(projection * view) * clipCoords;
+    worldCoords /= worldCoords.w;
+    return worldCoords;
 }
 
 bool pointInsideQuad(glm::vec2 point, vector<glm::vec2> quad)
@@ -69,6 +87,20 @@ bool Selectable::checkSetHoverCircle(const glm::mat4 projection, const glm::mat4
     
     isHovered = glm::length(screenCoords - glm::vec2(mouseX, mouseY)) <= targetRadius;
     return isHovered;
+}
+
+void Dragable::checkSetDrag(const glm::mat4 view, const glm::mat4 projection, 
+        MouseInfo mouse, int screenWidth, int screenHeight)
+{
+    glm::vec3 curDragPos = calcWorldSpaceCoords(mouse.position, position.z,
+            projection, view, screenWidth, screenHeight);
+    cout << "curDragPos" << glm::to_string(curDragPos) << endl;
+    if (isHovered && mouse.clicked) {
+        cout << "Dragging" << endl;
+        dragging = true;
+        position += lastDragPos - curDragPos;
+    }
+    lastDragPos = curDragPos;
 }
 
 //Object::Object()

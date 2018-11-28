@@ -77,6 +77,7 @@ GLFWwindow* setupOpenGlContext(RenderOptions options)
 int main()
 {
     plog::init(plog::verbose, "./spacegame.log");
+    LOG_INFO << "Starting program";
 
     RenderOptions options = {
         .screenWidth=1000, 
@@ -151,6 +152,12 @@ int main()
         input.process(info.deltaTime);
 
         updater.waitForUpdates();
+        
+    // TODO debug output
+    for (int i =0 ;i < 100; i++) {
+        cout << "\n";
+    }
+
     };
     
     float average = 0;

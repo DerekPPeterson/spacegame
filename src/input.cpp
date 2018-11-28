@@ -57,6 +57,7 @@ Input::Input(GLFWwindow *window, Camera* camera) :
 {
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
     ::camera = camera;
 }
 
