@@ -25,6 +25,7 @@
 #include "objectupdater.h"
 #include "cards.h"
 #include "input.h"
+#include "text.h"
 
 
 #include "renderer.h"
@@ -80,6 +81,10 @@ int main(int argc, char **argv)
 {
     plog::init(plog::verbose, "./spacegame.log");
     LOG_INFO << "Starting program";
+
+    // TODO not sure if this font is free to use
+    Font conthrax("./res/fonts/conthrax.fnt");
+    return 0;
 
     cxxopts::Options opts("Spacegame", "A game");
     opts.add_options()
