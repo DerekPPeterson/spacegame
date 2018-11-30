@@ -39,6 +39,7 @@ class Renderable
 {
     public:
         Renderable() {};
+        virtual ~Renderable() {};
         virtual void queueDraw();
         virtual void draw(Shader& shader) {};
         virtual void drawWarp(Shader& shader) {};

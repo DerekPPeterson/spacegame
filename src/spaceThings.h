@@ -29,6 +29,7 @@ typedef struct Planet {
 class System : public Object , public Selectable, public Renderable{
     public:
         System() {};
+        virtual ~System() {};
         System(glm::vec3 position);
         virtual void draw(Shader& shader) override;
         virtual void queueDraw() override;

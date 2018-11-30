@@ -63,6 +63,7 @@ class Model : public Renderable
 {
     public:
         Model() {};
+        virtual ~Model() {};
         Model(const char *path)
         {
             loadModel(path);

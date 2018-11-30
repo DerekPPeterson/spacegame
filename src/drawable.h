@@ -78,6 +78,7 @@ class Object : public non_copyable
 {
     public:
         //virtual void draw(Shader Shader) const {};
+        virtual ~Object() {};
         virtual void update(UpdateInfo& info) {};
         bool visible = true;
 
@@ -125,6 +126,7 @@ enum LightType {LIGHT_POINT};
 class Light
 {
     public:
+        virtual ~Light() {};
         virtual void setUniforms(Shader shader, int i) {};
         virtual void setColor(glm::vec3 color);
 
@@ -141,6 +143,7 @@ class Light
 class PointLight: public Light , public Renderable
 {
     public:
+        virtual ~PointLight() {};
         void draw(Shader& shader) override;
         void setUniforms(Shader shader, int iPointLight) override;
         static void setup();
