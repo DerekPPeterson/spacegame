@@ -163,10 +163,9 @@ int main(int argc, char **argv)
 
         updater.waitForUpdates();
         
-    // TODO debug output
-    for (int i =0 ;i < 100; i++) {
-        cout << "\n";
-    }
+        //for (int i =0 ;i < 100; i++) {
+        //    cout << "\n";
+        //}
 
     };
     

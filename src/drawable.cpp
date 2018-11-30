@@ -36,7 +36,6 @@ glm::vec3 calcWorldSpaceCoords(glm::vec2 screenCoords, float worldDepth,
             (2 * screenCoords.x / screenWidth - 1) /* * screenCoords.w */ ,
             -(2 * screenCoords.y / screenHeight - 1) /* * screenCoords.w */ ,
             clipDepth, 1);
-    cout << "clipCoords" << glm::to_string(clipCoords) << endl;
     glm::vec4 worldCoords = glm::inverse(projection * view) * clipCoords;
     worldCoords /= worldCoords.w;
     return worldCoords;
@@ -112,9 +111,7 @@ void Dragable::checkSetDrag(const glm::mat4 view, const glm::mat4 projection,
 {
     glm::vec3 curDragPos = calcWorldSpaceCoords(mouse.position, position.z,
             projection, view, screenWidth, screenHeight);
-    cout << "curDragPos" << glm::to_string(curDragPos) << endl;
     if (isHovered and mouse.clicked and (not beingDragged or beingDragged == this)) {
-        cout << "Dragging" << endl;
         dragging = true;
         beingDragged = this;
         position += lastDragPos - curDragPos;
