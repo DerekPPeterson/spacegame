@@ -16,6 +16,7 @@ void Renderable::queueDraw() {
         SHADER_SKYBOX,
         SHADER_WARP_STEP1,
         SHADER_CARD,
+        SHADER_TEXT,
     };
     for (auto s : stageList) {
         if (s & stage) {
@@ -69,6 +70,5 @@ void MeshRenderable::draw(Shader& shader)
 {
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, nIndices, GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
 }
 

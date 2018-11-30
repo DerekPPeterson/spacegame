@@ -1,16 +1,25 @@
 #include "text.h"
 
 #include <plog/Log.h>
+#include <glad/glad.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <regex>
 #include <fstream>
 #include <iostream>
+#include <experimental/filesystem>
 
 using namespace std;
+using namespace std::experimental::filesystem;
 
-Font::Font(string path)
+Font::Font(string fntFilename)
 {
-	parseUbfg(path);
+    path p = fntFilename;
+	info = parseUbfg(fntFilename);
+    textureId = loadTextureFromFile(info.textureFilename, p.parent_path());
 }
 
 UbfgInfo Font::parseUbfg(std::string filename)
@@ -51,4 +60,80 @@ UbfgInfo Font::parseUbfg(std::string filename)
         }
 	}
 	return info;
+}
+
+MeshRenderable createTextQuad()
+{
+    float vertices[] = {
+        // positions         // texCoords
+         0.0f,  -1.0f,  0.0f, 0.0f, 1.0f,
+         1.0f,  0.0f,  0.0f, 1.0f, 0.0f,
+         0.0f,  0.0f,  0.0f, 0.0f, 0.0f,
+
+         0.0f,  -1.0f,  0.0f, 0.0f, 1.0f,
+         1.0f,  -1.0f,  0.0f, 1.0f, 1.0f,
+         1.0f,  0.0f,  0.0f, 1.0f, 0.0f,
+        };
+
+    unsigned int indices[] = {0, 1, 2, 3, 4, 5};
+
+    unsigned int VAO, VBO, EBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices[0], GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), &indices[0], GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*) 0);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 
+            (void*) (sizeof(float) * 3));
+    
+    return MeshRenderable(VAO, sizeof(indices) / sizeof(indices[0]));
+};
+
+MeshRenderable Text::textQuad;
+
+void Text::setup()
+{
+    static bool isSetup = false;
+    if (not isSetup) {
+        textQuad = createTextQuad();
+    }
+}
+
+void Text::draw(Shader& shader)
+{
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, font.textureId);
+
+    float curTextPos = 0;
+
+    unsigned int lastChar = 0;
+    for (auto c : text) {
+        CharInfo charInfo = font.info.characters[c];
+        shader.setVec2("TexCoordOffset", 
+                {charInfo.xpos / font.info.textureWidth, 
+                 charInfo.ypos / font.info.textureHeight});
+        shader.setVec2("charSize", 
+                {charInfo.width / font.info.textureWidth, 
+                charInfo.height / font.info.textureHeight});
+        glm::mat4 charModel = getModel();
+        charModel = glm::scale(charModel, {0.1, 0.1, 0.1});
+        float kerningDist = lastChar ? (float) font.info.kerningPairs[lastChar][c] / 50 : 0;
+        charModel = glm::translate(charModel, {curTextPos + charInfo.origw / 50 / 2 - kerningDist, -charInfo.yoffset / 50.0, 0});
+        charModel = glm::scale(charModel, {(float) charInfo.width / 50.0, charInfo.height / 50.0, 1});
+        shader.setCommon(UNIFORM_MODEL, charModel);
+        textQuad.draw(shader);
+
+        curTextPos += charInfo.origw / 50;
+        lastChar = c;
+    }
 }

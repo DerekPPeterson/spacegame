@@ -213,7 +213,7 @@ unsigned int loadTextureFromFile(string path, string directory)
         LOG_ERROR << "Failed to load texture: " << full_path;
     }
 
-	LOG_INFO << "Loading texture" << full_path;
+	LOG_INFO << "Loading texture: " << full_path;
 
 	// Create texture from image
     unsigned int texture;

@@ -58,6 +58,7 @@ void Renderer::compileLinkShaders()
     shaders.try_emplace(SHADER_WARP_STEP1, "./src/shaders/warp.vert", "./src/shaders/warp1.frag");
     shaders.try_emplace(SHADER_WARP_STEP2, "./src/shaders/warp.vert", "./src/shaders/warp2.frag");
     shaders.try_emplace(SHADER_CARD, "./src/shaders/card.vert", "./src/shaders/card.frag");
+    shaders.try_emplace(SHADER_TEXT, "./src/shaders/text.vert", "./src/shaders/text.frag");
 }
 
 Renderer::Renderer(RenderOptions options, Camera& camera) :
@@ -93,44 +94,49 @@ void Renderer::renderMainScene()
     glClear(GL_DEPTH_BUFFER_BIT);
 
     // TODO improve uniform setting
-    shaders[SHADER_LAMP].use();
-    shaders[SHADER_LAMP].setMat4("view", camera.GetViewMatrix());
-    shaders[SHADER_LAMP].setMat4("projection", projection);
-    Renderable::drawStage(SHADER_LAMP, shaders[SHADER_LAMP]);
+    //shaders[SHADER_LAMP].use();
+    //shaders[SHADER_LAMP].setMat4("view", camera.GetViewMatrix());
+    //shaders[SHADER_LAMP].setMat4("projection", projection);
+    //Renderable::drawStage(SHADER_LAMP, shaders[SHADER_LAMP]);
 
-    std::vector<std::shared_ptr<Light>> lights = Light::getAllLights();
-    shaders[SHADER_SIMPLE_DIFFUSE].use();
-    for (int i = 0; i < lights.size(); i++) {
-        lights[i]->setUniforms(shaders[SHADER_SIMPLE_DIFFUSE], i);
-    }
-    shaders[SHADER_SIMPLE_DIFFUSE].setMat4("view", camera.GetViewMatrix());
-    shaders[SHADER_SIMPLE_DIFFUSE].setMat4("projection", projection);
-    shaders[SHADER_SIMPLE_DIFFUSE].setVec3("viewPos", camera.Position);
-    shaders[SHADER_SIMPLE_DIFFUSE].setInt("numPointLights", lights.size());
-    shaders[SHADER_SIMPLE_DIFFUSE].setFloat("ambientStrength", 0.0);
-    Renderable::drawStage(SHADER_SIMPLE_DIFFUSE, shaders[SHADER_SIMPLE_DIFFUSE]);
-    
-    shaders[SHADER_LIGHTING].use();
-    shaders[SHADER_LIGHTING].setMat4("view", camera.GetViewMatrix());
-    shaders[SHADER_LIGHTING].setMat4("projection", projection);
-    shaders[SHADER_LIGHTING].setVec3("viewPos", camera.Position);
-    shaders[SHADER_LIGHTING].setInt("numPointLights", lights.size());
-    shaders[SHADER_LIGHTING].setFloat("ambientStrength", 0.00);
-    for (int i = 0; i < lights.size(); i++) {
-        lights[i]->setUniforms(shaders[SHADER_LIGHTING], i);
-    }
-    Renderable::drawStage(SHADER_LIGHTING, shaders[SHADER_SIMPLE_DIFFUSE]);
+    //std::vector<std::shared_ptr<Light>> lights = Light::getAllLights();
+    //shaders[SHADER_SIMPLE_DIFFUSE].use();
+    //for (int i = 0; i < lights.size(); i++) {
+    //    lights[i]->setUniforms(shaders[SHADER_SIMPLE_DIFFUSE], i);
+    //}
+    //shaders[SHADER_SIMPLE_DIFFUSE].setMat4("view", camera.GetViewMatrix());
+    //shaders[SHADER_SIMPLE_DIFFUSE].setMat4("projection", projection);
+    //shaders[SHADER_SIMPLE_DIFFUSE].setVec3("viewPos", camera.Position);
+    //shaders[SHADER_SIMPLE_DIFFUSE].setInt("numPointLights", lights.size());
+    //shaders[SHADER_SIMPLE_DIFFUSE].setFloat("ambientStrength", 0.0);
+    //Renderable::drawStage(SHADER_SIMPLE_DIFFUSE, shaders[SHADER_SIMPLE_DIFFUSE]);
+    //
+    //shaders[SHADER_LIGHTING].use();
+    //shaders[SHADER_LIGHTING].setMat4("view", camera.GetViewMatrix());
+    //shaders[SHADER_LIGHTING].setMat4("projection", projection);
+    //shaders[SHADER_LIGHTING].setVec3("viewPos", camera.Position);
+    //shaders[SHADER_LIGHTING].setInt("numPointLights", lights.size());
+    //shaders[SHADER_LIGHTING].setFloat("ambientStrength", 0.00);
+    //for (int i = 0; i < lights.size(); i++) {
+    //    lights[i]->setUniforms(shaders[SHADER_LIGHTING], i);
+    //}
+    //Renderable::drawStage(SHADER_LIGHTING, shaders[SHADER_SIMPLE_DIFFUSE]);
 
-    shaders[SHADER_CARD].use();
-    shaders[SHADER_CARD].setMat4("view", camera.GetViewMatrix());
-    shaders[SHADER_CARD].setMat4("projection", projection);
-    Renderable::drawStage(SHADER_CARD, shaders[SHADER_CARD]);
+    //shaders[SHADER_CARD].use();
+    //shaders[SHADER_CARD].setMat4("view", camera.GetViewMatrix());
+    //shaders[SHADER_CARD].setMat4("projection", projection);
+    //Renderable::drawStage(SHADER_CARD, shaders[SHADER_CARD]);
 
-    shaders[SHADER_SKYBOX].use();
-    glm::mat4 skyboxView = glm::mat4(glm::mat3(camera.GetViewMatrix()));  
-    shaders[SHADER_SKYBOX].setMat4("view", skyboxView);
-    shaders[SHADER_SKYBOX].setMat4("projection", projection);
-    Renderable::drawStage(SHADER_SKYBOX, shaders[SHADER_SKYBOX]);
+    shaders[SHADER_TEXT].use();
+    shaders[SHADER_TEXT].setMat4("view", camera.GetViewMatrix());
+    shaders[SHADER_TEXT].setMat4("projection", projection);
+    Renderable::drawStage(SHADER_TEXT, shaders[SHADER_TEXT]);
+
+    //shaders[SHADER_SKYBOX].use();
+    //glm::mat4 skyboxView = glm::mat4(glm::mat3(camera.GetViewMatrix()));  
+    //shaders[SHADER_SKYBOX].setMat4("view", skyboxView);
+    //shaders[SHADER_SKYBOX].setMat4("projection", projection);
+    //Renderable::drawStage(SHADER_SKYBOX, shaders[SHADER_SKYBOX]);
 
     // Demultisample
     glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffers.mainFramebufferMultisampled.id);
@@ -260,7 +266,7 @@ void Renderer::renderFrame()
         r->queueDraw();
     }
     renderMainScene();
-    renderWarpEffects();
+    //renderWarpEffects();
     toRenderMutex.unlock();
     // TODO better way to pass this info?
     int buffno = renderBloom();

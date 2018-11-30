@@ -13,6 +13,7 @@
 #include "shader.h"
 #include "renderables.h"
 
+unsigned int loadTextureFromFile(std::string path, std::string directory);
 
 struct Vertex {
     glm::vec3 position;
