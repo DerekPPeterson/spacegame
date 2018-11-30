@@ -7,8 +7,11 @@
 
 Framebuffers::Framebuffers(int width, int height)
 {
-    createMainFramebuffer(mainFramebuffer, 2, width, height);
-    createMainFramebuffer(warpFrameBuffer, 2, width, height);
+    // main antialiased 
+    createMainFramebuffer(mainFramebufferMultisampled, 2, width, height, true);
+
+    createMainFramebuffer(mainFramebuffer, 2, width, height, false);
+    createMainFramebuffer(warpFrameBuffer, 2, width, height, false);
     // Bind bright color texture to both frame buffers so bloom is applied to warp effects
     glBindFramebuffer(GL_FRAMEBUFFER, warpFrameBuffer.id);
     glBindTexture(GL_TEXTURE_2D, mainFramebuffer.colorTextures[1]);
@@ -17,7 +20,7 @@ Framebuffers::Framebuffers(int width, int height)
     createPingpongFramebuffer(width / 2, height / 2);
 }
 
-void Framebuffers::createMainFramebuffer(Framebuffer& buf, int nColorBuffers, int width, int height)
+void Framebuffers::createMainFramebuffer(Framebuffer& buf, int nColorBuffers, int width, int height, bool msaa)
 {
     glGenFramebuffers(1, &buf.id);
     glBindFramebuffer(GL_FRAMEBUFFER, buf.id);
@@ -25,15 +28,22 @@ void Framebuffers::createMainFramebuffer(Framebuffer& buf, int nColorBuffers, in
     // 2nd texture is for bloom
     buf.colorTextures.resize(nColorBuffers);
     for (int i = 0; i < nColorBuffers; i++ ) {
-        glGenTextures(2, &buf.colorTextures[i]);
-        glBindTexture(GL_TEXTURE_2D, buf.colorTextures[i]);
+        glGenTextures(1, &buf.colorTextures[i]);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        if ( msaa) {
+            glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, buf.colorTextures[i]);
+            glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F, width, height, GL_TRUE);
+    //        glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    //        glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, buf.colorTextures[i], 0);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D_MULTISAMPLE, buf.colorTextures[i], 0);
+        } else {
+            glBindTexture(GL_TEXTURE_2D, buf.colorTextures[i]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, buf.colorTextures[i], 0);
+        }
     }
 
     unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
@@ -42,7 +52,12 @@ void Framebuffers::createMainFramebuffer(Framebuffer& buf, int nColorBuffers, in
     unsigned int rbo;
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo); 
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);  
+    if(msaa) {
+        glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, width, height);  
+    } else {
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);  
+    }
+        
 
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, 0);

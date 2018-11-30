@@ -12,12 +12,13 @@ class Framebuffers
 {
     public:
         Framebuffers(int width, int height);
+        Framebuffer mainFramebufferMultisampled;
         Framebuffer mainFramebuffer;
         Framebuffer warpFrameBuffer;
         Framebuffer normalBlendFramebuffer;
         Framebuffer pingpongBuffers[2];
     private:
-        void createMainFramebuffer(Framebuffer& buf, int numColorBuffers, int width, int height);
+        void createMainFramebuffer(Framebuffer& buf, int numColorBuffers, int width, int height, bool msaa);
         void createNormalBlendingFramebuffer(int width, int height);
         void createPingpongFramebuffer(int width, int height);
 };

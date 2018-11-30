@@ -85,7 +85,7 @@ void Renderer::renderMainScene()
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.warpFrameBuffer.id);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.mainFramebuffer.id);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.mainFramebufferMultisampled.id);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);  
    
@@ -131,6 +131,11 @@ void Renderer::renderMainScene()
     shaders[SHADER_SKYBOX].setMat4("view", skyboxView);
     shaders[SHADER_SKYBOX].setMat4("projection", projection);
     Renderable::drawStage(SHADER_SKYBOX, shaders[SHADER_SKYBOX]);
+
+    // Demultisample
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffers.mainFramebufferMultisampled.id);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffers.mainFramebuffer.id);
+    glBlitFramebuffer(0, 0, options.screenWidth, options.screenHeight, 0, 0, options.screenWidth, options.screenHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST); 
 }
 
 void Renderer::renderWarpEffects()
