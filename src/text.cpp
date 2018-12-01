@@ -112,28 +112,30 @@ void Text::setup()
 void Text::draw(Shader& shader)
 {
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, font.textureId);
+    glBindTexture(GL_TEXTURE_2D, font->textureId);
 
     float curTextPos = 0;
 
     unsigned int lastChar = 0;
     for (auto c : text) {
-        CharInfo charInfo = font.info.characters[c];
+        CharInfo charInfo = font->info.characters[c];
+        shader.setVec3("color", color);
         shader.setVec2("TexCoordOffset", 
-                {charInfo.xpos / font.info.textureWidth, 
-                 charInfo.ypos / font.info.textureHeight});
+                {charInfo.xpos / font->info.textureWidth, 
+                 charInfo.ypos / font->info.textureHeight});
         shader.setVec2("charSize", 
-                {charInfo.width / font.info.textureWidth, 
-                charInfo.height / font.info.textureHeight});
+                {charInfo.width / font->info.textureWidth, 
+                charInfo.height / font->info.textureHeight});
+
         glm::mat4 charModel = getModel();
-        charModel = glm::scale(charModel, {0.1, 0.1, 0.1});
-        float kerningDist = lastChar ? (float) font.info.kerningPairs[lastChar][c] / 50 : 0;
-        charModel = glm::translate(charModel, {curTextPos + charInfo.origw / 50 / 2 - kerningDist, -charInfo.yoffset / 50.0, 0});
+        float kerningDist = lastChar ? (float) font->info.kerningPairs[lastChar][c] / 50 : 0;
+        charModel = glm::translate(charModel, {curTextPos + charInfo.xoffset / 50, -charInfo.yoffset / 50.0, 0});
         charModel = glm::scale(charModel, {(float) charInfo.width / 50.0, charInfo.height / 50.0, 1});
+
         shader.setCommon(UNIFORM_MODEL, charModel);
         textQuad.draw(shader);
 
-        curTextPos += charInfo.origw / 50;
+        curTextPos += charInfo.origw / 50 + kerningDist;
         lastChar = c;
     }
 }

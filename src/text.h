@@ -35,6 +35,7 @@ struct UbfgInfo
 class Font
 {
     public:
+        Font() {};
 		Font(std::string path);
 	private:
 		UbfgInfo parseUbfg(std::string filename);
@@ -47,13 +48,16 @@ class Font
 class Text : public Renderable , public has_model_mat
 {
 	public:
-		Text(Font& font, std::string text) : font(font), text(text)
+		Text() {};
+		Text(Font* font, std::string text, glm::vec3 color) 
+            : font(font), text(text), color(color)
 				{stage = SHADER_TEXT; setup();};
 		virtual void draw(Shader& shader) override;
 		void setText(std::string text) {this->text = text;};
 	private:
-		Font& font;
+		Font* font;
 		std::string text;
+        glm::vec3 color;
 		static MeshRenderable textQuad;
 		static void setup();
 };

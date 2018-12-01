@@ -32,9 +32,10 @@ class has_position
 
 class has_model_mat
 {
-    protected:
+    public:
         glm::mat4 getModel() const {return model;};
         void setModel(glm::mat4 m) {model = m;};
+    protected:
         glm::mat4 model = glm::mat4(1.0f);
 };
 

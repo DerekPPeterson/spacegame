@@ -7,7 +7,7 @@
 using namespace std;
 
 LineModel Card::cardModel;
-
+Font Card::titleFont;
 
 void Card::setup()
 {
@@ -16,7 +16,19 @@ void Card::setup()
         // make sure to update the quad vertices if the model changes
         cardModel = LineModel("./res/models/card/card.obj");
         isSetup = true;
+        titleFont = Font("res/fonts/conthrax.fnt");
     }
+
+}
+
+void Card::queueDraw() 
+{
+    Renderable::queueDraw();
+
+    glm::mat4 textModel = glm::translate(model, {-1, 1.9, 0});
+    textModel = glm::scale(textModel, glm::vec3(0.2));
+    titleText.setModel(textModel);
+    titleText.queueDraw();
 }
 
 void Card::draw(Shader& shader)
@@ -24,6 +36,7 @@ void Card::draw(Shader& shader)
     shader.setVec3("color", color);
     shader.setCommon(UNIFORM_MODEL, model);
     cardModel.draw(shader);
+
 
     //shader.setVec3("color", {10, 0, 0});
     //LineMesh clickbox(quadVertices, {0, 1, 1, 2, 2, 3, 3, 0});
@@ -43,6 +56,7 @@ Card::Card()
         {1, -1.6, 0},
         {-1, -1.6, 0},
     };
+    titleText = Text(&titleFont, name, color);
 }
 
 void Card::updateModel()

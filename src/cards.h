@@ -4,6 +4,7 @@
 #include "drawable.h"
 #include "renderables.h"
 #include "model.h"
+#include "text.h"
 
 #include <memory>
 
@@ -12,15 +13,23 @@ class Card : public Renderable , public Object, public Dragable {
     public:
         Card();
         virtual void draw(Shader& shader) override;
+        virtual void queueDraw() override;
         virtual void update(UpdateInfo& info) override;
         static void setup();
     private:
         void updateModel();
+
         static LineModel cardModel;
+        static Font titleFont;
+
+        Text titleText;
+
         glm::vec3 color = {0.5, 5, 5.5};
         float size = 0.2;
         glm::vec3 speed = {0, 0, 0};
         float phase = 0;
+
+        std::string name = "Card Name";
 
         friend class Hand;
 };

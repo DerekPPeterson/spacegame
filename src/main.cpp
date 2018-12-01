@@ -110,11 +110,6 @@ int main(int argc, char **argv)
     
     // TODO testing only
     // TODO not sure if this font is free to use
-    Font conthrax("./res/fonts/conthrax.fnt");
-    Text sampleText(conthrax, "Sample Text");
-
-    renderer.addRenderable(&sampleText);
-
     shared_ptr<Hand> hand(new Hand(options.screenWidth, options.screenHeight, renderer.getProjection()));
 
     for (int i = 0; i < 7; i++) {
@@ -162,12 +157,12 @@ int main(int argc, char **argv)
         LOG_INFO << "Frametime: " << info.deltaTime;
 
         updater.updateObjects(info, objects);
+        updater.waitForUpdates();
 
         renderer.renderFrame();
         glfwSwapBuffers(window);
         input.process(info.deltaTime);
 
-        updater.waitForUpdates();
         
         //for (int i =0 ;i < 100; i++) {
         //    cout << "\n";

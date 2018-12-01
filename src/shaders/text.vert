@@ -17,6 +17,6 @@ void main()
 {
     TexCoords.x = charSize.x * aTexCoord.x + TexCoordOffset.x;
     TexCoords.y = charSize.y * (aTexCoord.y) + TexCoordOffset.y;
-    gl_Position = model * vec4(aPos, 1);
+    gl_Position = projection * model * vec4(aPos, 1);
     //gl_Position = vec4(aPos, 1);
 }
