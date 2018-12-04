@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <ctime>
 #include <exception>
+#include <cstdio>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -26,6 +27,7 @@
 #include "cards.h"
 #include "input.h"
 #include "text.h"
+//#include "gamelogic.h"
 
 
 #include "renderer.h"
@@ -79,37 +81,36 @@ GLFWwindow* setupOpenGlContext(RenderOptions options)
 
 int main(int argc, char **argv)
 {
-    plog::init(plog::verbose, "./spacegame.log");
-    LOG_INFO << "Starting program";
-
     cxxopts::Options opts("Spacegame", "A game");
     opts.add_options()
         ("w,screenwidth", "Horizontal display resolution", cxxopts::value<int>()->default_value("1000"))
         ("h,screenheight", "Vertical display resolution", cxxopts::value<int>()->default_value("800"))
         ("f,fullscreen", "Enable fullscreen")
+        ("l,logfile", "Log output location", cxxopts::value<string>()->default_value("spacegame.log"))
         ;
     auto result = opts.parse(argc, argv);
+
+    remove(result["logfile"].as<string>().c_str());
+    plog::init(plog::verbose, result["logfile"].as<string>().c_str());
+    LOG_INFO << "Starting program";
 
     RenderOptions options = {
         .screenWidth=result["screenwidth"].as<int>(),
         .screenHeight=result["screenheight"].as<int>(), 
         .fullscreen=(result.count("fullscreen") > 0)
     };
+
     Camera camera(glm::vec3(-100.0f, 100.0f, 0));
 
     GLFWwindow *window = setupOpenGlContext(options);
 
     Input input(window, &camera);
 
-
-    // TODO initialize camera not as global
-    //Camera camera(glm::vec3(-100.0f, 100.0f, 0));
     Renderer renderer(options, camera);
 
     vector<std::shared_ptr<Object>> objects;
     
-    // TODO testing only
-    // TODO not sure if this font is free to use
+    // TODO move this stuff into a dedicated game logic setup areaa
     shared_ptr<Hand> hand(new Hand(options.screenWidth, options.screenHeight, renderer.getProjection()));
 
     for (int i = 0; i < 7; i++) {
@@ -121,7 +122,6 @@ int main(int argc, char **argv)
     }
     objects.push_back(hand);
 
-    // TODO move this stuff into a dedicated game logic setup areaa
     Skybox skybox("./res/textures/lightblue/");
     renderer.addRenderable(&skybox);
 
@@ -156,18 +156,15 @@ int main(int argc, char **argv)
         frameTimes.push_back(info.deltaTime);
         LOG_INFO << "Frametime: " << info.deltaTime;
 
+        // Update objects
         updater.updateObjects(info, objects);
-        updater.waitForUpdates();
+        updater.waitForUpdates(); // Cannot overlap with render yet
 
+        // 
         renderer.renderFrame();
         glfwSwapBuffers(window);
+
         input.process(info.deltaTime);
-
-        
-        //for (int i =0 ;i < 100; i++) {
-        //    cout << "\n";
-        //}
-
     };
     
     float average = 0;

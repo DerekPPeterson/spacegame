@@ -16,8 +16,9 @@ class Card : public Renderable , public Object, public Dragable {
         virtual void queueDraw() override;
         virtual void update(UpdateInfo& info) override;
         static void setup();
-    private:
+    protected:
         void updateModel();
+        void onClick() override;
 
         static LineModel cardModel;
         static Font cardFont;

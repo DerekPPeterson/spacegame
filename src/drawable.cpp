@@ -1,5 +1,7 @@
 #include "drawable.h"
 
+#include "event.h"
+
 #include <glad/glad.h>
 
 #include <glm/glm.hpp>
@@ -62,22 +64,32 @@ bool pointInsideQuad(glm::vec2 point, vector<glm::vec2> quad)
     return true;
 }
 
-bool Selectable::checkSetHoverQuad(const glm::mat4 projection, const glm::mat4 view, 
-        float mouseX, float mouseY,
-        int screenWidth, int screenHeight) 
+bool Selectable::checkSetHoverQuad(UpdateInfo info, bool screenSpace) 
 {
     if (isHovered or beingHovered == this or not beingHovered) {
         vector<glm::vec2> screenQuadCoords;
         for (auto quadVertex : quadVertices) {
             screenQuadCoords.push_back(calcScreenSpaceCoords(
-                        getModel() * glm::vec4(quadVertex, 1),
-                        projection, view, screenWidth, screenHeight));
+                    getModel() * glm::vec4(quadVertex, 1),
+                    info.projection, 
+                    screenSpace ? glm::mat4(1.0f): info.camera->GetViewMatrix(), 
+                    info.screenWidth, info.screenHeight));
         }
-        isHovered = pointInsideQuad(glm::vec2(mouseX, mouseY), screenQuadCoords);
+        isHovered = pointInsideQuad(info.mouse.position, screenQuadCoords);
         if (isHovered) {
             beingHovered = this;
+
+            if (info.mouse.clicked) {
+                wasClickedOn = true;
+            } else if (wasClickedOn) {
+                onClick();
+                wasClickedOn = false;
+                //Event::triggerEvent(EVENT_CLICK, shared_ptr<void>());
+            }
+
         } else {
             beingHovered = NULL;
+            wasClickedOn = false;
         }
     }
     return isHovered;
@@ -85,17 +97,25 @@ bool Selectable::checkSetHoverQuad(const glm::mat4 projection, const glm::mat4 v
 
 Selectable* Selectable::beingHovered = NULL;
 
-bool Selectable::checkSetHoverCircle(const glm::mat4 projection, const glm::mat4 view, 
-        float mouseX, float mouseY,
-        int screenWidth, int screenHeight) 
+bool Selectable::checkSetHoverCircle(UpdateInfo info, bool screenSpace) 
 {
     if (isHovered or (beingHovered == this or not beingHovered)) {
         glm::vec2 screenCoords = calcScreenSpaceCoords(position,
-                projection, view, screenWidth, screenHeight);
+                info.projection, 
+                screenSpace ? glm::mat4(1.0f): info.camera->GetViewMatrix(), 
+                info.screenWidth, info.screenHeight);
         
-        isHovered = glm::length(screenCoords - glm::vec2(mouseX, mouseY)) <= targetRadius;
+        isHovered = glm::length(screenCoords - info.mouse.position) <= targetRadius;
         if (isHovered) {
             beingHovered = this;
+
+            if (info.mouse.clicked) {
+                wasClickedOn = true;
+            } else if (wasClickedOn) {
+                onClick();
+                wasClickedOn = false;
+            }
+
         } else {
             beingHovered = NULL;
         }
@@ -103,15 +123,21 @@ bool Selectable::checkSetHoverCircle(const glm::mat4 projection, const glm::mat4
     return isHovered;
 }
 
+void Selectable::onClick()
+{
+    LOG_INFO << "Clicked a selectable without a click handler";
+}
+
 
 Dragable* Dragable::beingDragged = NULL;
 
-void Dragable::checkSetDrag(const glm::mat4 view, const glm::mat4 projection, 
-        MouseInfo mouse, int screenWidth, int screenHeight)
+void Dragable::checkSetDrag(UpdateInfo info, bool screenSpace)
 {
-    glm::vec3 curDragPos = calcWorldSpaceCoords(mouse.position, position.z,
-            projection, view, screenWidth, screenHeight);
-    if (isHovered and mouse.clicked and (not beingDragged or beingDragged == this)) {
+    glm::vec3 curDragPos = calcWorldSpaceCoords(info.mouse.position,
+            position.z, info.projection, 
+            screenSpace ? glm::mat4(1.0f): info.camera->GetViewMatrix(), 
+            info.screenWidth, info.screenHeight);
+    if (isHovered and info.mouse.clicked and (not beingDragged or beingDragged == this)) {
         dragging = true;
         beingDragged = this;
         position += lastDragPos - curDragPos;

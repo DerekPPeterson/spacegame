@@ -1,8 +1,9 @@
 #include "cards.h"
 
 #include "timer.h"
-
 #include "util.h"
+
+#include <plog/Log.h>
 
 using namespace std;
 
@@ -87,11 +88,9 @@ void Card::updateModel()
 void Card::update(UpdateInfo& info)
 {
     updateModel();
-    checkSetHoverQuad(info.projection, glm::mat4(1.0f), 
-            info.mouse.position.x, info.mouse.position.y, 
-            info.screenWidth, info.screenHeight);
-    checkSetDrag(info.projection, glm::mat4(1.0f), info.mouse,
-            info.screenWidth, info.screenHeight);
+
+    checkSetHoverQuad(info, true);
+    checkSetDrag(info, true);
     
     float sizeChangeRate = 3;
     float targetSize;
@@ -116,6 +115,11 @@ void Card::update(UpdateInfo& info)
         }
     }
 }
+
+void Card::onClick()
+{
+    LOG_INFO << "Card: " << name << " clicked";
+};
 
 Hand::Hand(int screenWidth, int screenHeight, glm::mat4 projection)
 {

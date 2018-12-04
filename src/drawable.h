@@ -39,31 +39,6 @@ class has_model_mat
         glm::mat4 model = glm::mat4(1.0f);
 };
 
-class Selectable : public virtual has_position, public virtual has_model_mat
-{
-    protected:
-        bool checkSetHoverCircle(const glm::mat4 view, const glm::mat4 projection, 
-                float x, float y, int screenWidth, int screenHeight);
-        bool checkSetHoverQuad(const glm::mat4 view, const glm::mat4 projection, 
-                float x, float y, int screenWidth, int screenHeight);
-        bool isHovered = false;
-        bool isSelected = true;
-        float targetRadius = 50; // For circle func
-        std::vector<glm::vec3> quadVertices; // for quad test
-        static Selectable* beingHovered; // Points to current selectable being hovered
-};
-
-class Dragable : public Selectable
-{
-    protected:
-        void checkSetDrag(const glm::mat4 view, const glm::mat4 projection, 
-                MouseInfo mouse, int screenWidth, int screenHeight);
-        bool dragging = false;
-        glm::vec3 dragDisplacement;
-        glm::vec3 lastDragPos;
-        static Dragable* beingDragged; // Points to current dragable being dragged
-};
-
 struct UpdateInfo
 {
     float deltaTime;
@@ -74,6 +49,31 @@ struct UpdateInfo
     int screenWidth;
     int screenHeight;
 };
+
+class Selectable : public virtual has_position, public virtual has_model_mat
+{
+    protected:
+        virtual void onClick();
+        bool checkSetHoverCircle(UpdateInfo info, bool screenSpace = false);
+        bool checkSetHoverQuad(UpdateInfo info, bool screenSpace = false);
+        bool isHovered = false;
+        bool isSelected = true;
+        bool wasClickedOn = true;
+        float targetRadius = 50; // For circle func
+        std::vector<glm::vec3> quadVertices; // for quad test
+        static Selectable* beingHovered; // Points to current selectable being hovered
+};
+
+class Dragable : public Selectable
+{
+    protected:
+        void checkSetDrag(UpdateInfo info, bool screenSpace = false);
+        bool dragging = false;
+        glm::vec3 dragDisplacement;
+        glm::vec3 lastDragPos;
+        static Dragable* beingDragged; // Points to current dragable being dragged
+};
+
 
 class Object : public non_copyable
 {

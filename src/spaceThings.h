@@ -30,18 +30,20 @@ class System : public Object , public Selectable, public Renderable{
     public:
         System() {};
         virtual ~System() {};
-        System(glm::vec3 position);
+        System(glm::vec3 position, int gridx, int gridy);
         virtual void draw(Shader& shader) override;
         virtual void queueDraw() override;
         virtual void update(UpdateInfo& info) override;
         glm::vec3 getPosition();
 
     protected:
+        void onClick() override;
         std::shared_ptr<PointLight> sun;
         //glm::vec3 position;
         std::vector<Planet> planets;
         glm::vec3 baseColor = glm::vec3(10, 10, 10);
         glm::vec3 hoverColor = glm::vec3(0, 30, 40);
+        int gridx, gridy;
 
         static Model sphere;
         static bool isSetup;

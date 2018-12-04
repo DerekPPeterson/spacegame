@@ -2,10 +2,13 @@
 #include "drawable.h"
 #include "timer.h"
 #include "util.h"
+#include "event.h"
 
 #include <cstdlib>
 #include <algorithm>
 #include <GLFW/glfw3.h>
+
+#include <plog/Log.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/rotate_vector.hpp>
@@ -14,7 +17,8 @@
 using namespace std;
 
 
-System::System(glm::vec3 position)
+System::System(glm::vec3 position, int gridx, int gridy) :
+    gridx(gridx), gridy(gridy)
 { 
     if (not isSetup) {
         setup();
@@ -86,9 +90,7 @@ void System::queueDraw()
 
 void System::update(UpdateInfo& info)
 {
-    checkSetHoverCircle(info.projection, info.camera->GetViewMatrix(), 
-            info.mouse.position.x, info.mouse.position.y, 
-            info.screenWidth, info.screenHeight);
+    checkSetHoverCircle(info);
 
     float changeTime = 0.15; //seconds
 
@@ -106,6 +108,13 @@ void System::update(UpdateInfo& info)
 glm::vec3 System::getPosition()
 {
     return position;
+}
+
+void System::onClick()
+{
+    LOG_INFO << "System [" << gridx << ", " << gridy << "] clicked";
+    shared_ptr<pair<int, int>> location(new pair(gridx, gridy));
+    Event::triggerEvent(EVENT_SYSTEM_CLICK, location);
 }
 
 // static SpaceGrid definitions
@@ -126,7 +135,7 @@ SpaceGrid::SpaceGrid()
     for (int i = 0; i < GRID_X; i++) {
         for (int j = 0; j < GRID_Y; j++) {
             glm::vec3 position = glm::vec3(i * distance + j * distance / 2 , 0, j * distance);
-            grid[i][j] = shared_ptr<System>(new System(position));
+            grid[i][j] = shared_ptr<System>(new System(position, i, j));
         }
     }
     stage = SHADER_LAMP;
