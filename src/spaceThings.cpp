@@ -90,17 +90,15 @@ void System::update(UpdateInfo& info)
             info.mouse.position.x, info.mouse.position.y, 
             info.screenWidth, info.screenHeight);
 
-    glm::vec3 colorChangeSpeed(-5, 15, 20);
-    float minblue = 10;
-    float maxBlue = 50;
+    float changeTime = 0.15; //seconds
 
     if (isHovered) {
-        if (sun->color.b <= maxBlue) {
-            sun->color += colorChangeSpeed * info.deltaTime;
+        if (sun->color.b <= hoverColor.b) {
+            sun->color += (hoverColor - baseColor) / changeTime * info.deltaTime;
         }
     } else {
-        if (sun->color.b >= minblue) {
-            sun->color -= colorChangeSpeed * info.deltaTime;
+        if (sun->color.b >= baseColor.b) {
+            sun->color -= (hoverColor - baseColor) / changeTime * info.deltaTime;
         }
     }
 }

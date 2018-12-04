@@ -40,6 +40,9 @@ class System : public Object , public Selectable, public Renderable{
         std::shared_ptr<PointLight> sun;
         //glm::vec3 position;
         std::vector<Planet> planets;
+        glm::vec3 baseColor = glm::vec3(10, 10, 10);
+        glm::vec3 hoverColor = glm::vec3(0, 30, 40);
+
         static Model sphere;
         static bool isSetup;
         void setup();

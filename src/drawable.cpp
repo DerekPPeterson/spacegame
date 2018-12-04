@@ -89,7 +89,7 @@ bool Selectable::checkSetHoverCircle(const glm::mat4 projection, const glm::mat4
         float mouseX, float mouseY,
         int screenWidth, int screenHeight) 
 {
-    if (isHovered and (beingHovered == this or not beingHovered)) {
+    if (isHovered or (beingHovered == this or not beingHovered)) {
         glm::vec2 screenCoords = calcScreenSpaceCoords(position,
                 projection, view, screenWidth, screenHeight);
         
