@@ -19,7 +19,7 @@ Font::Font(string fntFilename)
 {
     path p = fntFilename;
 	info = parseUbfg(fntFilename);
-    textureId = loadTextureFromFile(info.textureFilename, p.parent_path());
+    textureId = loadTextureFromFile(info.textureFilename, p.parent_path(), false);
 }
 
 UbfgInfo Font::parseUbfg(std::string filename)
@@ -113,13 +113,56 @@ void Text::draw(Shader& shader)
 {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, font->textureId);
+    shader.setVec3("color", color);
 
-    float curTextPos = 0;
+    glm::vec2 curCharPos = {0, 0};
+    vector<glm::vec2> charPositions;
+    string multiline;
+    float curMaxWidth = maxwidth / size;
 
     unsigned int lastChar = 0;
-    for (auto c : text) {
+    bool breakLines = true;
+    for (int i = 0; i < text.size(); i++) {
+        unsigned int c = text[i];
         CharInfo charInfo = font->info.characters[c];
-        shader.setVec3("color", color);
+        
+        if (c == '\n') {
+            curCharPos.x = 0;
+            curCharPos.y -= 1;
+            lastChar = 0;
+        } else {
+            float kerningDist = lastChar ? (float) font->info.kerningPairs[lastChar][c] / 50 : 0;
+            lastChar = c;
+            charPositions.push_back(curCharPos);
+            multiline.push_back(c);
+            curCharPos.x += charInfo.origw / 50 + kerningDist;
+        }
+
+        if (breakLines and maxwidth and curCharPos.x >= curMaxWidth) {
+            for (int j = i; j >= 0; j--) {
+                c = text[j];
+                charPositions.pop_back();
+                multiline.pop_back();
+                i = j;
+                curCharPos.x = 0;
+                lastChar = 0;
+                // TODO other spaces?
+                if (c == ' ') {
+                    i = j;
+                    curCharPos.y -= 1;
+                    break;
+                } else if (j == 0) {
+                    breakLines = false;
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < charPositions.size(); i++) {
+        unsigned int c = multiline[i];
+        curCharPos = charPositions[i];
+
+        CharInfo charInfo = font->info.characters[c];
         shader.setVec2("TexCoordOffset", 
                 {charInfo.xpos / font->info.textureWidth, 
                  charInfo.ypos / font->info.textureHeight});
@@ -128,14 +171,21 @@ void Text::draw(Shader& shader)
                 charInfo.height / font->info.textureHeight});
 
         glm::mat4 charModel = getModel();
-        float kerningDist = lastChar ? (float) font->info.kerningPairs[lastChar][c] / 50 : 0;
-        charModel = glm::translate(charModel, {curTextPos + charInfo.xoffset / 50, -charInfo.yoffset / 50.0, 0});
+        charModel = glm::scale(charModel, glm::vec3(size));
+        charModel = glm::translate(charModel, {
+                curCharPos.x + charInfo.xoffset / 50.0, 
+                curCharPos.y - charInfo.yoffset / 50.0, 
+                0});
         charModel = glm::scale(charModel, {(float) charInfo.width / 50.0, charInfo.height / 50.0, 1});
-
         shader.setCommon(UNIFORM_MODEL, charModel);
         textQuad.draw(shader);
-
-        curTextPos += charInfo.origw / 50 + kerningDist;
-        lastChar = c;
     }
+}
+
+float Text::calcTransformedMaxWidth(float rawWidth)
+{
+    glm::mat4 model = getModel();
+    glm::vec4 zero = model * glm::vec4(0, 0, 0, 1);
+    glm::vec4 textEnd = model * glm::vec4(rawWidth, 0, 0, 1);
+    return  glm::length(textEnd - zero);
 }

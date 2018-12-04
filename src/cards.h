@@ -20,16 +20,19 @@ class Card : public Renderable , public Object, public Dragable {
         void updateModel();
 
         static LineModel cardModel;
+        static Font cardFont;
         static Font titleFont;
 
         Text titleText;
+        Text cardText;
 
         glm::vec3 color = {0.5, 5, 5.5};
         float size = 0.2;
         glm::vec3 speed = {0, 0, 0};
         float phase = 0;
 
-        std::string name = "Card Name";
+        std::string name = "Long Card Name";
+        std::string text = "This is some card box text\nWith a newline. wooo";
 
         friend class Hand;
 };

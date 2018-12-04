@@ -7,14 +7,14 @@ in vec2 TexCoords;
 uniform vec3 color = vec3(0.5, 0, 0);
 uniform sampler2D fontTexture;
 
+uniform float edgestart = 0.45;
+uniform float edgeend = 0.55;
+
 void main()
 {
     //FragColor = vec4(0,1,0, 1);
     vec4 distanceFieldColor = texture(fontTexture, TexCoords);
-    if (distanceFieldColor.r < 0.5) {
-        discard;
-    }
-    FragColor = vec4(color, 1) ;
+    FragColor = vec4(color, 1) * smoothstep(edgestart, edgeend, texture(fontTexture, TexCoords).r);
 
     float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
     if(brightness > 1.0)

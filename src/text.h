@@ -49,15 +49,20 @@ class Text : public Renderable , public has_model_mat
 {
 	public:
 		Text() {};
-		Text(Font* font, std::string text, glm::vec3 color) 
-            : font(font), text(text), color(color)
+		Text(Font* font, std::string text, glm::vec3 color, 
+                float maxwidth = 0, float size = 1) 
+            : font(font), text(text), color(color), maxwidth(maxwidth),
+              size(size)
 				{stage = SHADER_TEXT; setup();};
 		virtual void draw(Shader& shader) override;
 		void setText(std::string text) {this->text = text;};
 	private:
+        float calcTransformedMaxWidth(float rawWidth);
 		Font* font;
 		std::string text;
         glm::vec3 color;
+        float maxwidth;
+        float size;
 		static MeshRenderable textQuad;
 		static void setup();
 };

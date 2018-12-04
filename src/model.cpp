@@ -204,7 +204,8 @@ Mesh Model::processMesh(aiMesh * mesh, const aiScene *scene)
     return Mesh(vertices, indices, textures);
 }
 
-unsigned int loadTextureFromFile(string path, string directory)
+unsigned int loadTextureFromFile(string path, string directory, 
+        bool genMipmaps)
 {
     int width, height, nrChannels;
     string full_path = directory + "/" + path;
@@ -224,9 +225,14 @@ unsigned int loadTextureFromFile(string path, string directory)
     } else if (nrChannels == 4) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     }
-    glGenerateMipmap(GL_TEXTURE_2D);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    if (genMipmaps) {
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    } else {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    }
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
     stbi_image_free(data);
 
     return texture;

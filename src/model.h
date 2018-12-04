@@ -13,7 +13,7 @@
 #include "shader.h"
 #include "renderables.h"
 
-unsigned int loadTextureFromFile(std::string path, std::string directory);
+unsigned int loadTextureFromFile(std::string path, std::string directory, bool genMipmaps=true);
 
 struct Vertex {
     glm::vec3 position;

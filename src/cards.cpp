@@ -8,6 +8,7 @@ using namespace std;
 
 LineModel Card::cardModel;
 Font Card::titleFont;
+Font Card::cardFont;
 
 void Card::setup()
 {
@@ -17,6 +18,7 @@ void Card::setup()
         cardModel = LineModel("./res/models/card/card.obj");
         isSetup = true;
         titleFont = Font("res/fonts/conthrax.fnt");
+        cardFont = Font("res/fonts/gravity.fnt");
     }
 
 }
@@ -25,10 +27,14 @@ void Card::queueDraw()
 {
     Renderable::queueDraw();
 
-    glm::mat4 textModel = glm::translate(model, {-1, 1.9, 0});
-    textModel = glm::scale(textModel, glm::vec3(0.2));
-    titleText.setModel(textModel);
+    glm::mat4 titleModel = glm::translate(model, {-1.3, -1.6, 0});
+    titleModel = glm::rotate(titleModel, 3.141f / 2, {0, 0, 1});
+    titleText.setModel(titleModel);
     titleText.queueDraw();
+
+    glm::mat4 textModel = glm::translate(model, {-0.8, -0.5, 0.03});
+    cardText.setModel(textModel);
+    cardText.queueDraw();
 }
 
 void Card::draw(Shader& shader)
@@ -50,13 +56,15 @@ Card::Card()
     setup();
     stage = SHADER_CARD;
     position = {-1, -1, -5};
-    quadVertices = {
+    // For clickbox
+    quadVertices = { 
         {-1, 1.6, 0},
         {1, 1.6, 0},
         {1, -1.6, 0},
         {-1, -1.6, 0},
     };
-    titleText = Text(&titleFont, name, color);
+    titleText = Text(&titleFont, name, color, 0, 0.2);
+    cardText = Text(&cardFont, text, color, 1.6, 0.15);
 }
 
 void Card::updateModel()

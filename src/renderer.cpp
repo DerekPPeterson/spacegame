@@ -127,16 +127,19 @@ void Renderer::renderMainScene()
     shaders[SHADER_CARD].setMat4("projection", projection);
     Renderable::drawStage(SHADER_CARD, shaders[SHADER_CARD]);
 
-    shaders[SHADER_TEXT].use();
-    shaders[SHADER_TEXT].setMat4("view", camera.GetViewMatrix());
-    shaders[SHADER_TEXT].setMat4("projection", projection);
-    Renderable::drawStage(SHADER_TEXT, shaders[SHADER_TEXT]);
-
     shaders[SHADER_SKYBOX].use();
     glm::mat4 skyboxView = glm::mat4(glm::mat3(camera.GetViewMatrix()));  
     shaders[SHADER_SKYBOX].setMat4("view", skyboxView);
     shaders[SHADER_SKYBOX].setMat4("projection", projection);
     Renderable::drawStage(SHADER_SKYBOX, shaders[SHADER_SKYBOX]);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+    shaders[SHADER_TEXT].use();
+    shaders[SHADER_TEXT].setMat4("view", camera.GetViewMatrix());
+    shaders[SHADER_TEXT].setMat4("projection", projection);
+    Renderable::drawStage(SHADER_TEXT, shaders[SHADER_TEXT]);
+    glDisable(GL_BLEND);
 
     // Demultisample
     glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffers.mainFramebufferMultisampled.id);
