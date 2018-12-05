@@ -56,9 +56,10 @@ class Selectable : public virtual has_position, public virtual has_model_mat
         virtual void onClick();
         bool checkSetHoverCircle(UpdateInfo info, bool screenSpace = false);
         bool checkSetHoverQuad(UpdateInfo info, bool screenSpace = false);
+        void updateClickState(UpdateInfo info);
         bool isHovered = false;
-        bool isSelected = true;
-        bool wasClickedOn = true;
+        bool isSelected = false;
+        bool wasClickedOn = false;
         float targetRadius = 50; // For circle func
         std::vector<glm::vec3> quadVertices; // for quad test
         static Selectable* beingHovered; // Points to current selectable being hovered
@@ -81,8 +82,8 @@ class Object : public non_copyable
         //virtual void draw(Shader Shader) const {};
         virtual ~Object() {};
         virtual void update(UpdateInfo& info) {};
-        bool visible = true;
-
+        virtual bool isVisible() {return visible;}
+        bool visible = false;
     private:
         static void setup();
 

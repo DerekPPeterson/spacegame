@@ -64,18 +64,8 @@ bool pointInsideQuad(glm::vec2 point, vector<glm::vec2> quad)
     return true;
 }
 
-bool Selectable::checkSetHoverQuad(UpdateInfo info, bool screenSpace) 
+void Selectable::updateClickState(UpdateInfo info)
 {
-    if (isHovered or beingHovered == this or not beingHovered) {
-        vector<glm::vec2> screenQuadCoords;
-        for (auto quadVertex : quadVertices) {
-            screenQuadCoords.push_back(calcScreenSpaceCoords(
-                    getModel() * glm::vec4(quadVertex, 1),
-                    info.projection, 
-                    screenSpace ? glm::mat4(1.0f): info.camera->GetViewMatrix(), 
-                    info.screenWidth, info.screenHeight));
-        }
-        isHovered = pointInsideQuad(info.mouse.position, screenQuadCoords);
         if (isHovered) {
             beingHovered = this;
 
@@ -91,7 +81,24 @@ bool Selectable::checkSetHoverQuad(UpdateInfo info, bool screenSpace)
             beingHovered = NULL;
             wasClickedOn = false;
         }
+}
+
+bool Selectable::checkSetHoverQuad(UpdateInfo info, bool screenSpace) 
+{
+    if (isHovered or beingHovered == this or not beingHovered) {
+        vector<glm::vec2> screenQuadCoords;
+        for (auto quadVertex : quadVertices) {
+            screenQuadCoords.push_back(calcScreenSpaceCoords(
+                    getModel() * glm::vec4(quadVertex, 1),
+                    info.projection, 
+                    screenSpace ? glm::mat4(1.0f): info.camera->GetViewMatrix(), 
+                    info.screenWidth, info.screenHeight));
+        }
+        isHovered = pointInsideQuad(info.mouse.position, screenQuadCoords);
+
+        updateClickState(info);
     }
+
     return isHovered;
 }
 
@@ -106,19 +113,7 @@ bool Selectable::checkSetHoverCircle(UpdateInfo info, bool screenSpace)
                 info.screenWidth, info.screenHeight);
         
         isHovered = glm::length(screenCoords - info.mouse.position) <= targetRadius;
-        if (isHovered) {
-            beingHovered = this;
-
-            if (info.mouse.clicked) {
-                wasClickedOn = true;
-            } else if (wasClickedOn) {
-                onClick();
-                wasClickedOn = false;
-            }
-
-        } else {
-            beingHovered = NULL;
-        }
+        updateClickState(info);
     }
     return isHovered;
 }

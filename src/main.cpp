@@ -27,7 +27,7 @@
 #include "cards.h"
 #include "input.h"
 #include "text.h"
-//#include "gamelogic.h"
+#include "gamelogic.h"
 
 
 #include "renderer.h"
@@ -125,17 +125,25 @@ int main(int argc, char **argv)
     Skybox skybox("./res/textures/lightblue/");
     renderer.addRenderable(&skybox);
 
-    SpaceGrid spacegrid;
-    renderer.addRenderable(&spacegrid);
-    vector<std::shared_ptr<Object>> systems = spacegrid.getAllSystems();
-    objects.insert(objects.end(), make_move_iterator(systems.begin()), 
-            make_move_iterator(systems.end()));
-    for (int i = 0; i < 30; i++) {
-        objects.emplace_back(new SpaceShip("SS1", spacegrid.getSystem(0, 0)));
-        // TODO how will we remove objects that don't need to be rendered
-        renderer.addRenderable(dynamic_cast<Renderable*>(objects.back().get()));
+    GameLogic gameLogic;
+    gameLogic.startGame();
+
+    // TODO need to update renderables every frame
+    for (auto r : gameLogic.getRenderables()) {
+        renderer.addRenderable(r.get());
     }
-    LOG_INFO << "Will render " << objects.size();
+
+    //SpaceGrid spacegrid;
+    //renderer.addRenderable(&spacegrid);
+    //vector<std::shared_ptr<Object>> systems = spacegrid.getAllSystems();
+    //objects.insert(objects.end(), make_move_iterator(systems.begin()), 
+    //        make_move_iterator(systems.end()));
+    //for (int i = 0; i < 30; i++) {
+    //    objects.emplace_back(new SpaceShip("SS1", spacegrid.getSystem(0, 0)));
+    //    // TODO how will we remove objects that don't need to be rendered
+    //    renderer.addRenderable(dynamic_cast<Renderable*>(objects.back().get()));
+    //}
+    //LOG_INFO << "Will render " << objects.size();
 
     ObjectUpdater updater(1); // Using 1 other thread for updating objects
 
@@ -156,11 +164,12 @@ int main(int argc, char **argv)
         frameTimes.push_back(info.deltaTime);
         LOG_INFO << "Frametime: " << info.deltaTime;
 
+        gameLogic.updateState();
+
         // Update objects
-        updater.updateObjects(info, objects);
+        updater.updateObjects(info, gameLogic.getObjects());
         updater.waitForUpdates(); // Cannot overlap with render yet
 
-        // 
         renderer.renderFrame();
         glfwSwapBuffers(window);
 

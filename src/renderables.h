@@ -47,7 +47,9 @@ class Renderable
         static void drawStage(ShaderEnum stage, Shader& shader);
         virtual void setStage(ShaderEnum stage) {this->stage = stage;};
         unsigned int stage = SHADER_NONE;
+        bool isVisible() {return visible;}
     private:
+        bool visible = true;
         static RenderableQueues queues;
 
         static void drawQueue(ShaderEnum drawingStage, Shader& shader, std::vector<Renderable*> queue);
