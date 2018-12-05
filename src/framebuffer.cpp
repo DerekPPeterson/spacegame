@@ -15,6 +15,7 @@ Framebuffers::Framebuffers(int width, int height)
     // Bind bright color texture to both frame buffers so bloom is applied to warp effects
     glBindFramebuffer(GL_FRAMEBUFFER, warpFrameBuffer.id);
     glBindTexture(GL_TEXTURE_2D, mainFramebuffer.colorTextures[1]);
+
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mainFramebuffer.colorTextures[1], 0);
     createNormalBlendingFramebuffer(width, height);
     createPingpongFramebuffer(width / 2, height / 2);
@@ -27,14 +28,16 @@ void Framebuffers::createMainFramebuffer(Framebuffer& buf, int nColorBuffers, in
     
     // 2nd texture is for bloom
     buf.colorTextures.resize(nColorBuffers);
+
+    std::vector<unsigned int> attachments;
     for (int i = 0; i < nColorBuffers; i++ ) {
         glGenTextures(1, &buf.colorTextures[i]);
 
         if ( msaa) {
             glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, buf.colorTextures[i]);
             glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F, width, height, GL_TRUE);
-    //        glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    //        glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D_MULTISAMPLE, buf.colorTextures[i], 0);
         } else {
@@ -44,10 +47,10 @@ void Framebuffers::createMainFramebuffer(Framebuffer& buf, int nColorBuffers, in
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, buf.colorTextures[i], 0);
         }
+        attachments.push_back(GL_COLOR_ATTACHMENT0 + i);
     }
 
-    unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-    glDrawBuffers(2, attachments);  
+    glDrawBuffers(2, attachments.data());  
 
     unsigned int rbo;
     glGenRenderbuffers(1, &rbo);
@@ -63,6 +66,7 @@ void Framebuffers::createMainFramebuffer(Framebuffer& buf, int nColorBuffers, in
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
             LOG_ERROR << "Framebuffer is not complete!";
+            throw std::runtime_error("Could not complete framebuffer");
     }
 
     glClear(GL_COLOR_BUFFER_BIT);

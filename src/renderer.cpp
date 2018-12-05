@@ -142,17 +142,25 @@ void Renderer::renderMainScene()
     glDisable(GL_BLEND);
 
     // Demultisample
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffers.mainFramebufferMultisampled.id);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffers.mainFramebuffer.id);
-    glBlitFramebuffer(0, 0, options.screenWidth, options.screenHeight, 0, 0, options.screenWidth, options.screenHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST); 
+    unsigned int attachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+    for (int i = 0; i < 2; i++) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffers.mainFramebufferMultisampled.id);
+        glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffers.mainFramebuffer.id);
+        glDrawBuffers(1, &attachments[i]);
+        glBlitFramebuffer(0, 0, options.screenWidth, options.screenHeight, 0, 0, options.screenWidth, options.screenHeight, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST); 
+    }
+    glDrawBuffers(2, attachments);
 }
 
 void Renderer::renderWarpEffects()
 {
     Shader warpShader1 = shaders[SHADER_WARP_STEP1];
     Shader warpShader2 = shaders[SHADER_WARP_STEP2];
-    glDisable(GL_CULL_FACE);  
-    glEnable(GL_BLEND);
+
+    glDisable(GL_CULL_FACE);  // No face culling, warp effects are only 2d quads
+    glEnable(GL_BLEND);       // The first pass will add together all the warp
+    glBlendFunc(GL_ONE, GL_ONE);  // effect 2d vectors
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.normalBlendFramebuffer.id);
     glClear(GL_COLOR_BUFFER_BIT);
     warpShader1.use();
@@ -163,24 +171,20 @@ void Renderer::renderWarpEffects()
     glBindTexture(GL_TEXTURE_2D, framebuffers.mainFramebuffer.colorTextures[0]);
     warpShader1.setInt("hdrBuffer", 1);
     Renderable::drawStage(SHADER_WARP_STEP1, shaders[SHADER_WARP_STEP1]);
-
-    // TODO draw warp effects
-    
-    //for (int i = 0; i < ships.size(); i++) {
-    //    ships[i]->drawWarp(warpShader1, camera.Position);
-    //}
     glDisable(GL_BLEND);
 
     // Copy over depth info so we don't render the warp effect over planets etc
     glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffers.mainFramebuffer.id);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffers.warpFrameBuffer.id);
-    glBlitFramebuffer(
-              0, 0, options.screenWidth, options.screenHeight, 0, 0, options.screenWidth, options.screenHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST
-            );
+    glBlitFramebuffer( 
+            0, 0, options.screenWidth, options.screenHeight, 0, 0, 
+            options.screenWidth, options.screenHeight, 
+            GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
+    // Second pass will use the vectors from the first pass and the prerendered
+    // texture to render the warped effect
     glEnable(GL_DEPTH_TEST);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.warpFrameBuffer.id);
-    //glClear(GL_COLOR_BUFFER_BIT);
     warpShader2.use();
     warpShader2.setMat4("view", camera.GetViewMatrix());
     warpShader2.setMat4("projection", projection);
@@ -238,14 +242,6 @@ void Renderer::mergeEffects(int bloomOutputTextureNo)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0); 
     glViewport(0, 0, options.screenWidth, options.screenHeight );
-    //glDisable(GL_DEPTH_TEST);
-    //glActiveTexture(GL_TEXTURE0);
-    //glBindTexture(GL_TEXTURE_2D, framebuffers.warpFrameBuffer.colorTextures[0]);
-    //glActiveTexture(GL_TEXTURE1);
-    //glBindTexture(GL_TEXTURE_2D, framebuffers.pingpongBuffers[!horizontal].colorTextures[0]);
-    //blendShader.use();
-    //blendShader.setInt("hdrBuffer1", 1);
-    //framebufferQuad.draw();
     
     glDisable(GL_DEPTH_TEST);
     glActiveTexture(GL_TEXTURE0);
@@ -269,7 +265,7 @@ void Renderer::renderFrame()
         r->queueDraw();
     }
     renderMainScene();
-    //renderWarpEffects();
+    renderWarpEffects();
     toRenderMutex.unlock();
     // TODO better way to pass this info?
     int buffno = renderBloom();
