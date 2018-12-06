@@ -18,6 +18,8 @@ float ambientStrength = 0.3;
 float specularStrength = 2.0;
 vec3 color = vec3(0.7, 0.6, 0.1);
 
+uniform float gamma = 1.0;
+
 void main()
 {
     vec3 lightDir = normalize(lightPos - fragPos);
@@ -34,11 +36,17 @@ void main()
 
     vec3 ambient = ambientStrength * texture(diffuse0, TexCoord).rgb;
 
-    FragColor = vec4(ambient, 1) + vec4(diffuse, 1) + vec4(specular, 1);
+    vec3 litColor = ambient + diffuse + specular;
+    
+    // reinhard tone mapping
+    vec3 mapped = litColor / (litColor + vec3(1.0));
+    // gamma correction 
+    mapped = pow(mapped, vec3(1.0 / gamma));
+    FragColor = vec4(mapped, 1);
 
-    float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    float brightness = dot(litColor.rgb, vec3(0.2126, 0.7152, 0.0722));
     if(brightness > 1.0)
-        BrightColor = vec4(FragColor.rgb, 1.0);
+        BrightColor = vec4(litColor.rgb, 1.0);
     else
         BrightColor = vec4(0.0, 0.0, 0.0, 1.0);
 }

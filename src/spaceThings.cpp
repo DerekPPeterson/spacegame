@@ -26,7 +26,7 @@ System::System(glm::vec3 position, int gridx, int gridy) :
 
     this->position = position;
     sun = dynamic_pointer_cast<PointLight>(
-            Light::makeLight(LIGHT_POINT, position, glm::vec3(10, 10, 10)));
+            Light::makeLight(LIGHT_POINT, position, baseColor));
 
     int nPlanets = rand() % 7 + 1;
     float spacing = 1.6;
@@ -102,6 +102,10 @@ void System::update(UpdateInfo& info)
         if (sun->color.b >= baseColor.b) {
             sun->color -= (hoverColor - baseColor) / changeTime * info.deltaTime;
         }
+    }
+
+    if (sun->color.b <= baseColor.b) {
+        sun->color += (hoverColor - baseColor) / changeTime * info.deltaTime;
     }
 }
 

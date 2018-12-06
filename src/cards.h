@@ -27,7 +27,7 @@ class Card : public Renderable , public Object, public Dragable {
         Text titleText;
         Text cardText;
 
-        glm::vec3 color = {0.5, 5, 5.5};
+        glm::vec3 color = {0.1, 2, 2};
         float size = 0.2;
         glm::vec3 speed = {0, 0, 0};
         float phase = 0;

@@ -196,10 +196,13 @@ void Renderer::renderWarpEffects()
     warpShader2.setVec2("screenSize", {options.screenWidth, options.screenHeight});
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, framebuffers.mainFramebuffer.colorTextures[0]);
-    warpShader2.setInt("hdrBuffer", 1);
+    warpShader2.setInt("hdrBuffer0", 1);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, framebuffers.normalBlendFramebuffer.colorTextures[0]);
     warpShader2.setInt("normalAdjustBuffer", 2);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, framebuffers.mainFramebuffer.colorTextures[1]);
+    warpShader2.setInt("hdrBuffer1", 3);
     Renderable::drawStage(SHADER_WARP_STEP2, shaders[SHADER_WARP_STEP2]);
 }
 

@@ -10,6 +10,8 @@ uniform vec3 diffuseColor;
 
 uniform vec3 viewPos;
 
+uniform float gamma = 1.0;
+
 struct PointLight {
     vec3 position;
     vec3 color;
@@ -54,12 +56,16 @@ void main()
         totalLight += CalcPointLight(pointLights[i], normal, fragPos, viewDir);
     }
 
-    FragColor = vec4(totalLight, 1);
+    // reinhard tone mapping
+    vec3 mapped = totalLight / (totalLight + vec3(1.0));
+    // gamma correction 
+    mapped = pow(mapped, vec3(1.0 / gamma));
 
-    // If bright output to brightColor texture for bloom
-    float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    FragColor = vec4(mapped, 1);
+
+    float brightness = dot(totalLight.rgb, vec3(0.2126, 0.7152, 0.0722));
     if(brightness > 1.0)
-        BrightColor = vec4(FragColor.rgb, 1.0);
+        BrightColor = vec4(totalLight.rgb, 1.0);
     else
         BrightColor = vec4(0.0, 0.0, 0.0, 1.0);
 }

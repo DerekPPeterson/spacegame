@@ -113,6 +113,9 @@ int main(int argc, char **argv)
     GameLogic gameLogic;
     gameLogic.startGame(options, renderer);
 
+    shared_ptr<Skybox> skybox(new Skybox("./res/textures/lightblue/"));
+    renderer.addRenderable(skybox);
+
     Timer::create("frametime");
     vector<float> frameTimes; // Used for calculating average frametime
     UpdateInfo info; 
@@ -120,9 +123,6 @@ int main(int argc, char **argv)
     info.screenWidth = options.screenWidth;
     info.screenHeight = options.screenHeight;
     info.projection = renderer.getProjection();
-
-    shared_ptr<Skybox> skybox(new Skybox("./res/textures/lightblue/"));
-    renderer.addRenderable(skybox);
 
     while(not glfwWindowShouldClose(window))
     {
