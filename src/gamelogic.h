@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include "drawable.h"
+#include "renderer.h"
 
 enum Phase {
     PHASE_NONE,
@@ -23,6 +24,9 @@ struct GameState
     int spacegrid;
     std::vector<int> systems;
     std::vector<int> units;
+    int deck;
+    int hand;
+    std::vector<int> cards;
 };
 
 class GameLogic
@@ -32,7 +36,7 @@ class GameLogic
 
         /* Initialize and return a game state
          */
-        GameState startGame();
+        GameState startGame(RenderOptions options, Renderer& renderer);
 
         /* Based on the current state, call the appropriate state function and
          * update the state with the new state returned

@@ -1,5 +1,7 @@
 #include "gamelogic.h"
 #include "spaceThings.h"
+#include "cards.h"
+
 
 #include "event.h"
 
@@ -23,7 +25,7 @@ vector<shared_ptr<Renderable>> GameLogic::getRenderables()
 }
 
 // TODO add some options
-GameState GameLogic::startGame() 
+GameState GameLogic::startGame(RenderOptions options, Renderer& renderer) 
 {
     GameState state;
 
@@ -47,6 +49,29 @@ GameState GameLogic::startGame()
         state.units.push_back(curIndex++);
     }
 
+    shared_ptr<Hand> hand(new Hand(options.screenWidth, options.screenHeight, renderer.getProjection()));
+    state.objects.push_back(hand);
+    state.hand = curIndex++;
+
+    // TODO get decklist from somewhere out of current game
+    shared_ptr<Deck> deck(new Deck({}));
+    state.objects.push_back(hand);
+    state.deck = curIndex++;
+
+    // For now just use temp cards
+    for (int i = 0; i < 40; i++) {
+        shared_ptr<Card> card(new Card());
+        card->setVisible(false);
+        deck->insert(card, DECK_BOTTOM);
+        state.objects.emplace_back(card);
+        state.cards.push_back(curIndex++);
+    }
+    deck->shuffle();
+
+    for (int i = 0; i < 7; i++) {
+        hand->addCard(deck->draw());
+    }
+    
     this->state = state;
 
     return state;

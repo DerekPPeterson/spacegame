@@ -83,12 +83,16 @@ void Renderer::renderMainScene()
 {
     // Clear the warp framebuffer before drawing the rest of the scene
     // because they both write to the same brightcolor texture
+    unsigned int attachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.warpFrameBuffer.id);
+    glDrawBuffers(2, attachments);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.mainFramebufferMultisampled.id);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);  
+
+    glDrawBuffers(2, attachments);
    
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -142,15 +146,16 @@ void Renderer::renderMainScene()
     glDisable(GL_BLEND);
 
     // Demultisample
-    unsigned int attachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
     for (int i = 0; i < 2; i++) {
+
         glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffers.mainFramebufferMultisampled.id);
-        glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
+        glReadBuffer( GL_COLOR_ATTACHMENT0 + i);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffers.mainFramebuffer.id);
-        glDrawBuffers(1, &attachments[i]);
-        glBlitFramebuffer(0, 0, options.screenWidth, options.screenHeight, 0, 0, options.screenWidth, options.screenHeight, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST); 
+        glDrawBuffers( 1, &attachments[i]);
+        glBlitFramebuffer(0, 0, options.screenWidth, options.screenHeight, 0, 0, 
+                options.screenWidth, options.screenHeight, 
+                GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST); 
     }
-    glDrawBuffers(2, attachments);
 }
 
 void Renderer::renderWarpEffects()
@@ -262,7 +267,9 @@ void Renderer::renderFrame()
 {
     toRenderMutex.lock();
     for (auto r : toRender) {
-        r->queueDraw();
+        if (r->isVisible()) {
+            r->queueDraw();
+        }
     }
     renderMainScene();
     renderWarpEffects();
@@ -273,20 +280,18 @@ void Renderer::renderFrame()
 }
 
 
-std::vector<Renderable*> Renderer::getRenderablesForStage(ShaderEnum stage)
-{
-    vector<Renderable*> ret;
-    for (auto r : toRender) {
-        if (r->stage == stage) {
-            ret.push_back(r);
-        }
-    }
-    return ret;
-}
-
-void Renderer::addRenderable(Renderable* r)
+void Renderer::addRenderable(shared_ptr<Renderable> r)
 {
     std::lock_guard<std::mutex> guard(toRenderMutex);
-    toRender.push_back(r);
+    alwaysRender.push_back(r);
 }
+
+void Renderer::setToRender(std::vector<std::shared_ptr<Renderable>> toRender)
+{
+    std::lock_guard<std::mutex> guard(toRenderMutex);
+    this->toRender = toRender;
+    this->toRender.insert(this->toRender.begin(), alwaysRender.begin(), alwaysRender.end());
+}
+
+
 

@@ -33,7 +33,8 @@ class Renderer
     public:
         Renderer(RenderOptions options, Camera& camera);
         void renderFrame();
-        void addRenderable(Renderable* r);
+        void addRenderable(std::shared_ptr<Renderable>);
+        void setToRender(std::vector<std::shared_ptr<Renderable>>);
         // TODO best interface for this?
         glm::mat4 getProjection() {return projection;};
 
@@ -44,7 +45,8 @@ class Renderer
         glm::mat4 projection;
         std::unordered_map<ShaderEnum, Shader> shaders;
         MeshRenderable framebufferQuad;
-        std::vector<Renderable*> toRender;
+        std::vector<std::shared_ptr<Renderable>> toRender;
+        std::vector<std::shared_ptr<Renderable>> alwaysRender;
         std::mutex toRenderMutex;
 
         void compileLinkShaders();
@@ -53,7 +55,6 @@ class Renderer
         void renderWarpEffects();
         int renderBloom();
         void mergeEffects(int);
-        std::vector<Renderable*> getRenderablesForStage(ShaderEnum stage);
 };
 
 #endif 

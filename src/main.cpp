@@ -108,44 +108,10 @@ int main(int argc, char **argv)
 
     Renderer renderer(options, camera);
 
-    vector<std::shared_ptr<Object>> objects;
-    
-    // TODO move this stuff into a dedicated game logic setup areaa
-    shared_ptr<Hand> hand(new Hand(options.screenWidth, options.screenHeight, renderer.getProjection()));
-
-    for (int i = 0; i < 7; i++) {
-        shared_ptr<Card> card(new Card());
-        objects.push_back(card);
-        // TODO how will we remove objects that don't need to be rendered
-        renderer.addRenderable(dynamic_cast<Renderable*>(objects.back().get()));
-        hand->addCard(card);
-    }
-    objects.push_back(hand);
-
-    Skybox skybox("./res/textures/lightblue/");
-    renderer.addRenderable(&skybox);
+    ObjectUpdater updater(1); // Using 1 other thread for updating objects
 
     GameLogic gameLogic;
-    gameLogic.startGame();
-
-    // TODO need to update renderables every frame
-    for (auto r : gameLogic.getRenderables()) {
-        renderer.addRenderable(r.get());
-    }
-
-    //SpaceGrid spacegrid;
-    //renderer.addRenderable(&spacegrid);
-    //vector<std::shared_ptr<Object>> systems = spacegrid.getAllSystems();
-    //objects.insert(objects.end(), make_move_iterator(systems.begin()), 
-    //        make_move_iterator(systems.end()));
-    //for (int i = 0; i < 30; i++) {
-    //    objects.emplace_back(new SpaceShip("SS1", spacegrid.getSystem(0, 0)));
-    //    // TODO how will we remove objects that don't need to be rendered
-    //    renderer.addRenderable(dynamic_cast<Renderable*>(objects.back().get()));
-    //}
-    //LOG_INFO << "Will render " << objects.size();
-
-    ObjectUpdater updater(1); // Using 1 other thread for updating objects
+    gameLogic.startGame(options, renderer);
 
     Timer::create("frametime");
     vector<float> frameTimes; // Used for calculating average frametime
@@ -154,6 +120,9 @@ int main(int argc, char **argv)
     info.screenWidth = options.screenWidth;
     info.screenHeight = options.screenHeight;
     info.projection = renderer.getProjection();
+
+    shared_ptr<Skybox> skybox(new Skybox("./res/textures/lightblue/"));
+    renderer.addRenderable(skybox);
 
     while(not glfwWindowShouldClose(window))
     {
@@ -165,6 +134,7 @@ int main(int argc, char **argv)
         LOG_INFO << "Frametime: " << info.deltaTime;
 
         gameLogic.updateState();
+        renderer.setToRender(gameLogic.getRenderables());
 
         // Update objects
         updater.updateObjects(info, gameLogic.getObjects());

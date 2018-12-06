@@ -51,4 +51,23 @@ class Hand : public Object
         glm::vec3(handPos);
 };
 
+// TODO render deck?
+enum DeckLocation
+{
+    DECK_TOP,
+    DECK_BOTTOM,
+    DECK_RANDOM
+};
+
+class Deck : Object
+{
+    public:
+        Deck(std::vector<std::shared_ptr<Card>>);
+        void shuffle();
+        std::shared_ptr<Card> draw();
+        void insert(std::shared_ptr<Card> card, DeckLocation location);
+    protected:
+        std::vector<std::shared_ptr<Card>> cards;
+};
+
 #endif

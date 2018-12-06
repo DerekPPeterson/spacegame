@@ -34,10 +34,9 @@ void Framebuffers::createMainFramebuffer(Framebuffer& buf, int nColorBuffers, in
         glGenTextures(1, &buf.colorTextures[i]);
 
         if ( msaa) {
+            glEnable(GL_MULTISAMPLE);
             glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, buf.colorTextures[i]);
             glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F, width, height, GL_TRUE);
-            glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D_MULTISAMPLE, buf.colorTextures[i], 0);
         } else {
@@ -63,7 +62,6 @@ void Framebuffers::createMainFramebuffer(Framebuffer& buf, int nColorBuffers, in
         
 
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
             LOG_ERROR << "Framebuffer is not complete!";
             throw std::runtime_error("Could not complete framebuffer");

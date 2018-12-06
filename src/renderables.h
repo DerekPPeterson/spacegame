@@ -48,6 +48,7 @@ class Renderable
         virtual void setStage(ShaderEnum stage) {this->stage = stage;};
         unsigned int stage = SHADER_NONE;
         bool isVisible() {return visible;}
+        void setVisible(bool visible) {this->visible = visible;}
     private:
         bool visible = true;
         static RenderableQueues queues;

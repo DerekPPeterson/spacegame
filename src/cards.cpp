@@ -5,6 +5,9 @@
 
 #include <plog/Log.h>
 
+#include <algorithm>
+#include <random>
+
 using namespace std;
 
 LineModel Card::cardModel;
@@ -130,6 +133,7 @@ Hand::Hand(int screenWidth, int screenHeight, glm::mat4 projection)
 void Hand::addCard(shared_ptr<Card> card)
 {
     card->position = handPos;
+    card->setVisible(true);
     cards.push_back(card);
 }
 
@@ -180,4 +184,36 @@ void Hand::update(UpdateInfo& info)
     }
 }
 
+Deck::Deck(std::vector<std::shared_ptr<Card>> cards) :
+    cards(cards)
+{
+    shuffle();
+}
 
+void Deck::shuffle()
+{
+    random_shuffle(cards.begin(), cards.end());
+}
+
+std::shared_ptr<Card> Deck::draw()
+{
+    auto card = cards.back();
+    cards.pop_back();
+    return card;
+}
+
+void Deck::insert(std::shared_ptr<Card> card, DeckLocation location)
+{
+    vector<shared_ptr<Card>> toInsert = {card};
+    switch (location) {
+        case DECK_TOP:
+            cards.insert(cards.begin(), toInsert.begin(), toInsert.end());
+            break;
+        case DECK_BOTTOM:
+            cards.push_back(card);
+            break;
+        case DECK_RANDOM:
+            auto insertIt = cards.begin() + rand() % cards.size();
+            cards.insert(insertIt, toInsert.begin(), toInsert.end());
+    }
+}
