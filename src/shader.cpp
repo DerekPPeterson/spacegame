@@ -38,7 +38,7 @@ unsigned int compile_shader_from_filename(GLenum type, const char * path)
         glGetShaderInfoLog(shaderID, 512, NULL, infoLog);
         LOG_ERROR << "Failed to compile " << path << "\n" << 
             infoLog;
-        throw std::exception();
+        throw std::runtime_error(infoLog);
     }
 
     return shaderID;
@@ -75,7 +75,7 @@ unsigned int link_shaders(unsigned int vertexShader, unsigned int fragmentShader
     if (!success) {
         glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
         LOG_ERROR << "Shader linking failed\n" << infoLog;
-        throw std::exception();
+        throw std::runtime_error(infoLog);
     }
     // Shaders are not needed after they are linked
     glDeleteShader(vertexShader);

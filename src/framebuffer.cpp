@@ -8,10 +8,10 @@
 Framebuffers::Framebuffers(int width, int height)
 {
     // main antialiased 
-    createMainFramebuffer(mainFramebufferMultisampled, 2, width, height, true);
+    createMainFramebuffer(mainFramebufferMultisampled, 1, width, height, true);
 
-    createMainFramebuffer(mainFramebuffer, 2, width, height, false);
-    createMainFramebuffer(warpFrameBuffer, 2, width, height, false);
+    createMainFramebuffer(mainFramebuffer, 1, width, height, false);
+    createMainFramebuffer(warpFrameBuffer, 1, width, height, false);
     // Bind bright color texture to both frame buffers so bloom is applied to warp effects
     glBindFramebuffer(GL_FRAMEBUFFER, warpFrameBuffer.id);
     glBindTexture(GL_TEXTURE_2D, mainFramebuffer.colorTextures[1]);
@@ -39,6 +39,7 @@ void Framebuffers::createMainFramebuffer(Framebuffer& buf, int nColorBuffers, in
             glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F, width, height, GL_TRUE);
 
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D_MULTISAMPLE, buf.colorTextures[i], 0);
+            glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
         } else {
             glBindTexture(GL_TEXTURE_2D, buf.colorTextures[i]);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);

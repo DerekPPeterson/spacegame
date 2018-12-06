@@ -27,6 +27,7 @@ enum ShaderEnum {
     SHADER_WARP_STEP2     = 1 << 9, 
     SHADER_CARD           = 1 << 10,
     SHADER_TEXT           = 1 << 11,
+    SHADER_BRIGHT         = 1 << 12,
 };
 
 class Renderable;

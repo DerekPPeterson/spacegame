@@ -59,6 +59,7 @@ void Renderer::compileLinkShaders()
     shaders.try_emplace(SHADER_WARP_STEP2, "./src/shaders/warp.vert", "./src/shaders/warp2.frag");
     shaders.try_emplace(SHADER_CARD, "./src/shaders/card.vert", "./src/shaders/card.frag");
     shaders.try_emplace(SHADER_TEXT, "./src/shaders/text.vert", "./src/shaders/text.frag");
+    shaders.try_emplace(SHADER_BRIGHT, "./src/shaders/framebuffer.vert", "./src/shaders/brightcolor.frag");
 }
 
 Renderer::Renderer(RenderOptions options, Camera& camera) :
@@ -83,17 +84,13 @@ void Renderer::renderMainScene()
 {
     // Clear the warp framebuffer before drawing the rest of the scene
     // because they both write to the same brightcolor texture
-    unsigned int attachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.warpFrameBuffer.id);
-    glDrawBuffers(2, attachments);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.mainFramebufferMultisampled.id);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);  
 
-    glDrawBuffers(2, attachments);
-   
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -149,9 +146,7 @@ void Renderer::renderMainScene()
     for (int i = 0; i < 2; i++) {
 
         glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffers.mainFramebufferMultisampled.id);
-        glReadBuffer( GL_COLOR_ATTACHMENT0 + i);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffers.mainFramebuffer.id);
-        glDrawBuffers( 1, &attachments[i]);
         glBlitFramebuffer(0, 0, options.screenWidth, options.screenHeight, 0, 0, 
                 options.screenWidth, options.screenHeight, 
                 GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST); 
@@ -210,16 +205,17 @@ int Renderer::renderBloom()
 
     // Downscale bright image
     Shader framebufferShader = shaders[SHADER_FRAMEBUFFER];
+    Shader brightShader = shaders[SHADER_BRIGHT];
     Shader blurShader = shaders[SHADER_BLUR];
     glViewport(0, 0, options.screenWidth / 2, options.screenHeight / 2);
     glDisable(GL_DEPTH_TEST);
-    framebufferShader.use();
+    brightShader.use();
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.pingpongBuffers[!horizontal].id); 
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, framebuffers.mainFramebuffer.colorTextures[1]);
-    framebufferShader.setInt("hdrBuffer", 0);
+    glBindTexture(GL_TEXTURE_2D, framebuffers.mainFramebuffer.colorTextures[0]);
+    brightShader.setInt("hdrBuffer", 0);
     //glGenerateMipmap(GL_TEXTURE_2D);
     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 1);
     framebufferQuad.draw(framebufferShader);
