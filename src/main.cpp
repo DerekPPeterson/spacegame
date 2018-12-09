@@ -21,12 +21,9 @@
 #include "cubemap.h"
 //#include "drawable.h"
 //#include "framebuffer.h"
-#include "spaceThings.h"
 #include "timer.h"
 #include "objectupdater.h"
-#include "cards.h"
 #include "input.h"
-#include "text.h"
 #include "gamelogic.h"
 
 
