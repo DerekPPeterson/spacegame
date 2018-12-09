@@ -6,12 +6,41 @@
 #include <unordered_set>
 
 #include <glm/gtc/type_ptr.hpp>
+#include <plog/Log.h>
 
 #include "shader.h"
 #include "model.h"
 #include "nocopy.h"
 #include "camera.h"
 #include "input.h"
+
+/* This is black magic to statically initilize the list of classes that need
+ * to run their setup functions
+ */
+std::vector<void(*)()>& _getSetupFuncs();
+void _addSetupFunc(void (*func)());
+void runAllSetups();
+
+class _setup_adder
+{
+    public:
+        _setup_adder(void (*func)())
+        {
+            _addSetupFunc(func);
+        };
+};
+
+template <class T>
+class needs_setup : public non_copyable
+{
+    protected:
+        static _setup_adder a;
+        needs_setup() {(void)a;};
+};
+template <typename T>
+_setup_adder needs_setup<T>::a = _setup_adder(T::setup);
+/* End black magic */
+
 
 glm::vec2 calcScreenSpaceCoords(glm::vec3 position, 
         glm::mat4 projection, glm::mat4 view,
@@ -101,8 +130,7 @@ class Cube: public Object
     private:
         glm::vec3 position;
 
-        static Model model;
-        static bool isSetup;
+        static std::shared_ptr<Model> model;
 };
 
 class Quad: public Object
@@ -151,14 +179,13 @@ class PointLight: public Light , public Renderable
         static void setup();
     
     protected:
-        PointLight() {};
         PointLight(glm::vec3 position, glm::vec3 color);
 
         glm::vec3 position;
         glm::vec3 attenuation = {0, 0.5, 0.1};
         float size = 0.3;
 
-        static Model sphere;
+        static std::shared_ptr<Model> sphere;
 
         friend class Light;
 };

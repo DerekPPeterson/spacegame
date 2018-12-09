@@ -20,6 +20,7 @@ Font::Font(string fntFilename)
     path p = fntFilename;
 	info = parseUbfg(fntFilename);
     textureId = loadTextureFromFile(info.textureFilename, p.parent_path(), false);
+    textQuad = createTextQuad();
 }
 
 UbfgInfo Font::parseUbfg(std::string filename)
@@ -62,7 +63,7 @@ UbfgInfo Font::parseUbfg(std::string filename)
 	return info;
 }
 
-MeshRenderable createTextQuad()
+shared_ptr<InstanceMeshRenderable> Font::createTextQuad()
 {
     float vertices[] = {
         // positions         // texCoords
@@ -77,6 +78,7 @@ MeshRenderable createTextQuad()
 
     unsigned int indices[] = {0, 1, 2, 3, 4, 5};
 
+    // Only need to create VAO once
     unsigned int VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -96,26 +98,36 @@ MeshRenderable createTextQuad()
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 
             (void*) (sizeof(float) * 3));
     
-    return MeshRenderable(VAO, sizeof(indices) / sizeof(indices[0]));
+    return shared_ptr<InstanceMeshRenderable>(new InstanceMeshRenderable(
+            SHADER_TEXT,
+            VAO, sizeof(indices) / sizeof(indices[0]),
+            {
+                INSTANCE_ATTRIB_MAT4,
+                INSTANCE_ATTRIB_VEC3,
+                INSTANCE_ATTRIB_VEC2,
+                INSTANCE_ATTRIB_VEC2,
+            }, {textureId}));
 };
 
-MeshRenderable Text::textQuad;
-
-void Text::setup()
+struct CharInstanceData
 {
-    static bool isSetup = false;
-    if (not isSetup) {
-        textQuad = createTextQuad();
-    }
-}
+    glm::mat4 model;
+    glm::vec3 color;
+    glm::vec2 TexCoordOffset;
+    glm::vec2 charSize;
+};
 
-void Text::draw(Shader& shader)
+void Text::queueDraw()
 {
+    CharInstanceData data;
+    //TODO stop hardcoding 50pt text
+    // Activate font texture
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, font->textureId);
-    shader.setVec3("color", color);
+    data.color = color;
 
-    glm::vec2 curCharPos = {0, 0};
+    // Calculate character positions
+    glm::vec2 curCharPos = {0, 0}; 
     vector<glm::vec2> charPositions;
     string multiline;
     float curMaxWidth = maxwidth / size;
@@ -126,6 +138,7 @@ void Text::draw(Shader& shader)
         unsigned int c = text[i];
         CharInfo charInfo = font->info.characters[c];
         
+        // Reset xpos and go down for newline
         if (c == '\n') {
             curCharPos.x = 0;
             curCharPos.y -= 1;
@@ -138,6 +151,9 @@ void Text::draw(Shader& shader)
             curCharPos.x += charInfo.origw / 50 + kerningDist;
         }
 
+        // If we exceed the width then go back to the last space
+        // and drop a line
+        // If there are no spaces then don't break lines
         if (breakLines and maxwidth and curCharPos.x >= curMaxWidth) {
             for (int j = i; j >= 0; j--) {
                 c = text[j];
@@ -158,17 +174,18 @@ void Text::draw(Shader& shader)
         }
     }
 
+    // Actually render all of the characters
     for (int i = 0; i < charPositions.size(); i++) {
         unsigned int c = multiline[i];
         curCharPos = charPositions[i];
 
         CharInfo charInfo = font->info.characters[c];
-        shader.setVec2("TexCoordOffset", 
+        data.TexCoordOffset = 
                 {charInfo.xpos / font->info.textureWidth, 
-                 charInfo.ypos / font->info.textureHeight});
-        shader.setVec2("charSize", 
+                 charInfo.ypos / font->info.textureHeight};
+        data.charSize = 
                 {charInfo.width / font->info.textureWidth, 
-                charInfo.height / font->info.textureHeight});
+                charInfo.height / font->info.textureHeight};
 
         glm::mat4 charModel = getModel();
         charModel = glm::scale(charModel, glm::vec3(size));
@@ -177,9 +194,10 @@ void Text::draw(Shader& shader)
                 curCharPos.y - charInfo.yoffset / 50.0, 
                 0});
         charModel = glm::scale(charModel, {(float) charInfo.width / 50.0, charInfo.height / 50.0, 1});
-        shader.setCommon(UNIFORM_MODEL, charModel);
-        textQuad.draw(shader);
+        data.model = charModel;
+        font->textQuad->addInstance(&data);
     }
+    font->textQuad->queueDraw();
 }
 
 float Text::calcTransformedMaxWidth(float rawWidth)

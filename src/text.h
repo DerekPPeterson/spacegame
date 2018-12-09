@@ -32,15 +32,18 @@ struct UbfgInfo
 	std::string fontName;
 };
 
-class Font
+class Font : public non_copyable
 {
     public:
-        Font() {};
 		Font(std::string path);
+
 	private:
 		UbfgInfo parseUbfg(std::string filename);
 		UbfgInfo info;
 		unsigned int textureId = 0;
+
+        std::shared_ptr<InstanceMeshRenderable> createTextQuad();
+        std::shared_ptr<InstanceMeshRenderable> textQuad;
 
 		friend class Text;
 };
@@ -48,23 +51,21 @@ class Font
 class Text : public Renderable , public has_model_mat
 {
 	public:
-		Text() {};
-		Text(Font* font, std::string text, glm::vec3 color, 
+		Text(std::shared_ptr<Font> font, std::string text = "", glm::vec3 color = {1, 1, 1}, 
                 float maxwidth = 0, float size = 1) 
-            : font(font), text(text), color(color), maxwidth(maxwidth),
-              size(size)
-				{stage = SHADER_TEXT; setup();};
-		virtual void draw(Shader& shader) override;
+            : Renderable(SHADER_TEXT), 
+              font(font), text(text), color(color), maxwidth(maxwidth),
+              size(size) {};
+        virtual void queueDraw() override;
 		void setText(std::string text) {this->text = text;};
 	private:
         float calcTransformedMaxWidth(float rawWidth);
-		Font* font;
+        std::shared_ptr<Font> font;
 		std::string text;
         glm::vec3 color;
         float maxwidth;
         float size;
-		static MeshRenderable textQuad;
-		static void setup();
+
 };
 
 #endif

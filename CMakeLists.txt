@@ -4,7 +4,7 @@ project(learnopengl)
 include_directories(include)
 file(GLOB SOURCES "src/*.cpp" "src/*.c")
 
-set(CMAKE_C_FLAGS "-Wall -Werror -O0 -g")
+set(CMAKE_C_FLAGS "-Wall -Wmost -Werror -O0 -g")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++17")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ")
 

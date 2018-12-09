@@ -104,6 +104,8 @@ int main(int argc, char **argv)
 
     GLFWwindow *window = setupOpenGlContext(options);
 
+    runAllSetups();
+
     Input input(window, &camera);
 
     Renderer renderer(options, camera);

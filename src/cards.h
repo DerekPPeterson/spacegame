@@ -8,10 +8,17 @@
 
 #include <memory>
 
+struct CardInfo
+{
+    std::string name = "Long Card Name";
+    std::string text = "This is some card box text\nMore text";
+    glm::vec3 color = {0.1, 2, 2};
+};
 
-class Card : public Renderable , public Object, public Dragable {
+class Card : public Renderable , public Object, public Dragable,
+             public needs_setup<Card> {
     public:
-        Card();
+        Card(CardInfo info);
         virtual void draw(Shader& shader) override;
         virtual void queueDraw() override;
         virtual void update(UpdateInfo& info) override;
@@ -20,20 +27,18 @@ class Card : public Renderable , public Object, public Dragable {
         void updateModel();
         void onClick() override;
 
-        static LineModel cardModel;
-        static Font cardFont;
-        static Font titleFont;
+        static std::shared_ptr<LineModel> cardModel;
+        static std::shared_ptr<Font> cardFont;
+        static std::shared_ptr<Font> titleFont;
 
         Text titleText;
         Text cardText;
 
-        glm::vec3 color = {0.1, 2, 2};
         float size = 0.2;
         glm::vec3 speed = {0, 0, 0};
         float phase = 0;
 
-        std::string name = "Long Card Name";
-        std::string text = "This is some card box text\nWith a newline. wooo";
+        CardInfo info;
 
         friend class Hand;
 };

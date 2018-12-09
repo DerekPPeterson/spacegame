@@ -30,10 +30,10 @@ class Skybox: public Renderable
 		unsigned int textureId;
 
         Skybox(std::string path) :
+            Renderable(SHADER_SKYBOX),
             cubeModel(Model("./res/models/cube.obj"))
         {
             setupSkybox(path);
-            stage = SHADER_SKYBOX;
         }
         void draw(Shader& shader) override;
         

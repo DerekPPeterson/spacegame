@@ -19,7 +19,7 @@ using namespace std;
 
 Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices,
                 vector<Texture> textures) :
-    MeshRenderable(0 /* VAO set by setupMesh */, indices.size()) 
+    MeshRenderable(SHADER_LIGHTING, 0 /* VAO set by setupMesh */, indices.size()) 
 {
     this->vertices = vertices;
     this->indices = indices;
@@ -88,12 +88,11 @@ void Mesh::draw(Shader& shader)
 }
 
 LineMesh::LineMesh(vector<glm::vec3> vertices, vector<unsigned int> indices) :
-    MeshRenderable(0 /* VAO set by setupMesh */, indices.size()) 
+    MeshRenderable(SHADER_LAMP, 0 /* VAO set by setupMesh */, indices.size()) 
 {
     this->vertices = vertices;
     this->indices = indices;
     setupMesh();
-    stage = SHADER_LAMP;
 }
 
 void LineMesh::setupMesh()
@@ -258,18 +257,8 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial *mat,
     return textures;
 }
 
-void LineModel::loadModel(string path)
+LineMesh LineModel::loadLineMesh(string path)
 {
     LineObj model = readLineObj(path);
-    mesh = LineMesh(model.vertices, model.indices);
+    return LineMesh(model.vertices, model.indices);
 }
-
-// TODO debug transform, remove
-#include "timer.h"
-
-void LineModel::draw(Shader& shader)
-{
-    mesh.draw(shader);
-}
-
-

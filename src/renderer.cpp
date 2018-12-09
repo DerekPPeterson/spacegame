@@ -42,7 +42,8 @@ MeshRenderable createFramebufferQuad()
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 
             (void*) (sizeof(float) * 2));
     
-    return MeshRenderable(VAO, sizeof(indices) / sizeof(indices[0]));
+    // This renderable is only ever rendered manually
+    return MeshRenderable(SHADER_NONE, VAO, sizeof(indices) / sizeof(indices[0]));
 };
 
 void Renderer::compileLinkShaders()

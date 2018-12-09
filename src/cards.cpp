@@ -10,21 +10,18 @@
 
 using namespace std;
 
-LineModel Card::cardModel;
-Font Card::titleFont;
-Font Card::cardFont;
+// TODO different card models?
+shared_ptr<LineModel> Card::cardModel;
+shared_ptr<Font> Card::titleFont;
+shared_ptr<Font> Card::cardFont;
 
 void Card::setup()
 {
-    static bool isSetup = false;
-    if (not isSetup) {
-        // make sure to update the quad vertices if the model changes
-        cardModel = LineModel("./res/models/card/card.obj");
-        isSetup = true;
-        titleFont = Font("res/fonts/conthrax.fnt");
-        cardFont = Font("res/fonts/gravity.fnt");
-    }
-
+    LOG_INFO << "Loading card models/fonts";
+    // make sure to update the quad vertices if the model changes
+    cardModel = shared_ptr<LineModel>(new LineModel("./res/models/card/card.obj"));
+    titleFont = shared_ptr<Font>(new Font("res/fonts/conthrax.fnt"));
+    cardFont = shared_ptr<Font>(new Font("res/fonts/gravity.fnt"));
 }
 
 void Card::queueDraw() 
@@ -43,22 +40,17 @@ void Card::queueDraw()
 
 void Card::draw(Shader& shader)
 {
-    shader.setVec3("color", color);
+    shader.setVec3("color", info.color);
     shader.setCommon(UNIFORM_MODEL, model);
-    cardModel.draw(shader);
-
-
-    //shader.setVec3("color", {10, 0, 0});
-    //LineMesh clickbox(quadVertices, {0, 1, 1, 2, 2, 3, 3, 0});
-    //clickbox.draw(shader);
-
+    cardModel->draw(shader);
+    // Text is not drawn here, it is queued for later
 }
 
 // TODO standerdize object setup methods
-Card::Card() 
+Card::Card(CardInfo info) : Renderable(SHADER_CARD),
+    titleText(titleFont, info.name, info.color, 0, 0.2),
+    cardText(cardFont, info.text, info.color, 1.6, 0.15)
 {
-    setup();
-    stage = SHADER_CARD;
     position = {-1, -1, -5};
     // For clickbox
     quadVertices = { 
@@ -67,8 +59,6 @@ Card::Card()
         {1, -1.6, 0},
         {-1, -1.6, 0},
     };
-    titleText = Text(&titleFont, name, color, 0, 0.2);
-    cardText = Text(&cardFont, text, color, 1.6, 0.15);
 }
 
 void Card::updateModel()
@@ -121,7 +111,7 @@ void Card::update(UpdateInfo& info)
 
 void Card::onClick()
 {
-    LOG_INFO << "Card: " << name << " clicked";
+    LOG_INFO << "Card: " << info.name << " clicked";
 };
 
 Hand::Hand(int screenWidth, int screenHeight, glm::mat4 projection)

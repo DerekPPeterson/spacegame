@@ -18,7 +18,7 @@ using namespace std;
 
 
 System::System(glm::vec3 position, int gridx, int gridy) :
-    gridx(gridx), gridy(gridy)
+    Renderable(SHADER_SIMPLE_DIFFUSE), gridx(gridx), gridy(gridy)
 { 
     if (not isSetup) {
         setup();
@@ -46,8 +46,6 @@ System::System(glm::vec3 position, int gridx, int gridy) :
 
         planets.push_back(new_planet);
     }
-
-    stage = SHADER_SIMPLE_DIFFUSE;
 }
 
 glm::vec3 calcOrbitPosition(glm::vec3 systemPosition, Orbit &orbit)
@@ -73,7 +71,7 @@ void System::draw(Shader& shader)
         planetModel = glm::scale(planetModel, glm::vec3(planet.radius, planet.radius, planet.radius));
         shader.setCommon(UNIFORM_MODEL, planetModel);
         shader.setVec3("diffuseColor", planet.color);
-        sphere.draw(shader);
+        sphere->draw(shader);
     }
 }
 
@@ -123,17 +121,17 @@ void System::onClick()
 
 // static SpaceGrid definitions
 bool System::isSetup = false;
-Model System::sphere;
+shared_ptr<Model> System::sphere;
 
 void System::setup()
 {
-    sphere = Model("./res/models/sphere.obj");
+    sphere = shared_ptr<Model>( new Model("./res/models/sphere.obj"));
 }
 
 #define GRID_X 2
 #define GRID_Y 2
 
-SpaceGrid::SpaceGrid()
+SpaceGrid::SpaceGrid() : Renderable(SHADER_NONE)
 {
     float distance = 30;
     for (int i = 0; i < GRID_X; i++) {
@@ -142,7 +140,6 @@ SpaceGrid::SpaceGrid()
             grid[i][j] = shared_ptr<System>(new System(position, i, j));
         }
     }
-    stage = SHADER_LAMP;
 }
 
 void SpaceGrid::draw(Shader& shader) {
@@ -178,8 +175,8 @@ vector<shared_ptr<Object>> SpaceGrid::getAllSystems()
     return systems;
 }
 
-map<string, Model> SpaceShip::models;
-Model SpaceShip::sphere;
+map<string, shared_ptr<Model>> SpaceShip::models;
+shared_ptr<Model> SpaceShip::warpQuad;
 
 map<string, string> MODEL_PATHS = {
     {"SS1", "./res/models/SS1_OBJ/SS1.obj"}
@@ -189,16 +186,17 @@ void SpaceShip::loadModel(string type)
 {
     // Check if we've already loaded it
     if (models.find(type) == models.end()) {
-        models[type] = Model(MODEL_PATHS[type].c_str());
+        models[type] = shared_ptr<Model>(new Model(MODEL_PATHS[type].c_str()));
     }
     static bool sphereLoaded = false;
     if (not sphereLoaded) {
-        sphere = Model("./res/models/quad/quad.obj");
+        warpQuad = shared_ptr<Model>(new Model("./res/models/quad/quad.obj"));
         sphereLoaded = true;
     }
 }
 
 SpaceShip::SpaceShip(string type, System* system) :
+    Renderable(SHADER_LIGHTING),
     type(type), curSystem(system), prevSystem(system)
 {
     this->type = type;
@@ -278,7 +276,7 @@ glm::mat4 SpaceShip::calcModelMat() const
 void SpaceShip::draw(Shader& shader)
 {
     shader.setCommon(UNIFORM_MODEL, calcModelMat());
-    models[type].draw(shader);
+    models[type]->draw(shader);
 }
 
 void SpaceShip::drawWarp(Shader& shader)
@@ -297,7 +295,7 @@ void SpaceShip::drawWarp(Shader& shader)
     transforms = glm::scale(transforms, glm::vec3(1, 2, 2));
 
     shader.setCommon(UNIFORM_MODEL, transforms * model);
-    sphere.draw(shader);
+    warpQuad->draw(shader);
 }
 
 

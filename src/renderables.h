@@ -27,19 +27,21 @@ enum ShaderEnum {
     SHADER_WARP_STEP2     = 1 << 9, 
     SHADER_CARD           = 1 << 10,
     SHADER_TEXT           = 1 << 11,
+    SHADER_TEXT_INSTANCED = 1 << 11,
 };
 
 class Renderable;
+typedef void (*DrawQueuesType)(ShaderEnum, Shader&, std::vector<Renderable*>);
 
 // Map shader type -> queue draw function -> pointers to renderables to draw
 typedef std::unordered_map<int, 
-        std::unordered_map<void (*)(ShaderEnum, Shader&, std::vector<Renderable*>), 
-            std::vector<Renderable*>>> RenderableQueues;
+            std::unordered_map<DrawQueuesType, 
+                std::vector<Renderable*>>> RenderableQueues;
 
 class Renderable
 {
     public:
-        Renderable() {};
+        Renderable(ShaderEnum stage) : stage(stage) {};
         virtual ~Renderable() {};
         virtual void queueDraw();
         virtual void draw(Shader& shader) {};
@@ -49,25 +51,70 @@ class Renderable
         unsigned int stage = SHADER_NONE;
         bool isVisible() {return visible;}
         void setVisible(bool visible) {this->visible = visible;}
-    private:
-        bool visible = true;
-        static RenderableQueues queues;
 
+    private:
         static void drawQueue(ShaderEnum drawingStage, Shader& shader, std::vector<Renderable*> queue);
 
-        friend class WarpRenderable;
+    protected:
+        bool visible = true;
+        static RenderableQueues queues;
+        virtual DrawQueuesType getDrawQueuesFunc() {return drawQueue;};
+
 };
 
-class MeshRenderable : virtual public Renderable
+class MeshRenderable : public Renderable
 {
     public:
-        MeshRenderable() {};
-        MeshRenderable(unsigned int VAO, unsigned int nIndices) : 
-            VAO(VAO), nIndices(nIndices) {};
+        MeshRenderable(ShaderEnum stage, unsigned int VAO, unsigned int nIndices) : 
+            Renderable(stage), VAO(VAO), nIndices(nIndices) {};
         virtual void draw(Shader& shader) override;
     protected:
         unsigned int VAO;
         unsigned int nIndices;
+};
+
+enum InstanceAttribName {
+    INSTANCE_ATTRIB_VEC4,
+    INSTANCE_ATTRIB_VEC3,
+    INSTANCE_ATTRIB_VEC2,
+    INSTANCE_ATTRIB_MAT4,
+};
+
+class InstanceMeshRenderable : public MeshRenderable
+{
+    public:
+        InstanceMeshRenderable(ShaderEnum stage, unsigned int VAO, unsigned int nIndices,
+                std::vector<InstanceAttribName>, 
+                std::vector<unsigned int> textureIds = {});
+        virtual void draw(Shader& shader) override;
+        virtual void queueDraw() override;
+
+        /* Load data into a buffer for use by the vertex shader.
+         * Creates a new buffer if buf == 0
+         */
+        void loadBufferData(unsigned int *buf, void* data, int size);
+        
+        /* Set the vertex attributes to use a buffer.
+         * The relevant buffer must be bound
+         * startAt is the vertex attribute to start at
+         */
+        void setVertexAttribPointersVec4(int startAt, long offset);
+        void setVertexAttribPointersVec3(int startAt, long offset);
+        void setVertexAttribPointersVec2(int startAt, long offset);
+        void setVertexAttribPointersMat4(int startAt, long offset);
+
+        void addInstance(void *data);
+
+    protected:
+        int maxInstances = 1000;
+
+        std::vector<unsigned int> textureIds;
+
+        std::vector<char> buf;
+        unsigned int bufId;
+        unsigned int dataSize = 0;
+        unsigned int curInstance = 0;
+        bool queued = false;
 };
 
 #endif 

@@ -46,7 +46,6 @@ class Mesh : virtual public MeshRenderable
 class LineMesh : virtual public MeshRenderable
 {
     public:
-        LineMesh() {};
         std::vector<glm::vec3> vertices;
         std::vector<unsigned int> indices;
 
@@ -63,9 +62,10 @@ class LineMesh : virtual public MeshRenderable
 class Model : public Renderable
 {
     public:
-        Model() {};
         virtual ~Model() {};
-        Model(const char *path)
+        // The model itself does not get drawn, just the meshes that are part
+        // of it, which is why we use SHADER_NONE here
+        Model(const char *path) : Renderable(SHADER_NONE)
         {
             loadModel(path);
         }
@@ -88,21 +88,17 @@ class Model : public Renderable
 class LineModel : public Renderable
 {
     public:
-        LineModel() {};
-        LineModel(const char *path)
-        {
-            loadModel(path);
-            stage = SHADER_LAMP;
-        }
-        void draw(Shader& shader) override;
+        LineModel(const char *path) 
+            : Renderable(SHADER_NONE), mesh(loadLineMesh(path)) {};
+        void queueDraw() override {mesh.queueDraw();};
+        void draw(Shader& shader) override {mesh.draw(shader);};
 
     private:
         // Model Data
         LineMesh mesh;
 
         //functions
-        void loadModel(std::string path);
-        LineMesh processMesh(aiMesh *mesh, const aiScene *scene);
+        LineMesh loadLineMesh(std::string path);
 };
 
 

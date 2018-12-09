@@ -28,8 +28,6 @@ typedef struct Planet {
 
 class System : public Object , public Selectable, public Renderable{
     public:
-        System() {};
-        virtual ~System() {};
         System(glm::vec3 position, int gridx, int gridy);
         virtual void draw(Shader& shader) override;
         virtual void queueDraw() override;
@@ -45,7 +43,7 @@ class System : public Object , public Selectable, public Renderable{
         glm::vec3 hoverColor = glm::vec3(0, 15, 30);
         int gridx, gridy;
 
-        static Model sphere;
+        static std::shared_ptr<Model> sphere;
         static bool isSetup;
         void setup();
 };
@@ -90,8 +88,8 @@ class SpaceShip : public Object, public Renderable
 
         glm::mat4 calcModelMat() const;
         static void loadModel(std::string type);
-        static std::map<std::string, Model> models;
-        static Model sphere;
+        static std::map<std::string, std::shared_ptr<Model>> models;
+        static std::shared_ptr<Model> warpQuad;
 };
 
 #endif

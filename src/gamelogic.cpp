@@ -59,8 +59,9 @@ GameState GameLogic::startGame(RenderOptions options, Renderer& renderer)
     state.deck = curIndex++;
 
     // For now just use temp cards
+    CardInfo info;
     for (int i = 0; i < 40; i++) {
-        shared_ptr<Card> card(new Card());
+        shared_ptr<Card> card(new Card(info));
         card->setVisible(false);
         deck->insert(card, DECK_BOTTOM);
         state.objects.emplace_back(card);

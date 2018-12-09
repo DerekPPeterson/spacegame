@@ -3,8 +3,8 @@ layout (location = 0) out vec4 FragColor;
 layout (location = 1) out vec4 BrightColor;
 
 in vec2 TexCoords;
+in vec3 color;
 
-uniform vec3 color = vec3(0.5, 0, 0);
 uniform sampler2D fontTexture;
 
 uniform float edgestart = 0.45;
@@ -23,6 +23,8 @@ void main()
     // gamma correction 
     mapped = pow(mapped, vec3(1.0 / gamma));
     FragColor = vec4(mapped, outColor.a);
+
+    //FragColor = vec4(1, 1, 1, 1);
 
     float brightness = dot(outColor.rgb, vec3(0.2126, 0.7152, 0.0722));
     if(brightness > 1.0)
