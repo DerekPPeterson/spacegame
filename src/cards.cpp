@@ -144,31 +144,37 @@ void Hand::update(UpdateInfo& info)
     vector<glm::vec3> newPositions(cards.size());
     for (int i = 0; i < cards.size(); i++) {
         glm::vec3 acceleration = {0, 0, 0};
+
+        // Calculate horizontal acceleration of cards due to adjacent cards
         if (i > 0) {
             acceleration.x -= springiness * (cards[i]->position.x - cards[i-1]->position.x - width * cards[i]->size * (1 + cardSpacing));
         } else {
             acceleration.x += springiness * (-cards[i]->position.x + left - width * cards[i]->size * (1 + cardSpacing));
         }
-
-
         if (i < cards.size() - 1) {
             acceleration.x += springiness * (-cards[i]->position.x + cards[i+1]->position.x - width * cards[i]->size * (1 + cardSpacing));
         } else {
             acceleration.x += springiness * (-cards[i]->position.x + right - width * cards[i]->size * (1 + cardSpacing));
         }
 
+        // if a card is hovered it shouldn't move horizontally
         if (cards[i]->isHovered) {
             acceleration.x = 0;
-        } else {
+        }
+        
+        // Pull cards back to the hand if they are not activly being dragged
+        if (not cards[i]->beingDragged) {
             acceleration.y = -springiness * (cards[i]->getPos().y - handPos.y);
         }
 
+        // Calculate new card positions
         acceleration -= cards[i]->speed * damping;
         acceleration *= info.deltaTime;
         cards[i]->speed += acceleration;
         newPositions[i] = cards[i]->position + cards[i]->speed * info.deltaTime;
     }
 
+    // Update card positions
     for (int i = 0; i < cards.size(); i++) {
         cards[i]->position = newPositions[i];
     }
