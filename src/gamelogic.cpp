@@ -1,6 +1,7 @@
 #include "gamelogic.h"
 #include "spaceThings.h"
 #include "cards.h"
+#include "uithings.h"
 
 
 #include "event.h"
@@ -72,8 +73,15 @@ GameState GameLogic::startGame(RenderOptions options, Renderer& renderer)
     for (int i = 0; i < 7; i++) {
         hand->addCard(deck->draw());
     }
+
+    shared_ptr<WarpBeacon> beacon(new WarpBeacon());
+    state.objects.emplace_back(beacon);
+    
+    // TODO this is just temporary
     
     this->state = state;
+
+    
 
     return state;
 }

@@ -128,7 +128,6 @@ void Renderer::renderMainScene()
     Renderable::drawStage(SHADER_LIGHTING, shaders[SHADER_SIMPLE_DIFFUSE]);
 
     shaders[SHADER_CARD].use();
-    shaders[SHADER_CARD].setMat4("view", camera.GetViewMatrix());
     shaders[SHADER_CARD].setMat4("projection", projection);
     Renderable::drawStage(SHADER_CARD, shaders[SHADER_CARD]);
 
