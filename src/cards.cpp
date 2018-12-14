@@ -114,10 +114,9 @@ void Card::onClick()
     LOG_INFO << "Card: " << info.name << " clicked";
 };
 
-Hand::Hand(int screenWidth, int screenHeight, glm::mat4 projection)
+Hand::Hand()
 {
-    handPos = calcWorldSpaceCoords({screenWidth, screenHeight * 0.9}, 5,
-        projection, glm::mat4(1.0f), screenWidth, screenHeight);
+    handPos = calcWorldSpaceCoords({screenWidth, screenHeight * 0.9}, 5);
 }
 
 void Hand::addCard(shared_ptr<Card> card)

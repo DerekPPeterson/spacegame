@@ -26,7 +26,7 @@ vector<shared_ptr<Renderable>> GameLogic::getRenderables()
 }
 
 // TODO add some options
-GameState GameLogic::startGame(RenderOptions options, Renderer& renderer) 
+GameState GameLogic::startGame() 
 {
     GameState state;
 
@@ -50,7 +50,7 @@ GameState GameLogic::startGame(RenderOptions options, Renderer& renderer)
         state.units.push_back(curIndex++);
     }
 
-    shared_ptr<Hand> hand(new Hand(options.screenWidth, options.screenHeight, renderer.getProjection()));
+    shared_ptr<Hand> hand(new Hand());
     state.objects.push_back(hand);
     state.hand = curIndex++;
 
@@ -74,8 +74,8 @@ GameState GameLogic::startGame(RenderOptions options, Renderer& renderer)
         hand->addCard(deck->draw());
     }
 
-    shared_ptr<WarpBeacon> beacon(new WarpBeacon());
-    state.objects.emplace_back(beacon);
+    //shared_ptr<WarpBeacon> beacon(new WarpBeacon());
+    //state.objects.emplace_back(beacon);
     
     // TODO this is just temporary
     

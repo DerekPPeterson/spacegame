@@ -5,6 +5,7 @@
 #include "renderables.h"
 #include "model.h"
 #include "text.h"
+#include "uithings.h"
 
 #include <memory>
 
@@ -16,7 +17,8 @@ struct CardInfo
 };
 
 class Card : public Renderable , public Object, public Dragable,
-             public needs_setup<Card> {
+             public needs_setup<Card>
+{
     public:
         Card(CardInfo info);
         virtual void draw(Shader& shader) override;
@@ -43,11 +45,10 @@ class Card : public Renderable , public Object, public Dragable,
         friend class Hand;
 };
 
-class Hand : public Object
+class Hand : public Object, public UIObject
 {
     public:
         Hand();
-        Hand(int screenWidth, int screenHeight, glm::mat4 projection);
         void addCard(std::shared_ptr<Card> card);
         virtual void update(UpdateInfo& info) override;
         std::vector<std::shared_ptr<Object>> getAllCards();

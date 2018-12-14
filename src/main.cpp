@@ -110,7 +110,7 @@ int main(int argc, char **argv)
     ObjectUpdater updater(1); // Using 1 other thread for updating objects
 
     GameLogic gameLogic;
-    gameLogic.startGame(options, renderer);
+    gameLogic.startGame();
 
     shared_ptr<Skybox> skybox(new Skybox("./res/textures/lightblue/"));
     renderer.addRenderable(skybox);

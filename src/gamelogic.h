@@ -36,7 +36,7 @@ class GameLogic
 
         /* Initialize and return a game state
          */
-        GameState startGame(RenderOptions options, Renderer& renderer);
+        GameState startGame();
 
         /* Based on the current state, call the appropriate state function and
          * update the state with the new state returned

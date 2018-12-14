@@ -26,8 +26,8 @@ enum ShaderEnum {
     SHADER_WARP_STEP1     = 1 << 8,  // During warp step
     SHADER_WARP_STEP2     = 1 << 9, 
     SHADER_CARD           = 1 << 10,
-    SHADER_TEXT           = 1 << 11,
-    SHADER_TEXT_INSTANCED = 1 << 11,
+    SHADER_TEXT           = 1 << 11, // End of main scene, no view matrix
+    SHADER_UI_LIGHTING    = 1 << 12, // End of main scene, no view matrix
 };
 
 class Renderable;

@@ -35,6 +35,23 @@ void runAllSetups()
 /* End setup black magic */
 
 
+int UIObject::screenWidth;
+int UIObject::screenHeight;
+glm::mat4 UIObject::projection;
+
+glm::vec3 UIObject::calcWorldSpaceCoords(glm::vec2 screenCoords, float depth)
+{
+    glm::vec4 clipVec = projection * glm::vec4(0, 0, -depth, 1);
+    float clipDepth = clipVec.z / clipVec.w;
+    glm::vec4 clipCoords = glm::vec4(
+            (2 * screenCoords.x / screenWidth - 1) /* * screenCoords.w */ ,
+            -(2 * screenCoords.y / screenHeight - 1) /* * screenCoords.w */ ,
+            clipDepth, 1);
+    glm::vec4 worldCoords = glm::inverse(projection ) * clipCoords;
+    worldCoords /= worldCoords.w;
+    return worldCoords;
+}
+
 glm::vec2 calcScreenSpaceCoords(glm::vec3 position, 
         glm::mat4 projection, glm::mat4 view,
         int screenWidth, int screenHeight)
@@ -45,21 +62,6 @@ glm::vec2 calcScreenSpaceCoords(glm::vec3 position,
             (clipCoords.x / clipCoords.w + 1) / 2 * screenWidth, 
             screenHeight - (clipCoords.y / clipCoords.w + 1) / 2 * screenHeight);
     return screenCoords;
-}
-
-glm::vec3 calcWorldSpaceCoords(glm::vec2 screenCoords, float worldDepth,
-        glm::mat4 projection, glm::mat4 view,
-        int screenWidth, int screenHeight)
-{
-    glm::vec4 clipVec = projection * view * glm::vec4(0, 0, -worldDepth, 1);
-    float clipDepth = clipVec.z / clipVec.w;
-    glm::vec4 clipCoords = glm::vec4(
-            (2 * screenCoords.x / screenWidth - 1) /* * screenCoords.w */ ,
-            -(2 * screenCoords.y / screenHeight - 1) /* * screenCoords.w */ ,
-            clipDepth, 1);
-    glm::vec4 worldCoords = glm::inverse(projection * view) * clipCoords;
-    worldCoords /= worldCoords.w;
-    return worldCoords;
 }
 
 bool pointInsideQuad(glm::vec2 point, vector<glm::vec2> quad)
@@ -147,10 +149,7 @@ Dragable* Dragable::beingDragged = NULL;
 
 void Dragable::checkSetDrag(UpdateInfo info, bool screenSpace)
 {
-    glm::vec3 curDragPos = calcWorldSpaceCoords(info.mouse.position,
-            position.z, info.projection, 
-            screenSpace ? glm::mat4(1.0f): info.camera->GetViewMatrix(), 
-            info.screenWidth, info.screenHeight);
+    glm::vec3 curDragPos = calcWorldSpaceCoords(info.mouse.position, position.z);
     if (isHovered and info.mouse.clicked and (not beingDragged or beingDragged == this)) {
         dragging = true;
         beingDragged = this;

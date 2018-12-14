@@ -60,6 +60,7 @@ void Renderer::compileLinkShaders()
     shaders.try_emplace(SHADER_WARP_STEP2, "./src/shaders/warp.vert", "./src/shaders/warp2.frag");
     shaders.try_emplace(SHADER_CARD, "./src/shaders/card.vert", "./src/shaders/card.frag");
     shaders.try_emplace(SHADER_TEXT, "./src/shaders/text.vert", "./src/shaders/text.frag");
+    shaders.try_emplace(SHADER_UI_LIGHTING, "./src/shaders/vertex.vert", "./src/shaders/uilighting.frag");
 }
 
 Renderer::Renderer(RenderOptions options, Camera& camera) :
@@ -78,6 +79,8 @@ Renderer::Renderer(RenderOptions options, Camera& camera) :
     // Enable some options for good line drawing
     glEnable(GL_LINE_SMOOTH);
     glLineWidth(1);
+
+    UIObject::setViewInfo(options.screenWidth, options.screenHeight, projection);
 }
 
 void Renderer::renderMainScene()
@@ -131,6 +134,10 @@ void Renderer::renderMainScene()
     shaders[SHADER_CARD].setMat4("projection", projection);
     Renderable::drawStage(SHADER_CARD, shaders[SHADER_CARD]);
 
+    shaders[SHADER_UI_LIGHTING].use();
+    shaders[SHADER_UI_LIGHTING].setMat4("projection", projection);
+    Renderable::drawStage(SHADER_UI_LIGHTING, shaders[SHADER_UI_LIGHTING]);
+
     shaders[SHADER_SKYBOX].use();
     glm::mat4 skyboxView = glm::mat4(glm::mat3(camera.GetViewMatrix()));  
     shaders[SHADER_SKYBOX].setMat4("view", skyboxView);
@@ -147,7 +154,6 @@ void Renderer::renderMainScene()
 
     // Demultisample
     for (int i = 0; i < 2; i++) {
-
         glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffers.mainFramebufferMultisampled.id);
         glReadBuffer( GL_COLOR_ATTACHMENT0 + i);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffers.mainFramebuffer.id);
@@ -268,12 +274,15 @@ void Renderer::mergeEffects(int bloomOutputTextureNo)
 
 void Renderer::renderFrame() 
 {
+    UIObject::setViewInfo(options.screenWidth, options.screenHeight, projection);
+
     toRenderMutex.lock();
     for (auto r : toRender) {
         if (r->isVisible()) {
             r->queueDraw();
         }
     }
+
     renderMainScene();
     renderWarpEffects();
     toRenderMutex.unlock();

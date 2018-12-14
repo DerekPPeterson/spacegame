@@ -13,6 +13,7 @@
 #include "nocopy.h"
 #include "camera.h"
 #include "input.h"
+#include "uithings.h"
 
 /* This is black magic to statically initilize the list of classes that need
  * to run their setup functions
@@ -68,6 +69,22 @@ class has_model_mat
         glm::mat4 model = glm::mat4(1.0f);
 };
 
+class UIObject 
+{
+    public:
+        static void setViewInfo(int width, int height, glm::mat4 proj)
+        {
+            screenWidth = width;
+            screenHeight = height;
+            projection = proj;
+        };
+        glm::vec3 calcWorldSpaceCoords(glm::vec2 screenCoords, float depth);
+    protected:
+        static int screenWidth;
+        static int screenHeight;
+        static glm::mat4 projection;
+};
+
 struct UpdateInfo
 {
     float deltaTime;
@@ -94,7 +111,7 @@ class Selectable : public virtual has_position, public virtual has_model_mat
         static Selectable* beingHovered; // Points to current selectable being hovered
 };
 
-class Dragable : public Selectable
+class Dragable : public Selectable, virtual public UIObject
 {
     protected:
         void checkSetDrag(UpdateInfo info, bool screenSpace = false);
