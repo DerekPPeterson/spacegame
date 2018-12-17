@@ -282,12 +282,13 @@ void Quad::draw()
 }
 
 shared_ptr<Model> Shapes::sphere;
+shared_ptr<Model> Shapes::warpQuad;
 volatile Shapes shapes; // Needed to force setup func to run
 void Shapes::setup()
 {
     sphere = shared_ptr<Model>(new Model("./res/models/sphere.obj"));
+    warpQuad = shared_ptr<Model>(new Model("./res/models/quad/quad.obj"));
 }
-
 
 shared_ptr<Model> Cube::model;
 

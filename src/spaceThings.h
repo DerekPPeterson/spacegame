@@ -25,6 +25,7 @@ typedef struct Planet {
     Orbit orbit;
 } Planet;
 
+glm::vec3 calcOrbitPosition(glm::vec3 systemPosition, Orbit &orbit);
 
 class System : public Object , public Selectable, public Renderable{
     public:

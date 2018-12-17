@@ -17,6 +17,7 @@ void Renderable::queueDraw() {
         SHADER_LAMP,
         SHADER_SKYBOX,
         SHADER_WARP_STEP1,
+        SHADER_ANTI,
         SHADER_CARD,
         SHADER_TEXT,
         SHADER_UI_LIGHTING,
@@ -59,6 +60,7 @@ void Renderable::drawQueue(ShaderEnum drawingStage, Shader& shader, vector<Rende
         switch (drawingStage) {
             case SHADER_WARP_STEP1:
             case SHADER_WARP_STEP2:
+            case SHADER_ANTI:
                 renderable->drawWarp(shader);
                 LOG_VERBOSE << "Rendering during warp a: " << typeid(*renderable).name();
                 break;

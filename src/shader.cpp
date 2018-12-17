@@ -47,7 +47,9 @@ unsigned int compile_shader_from_filename(GLenum type, const char * path)
 unordered_map<CommonUniforms, string> commonUniformNames = {
     {UNIFORM_MODEL, "model"},
     {UNIFORM_VIEW, "view"},
-    {UNIFORM_PROJECTION, "projection"}
+    {UNIFORM_PROJECTION, "projection"},
+    {UNIFORM_COLOR, "color"},
+    {UNIFORM_USE_VIEW, "useView"},
 };
 
 void Shader::saveCommonUniformLocations()
@@ -129,5 +131,13 @@ void Shader::setVec2(const std::string &name, const glm::vec2 &vec) const
 void Shader::setCommon(CommonUniforms which, glm::mat4 val) const
 {
 	glUniformMatrix4fv((int) locations.at(which), 1, GL_FALSE, &val[0][0]);
+}
+void Shader::setCommon(CommonUniforms which, glm::vec3 val) const
+{
+	glUniform3f((int) locations.at(which), val[0], val[1], val[2]);
+}
+void Shader::setCommon(CommonUniforms which, bool val) const
+{
+	glUniform1i((int) locations.at(which), val);
 }
 

@@ -173,6 +173,7 @@ class Shapes : public needs_setup<Shapes>
     public:
         static void setup();
         static std::shared_ptr<Model> sphere;
+        static std::shared_ptr<Model> warpQuad;
 };
 
 enum LightType {LIGHT_POINT};

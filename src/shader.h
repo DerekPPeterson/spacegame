@@ -15,7 +15,9 @@ enum CommonUniforms
 {
     UNIFORM_MODEL,
     UNIFORM_VIEW,
-    UNIFORM_PROJECTION
+    UNIFORM_PROJECTION,
+    UNIFORM_COLOR,
+    UNIFORM_USE_VIEW
 };
 
 class Shader
@@ -36,6 +38,8 @@ class Shader
         void setVec3(const std::string &name, const glm::vec3 &vec) const;
         void setVec2(const std::string &name, const glm::vec2 &vec) const;
         void setCommon(CommonUniforms which, glm::mat4 val) const;
+        void setCommon(CommonUniforms which, glm::vec3 val) const;
+        void setCommon(CommonUniforms which, bool val) const;
     private:
         void saveCommonUniformLocations();
         std::unordered_map<CommonUniforms, unsigned int> locations;

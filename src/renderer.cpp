@@ -58,6 +58,7 @@ void Renderer::compileLinkShaders()
     shaders.try_emplace(SHADER_SKYBOX, "./src/shaders/skybox.vert", "./src/shaders/skybox.frag");
     shaders.try_emplace(SHADER_WARP_STEP1, "./src/shaders/warp.vert", "./src/shaders/warp1.frag");
     shaders.try_emplace(SHADER_WARP_STEP2, "./src/shaders/warp.vert", "./src/shaders/warp2.frag");
+    shaders.try_emplace(SHADER_ANTI, "./src/shaders/warp.vert", "./src/shaders/anti.frag");
     shaders.try_emplace(SHADER_CARD, "./src/shaders/card.vert", "./src/shaders/card.frag");
     shaders.try_emplace(SHADER_TEXT, "./src/shaders/text.vert", "./src/shaders/text.frag");
     shaders.try_emplace(SHADER_UI_LIGHTING, "./src/shaders/vertex.vert", "./src/shaders/uilighting.frag");
@@ -212,6 +213,20 @@ void Renderer::renderWarpEffects()
     glBindTexture(GL_TEXTURE_2D, framebuffers.mainFramebuffer.colorTextures[1]);
     warpShader2.setInt("hdrBuffer1", 3);
     Renderable::drawStage(SHADER_WARP_STEP2, shaders[SHADER_WARP_STEP2]);
+
+    // We also render the antimatter stuff here
+    Shader antiShader = shaders[SHADER_ANTI];
+    antiShader.use();
+    antiShader.setMat4("view", camera.GetViewMatrix());
+    antiShader.setMat4("projection", projection);
+    antiShader.setVec2("screenSize", {options.screenWidth, options.screenHeight});
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, framebuffers.mainFramebuffer.colorTextures[0]);
+    antiShader.setInt("hdrBuffer0", 1);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, framebuffers.mainFramebuffer.colorTextures[1]);
+    antiShader.setInt("hdrBuffer1", 3);
+    Renderable::drawStage(SHADER_ANTI, antiShader);
 }
 
 int Renderer::renderBloom()

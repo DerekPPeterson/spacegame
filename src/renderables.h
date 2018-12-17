@@ -23,11 +23,12 @@ enum ShaderEnum {
     SHADER_BLUR           = 1 << 5, 
     SHADER_LAMP           = 1 << 6,  // Main scene
     SHADER_SKYBOX         = 1 << 7,  // Main scene
-    SHADER_WARP_STEP1     = 1 << 8,  // During warp step
+    SHADER_WARP_STEP1     = 1 << 8,  // During postprocess step
     SHADER_WARP_STEP2     = 1 << 9, 
     SHADER_CARD           = 1 << 10,
     SHADER_TEXT           = 1 << 11, // End of main scene, no view matrix
     SHADER_UI_LIGHTING    = 1 << 12, // End of main scene, no view matrix
+    SHADER_ANTI           = 1 << 13, // During postprocess step
 };
 
 class Renderable;

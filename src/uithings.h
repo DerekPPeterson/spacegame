@@ -26,7 +26,6 @@ class WarpBeacon : public Renderable, public Selectable,
         float warpPulseScale = 1;
 
         static std::shared_ptr<Model> m;
-        static std::shared_ptr<Model> warpQuad;
 };
 
 class ResourceSphere : public Renderable, public Selectable, 
@@ -60,6 +59,17 @@ class AiIcon : public Renderable, public Selectable, public Object
         int curLineLength = 0;
         int maxLineLength = 4;
         Text t;
+};
+
+class AntiMatterIcon : public Renderable, public Selectable, public Object
+{
+    public:
+        AntiMatterIcon() : Renderable(SHADER_LAMP | SHADER_ANTI) {position = {0, 0, 0};};
+        void draw(Shader& shader) override;
+        void drawWarp(Shader& shader) override;
+        void update(UpdateInfo& info) override;
+    protected:
+        float rotation;
 };
 
 class IconNum : public Renderable, public Selectable, 
