@@ -25,8 +25,24 @@ class WarpBeacon : public Renderable, public Selectable,
         float yshift = 0;
         float warpPulseScale = 1;
 
-    static std::shared_ptr<Model> m;
-    static std::shared_ptr<Model> warpQuad;
+        static std::shared_ptr<Model> m;
+        static std::shared_ptr<Model> warpQuad;
+};
+
+class ResourceSphere : public Renderable, public Selectable, 
+    public needs_setup<ResourceSphere>, public Object
+{
+    public:
+        ResourceSphere() : Renderable(SHADER_UI_LIGHTING) 
+            {position = glm::vec3(0);};
+        void draw(Shader& shader) override;
+        void update(UpdateInfo& info) override;
+        static void setup();
+
+    protected:
+        float rotation = 0;
+
+        static std::shared_ptr<Model> m;
 };
 
 class IconNum : public Renderable, public Selectable, 

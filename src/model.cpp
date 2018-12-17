@@ -131,6 +131,7 @@ void Model::draw(Shader& shader)
 
 void Model::loadModel(string path)
 {
+    LOG_INFO << "Loading model from: " << path;
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(path, 
             aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
@@ -259,6 +260,7 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial *mat,
 
 LineMesh LineModel::loadLineMesh(string path)
 {
+    LOG_INFO << "Loading line object from: " << path;
     LineObj model = readLineObj(path);
     return LineMesh(model.vertices, model.indices);
 }

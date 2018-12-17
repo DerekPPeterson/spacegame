@@ -40,6 +40,26 @@ void WarpBeacon::update(UpdateInfo& info)
     warpPulseScale = info.curTime * 2 * 3.14;
 }
 
+shared_ptr<Model> ResourceSphere::m;
+
+void ResourceSphere::setup()
+{
+    m = shared_ptr<Model>(new Model("./res/models/resource_sphere/resource_sphere.obj"));
+}
+
+void ResourceSphere::draw(Shader& shader)
+{
+    glm::mat4 tmpModel = glm::translate(model, position);
+    tmpModel = glm::rotate(tmpModel, rotation, {0, 1, 0});
+    shader.setCommon(UNIFORM_MODEL, tmpModel);
+    m->draw(shader);
+}
+
+void ResourceSphere::update(UpdateInfo& info) 
+{
+    rotation = info.curTime * 2 * 3.14 * 0.1;
+}
+
 IconNum::IconNum(std::shared_ptr<Renderable> icon, float size) : 
     Renderable(SHADER_UI_LIGHTING), t(Fonts::title, "", {1.1, 1.1, 1.1}), 
     size(size), icon(icon)
@@ -78,11 +98,10 @@ ResourceDisplay::ResourceDisplay()
     warpCounter->setPosScreenspace({screenWidth * 0.05, screenHeight * 0.05});
     displays.push_back(warpCounter);
 
-    shared_ptr<WarpBeacon> beacon1(new WarpBeacon());
-    auto warpCounter1 = shared_ptr<IconNum>(new IconNum(beacon1));
-    warpCounter1->setPosScreenspace({screenWidth * 0.05, screenHeight * 0.05});
-    warpCounter1->setPos(warpCounter1->getPos() + glm::vec3(0.4, 0, 0));
-    displays.push_back(warpCounter1);
+    shared_ptr<ResourceSphere> resourceSphere(new ResourceSphere());
+    auto resCounter = shared_ptr<IconNum>(new IconNum(resourceSphere));
+    resCounter->setPos(warpCounter->getPos() + glm::vec3(0.4, 0, 0));
+    displays.push_back(resCounter);
 }
 
 void ResourceDisplay::update(UpdateInfo& info)
