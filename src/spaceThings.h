@@ -42,10 +42,6 @@ class System : public Object , public Selectable, public Renderable{
         glm::vec3 baseColor = glm::vec3(5, 5, 5);
         glm::vec3 hoverColor = glm::vec3(0, 15, 30);
         int gridx, gridy;
-
-        static std::shared_ptr<Model> sphere;
-        static bool isSetup;
-        void setup();
 };
 
 class SpaceGrid : public Object, public Renderable

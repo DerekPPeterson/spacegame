@@ -20,10 +20,6 @@ using namespace std;
 System::System(glm::vec3 position, int gridx, int gridy) :
     Renderable(SHADER_SIMPLE_DIFFUSE), gridx(gridx), gridy(gridy)
 { 
-    if (not isSetup) {
-        setup();
-    };
-
     this->position = position;
     sun = dynamic_pointer_cast<PointLight>(
             Light::makeLight(LIGHT_POINT, position, baseColor));
@@ -71,7 +67,7 @@ void System::draw(Shader& shader)
         planetModel = glm::scale(planetModel, glm::vec3(planet.radius, planet.radius, planet.radius));
         shader.setCommon(UNIFORM_MODEL, planetModel);
         shader.setVec3("diffuseColor", planet.color);
-        sphere->draw(shader);
+        Shapes::sphere->draw(shader);
     }
 }
 
@@ -117,15 +113,6 @@ void System::onClick()
     LOG_INFO << "System [" << gridx << ", " << gridy << "] clicked";
     shared_ptr<pair<int, int>> location(new pair(gridx, gridy));
     Event::triggerEvent(EVENT_SYSTEM_CLICK, location);
-}
-
-// static SpaceGrid definitions
-bool System::isSetup = false;
-shared_ptr<Model> System::sphere;
-
-void System::setup()
-{
-    sphere = shared_ptr<Model>( new Model("./res/models/sphere.obj"));
 }
 
 #define GRID_X 2

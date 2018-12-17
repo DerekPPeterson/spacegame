@@ -168,6 +168,13 @@ class Quad: public Object
         static bool isSetup;
 };
 
+class Shapes : public needs_setup<Shapes>
+{
+    public:
+        static void setup();
+        static std::shared_ptr<Model> sphere;
+};
+
 enum LightType {LIGHT_POINT};
 
 class Light
@@ -193,7 +200,6 @@ class PointLight: public Light , public Renderable
         virtual ~PointLight() {};
         void draw(Shader& shader) override;
         void setUniforms(Shader shader, int iPointLight) override;
-        static void setup();
     
     protected:
         PointLight(glm::vec3 position, glm::vec3 color);
@@ -201,8 +207,6 @@ class PointLight: public Light , public Renderable
         glm::vec3 position;
         glm::vec3 attenuation = {0, 0.5, 0.1};
         float size = 0.3;
-
-        static std::shared_ptr<Model> sphere;
 
         friend class Light;
 };

@@ -204,11 +204,6 @@ shared_ptr<Light> Light::makeLight(LightType type, glm::vec3 position, glm::vec3
     return new_light;
 }
 
-void PointLight::setup()
-{
-    sphere = shared_ptr<Model>(new Model("./res/models/sphere.obj"));
-}
-
 PointLight::PointLight(glm::vec3 position, glm::vec3 color)
     : Renderable(SHADER_LAMP)
 {
@@ -231,7 +226,7 @@ void PointLight::draw(Shader& shader)
     glm::mat4 model = glm::translate(glm::mat4(1.0f), position);
     model = glm::scale(model, glm::vec3(size, size, size));
     shader.setMat4("model", model);
-    sphere->draw(shader);
+    Shapes::sphere->draw(shader);
 }
 
 void Light::setColor(glm::vec3 color)
@@ -286,7 +281,13 @@ void Quad::draw()
     glDrawArrays(GL_TRIANGLES, 0, numVertices);
 }
 
-shared_ptr<Model> PointLight::sphere;
+shared_ptr<Model> Shapes::sphere;
+volatile Shapes shapes; // Needed to force setup func to run
+void Shapes::setup()
+{
+    sphere = shared_ptr<Model>(new Model("./res/models/sphere.obj"));
+}
+
 
 shared_ptr<Model> Cube::model;
 
