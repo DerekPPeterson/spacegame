@@ -155,17 +155,27 @@ Dragable* Dragable::beingDragged = NULL;
 void Dragable::checkSetDrag(UpdateInfo info, bool screenSpace)
 {
     glm::vec3 curDragPos = calcWorldSpaceCoords(info.mouse.position, position.z);
-    if (isHovered and info.mouse.clicked and (not beingDragged or beingDragged == this)) {
+    curDragPos.x = screenWidth - curDragPos.x;
+    curDragPos.y = screenHeight - curDragPos.y;
+
+    // Nothing else is being dragged, start dragging this
+    if (isHovered and info.mouse.clicked and not beingDragged) {
+        lastDragPos = curDragPos - position;
         dragging = true;
         beingDragged = this;
-        position += lastDragPos - curDragPos;
-    } else {
+        
+    // stop dragging on mouse release
+    } else if (not info.mouse.clicked) {
         dragging = false;
         if (beingDragged == this) {
             beingDragged = NULL;
         }
     }
-    lastDragPos = curDragPos;
+
+    // update position if we are being dragged
+    if (dragging) {
+        position = curDragPos - lastDragPos;
+    }
 }
 
 //Object::Object()
