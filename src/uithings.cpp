@@ -52,6 +52,7 @@ void ResourceSphere::draw(Shader& shader)
 {
     glm::mat4 tmpModel = glm::translate(model, position);
     tmpModel = glm::rotate(tmpModel, rotation, {0, 1, 0});
+    tmpModel = glm::rotate(tmpModel, rotation * 0.7f, {1, 0, 0.75});
     shader.setCommon(UNIFORM_MODEL, tmpModel);
     m->draw(shader);
 }
