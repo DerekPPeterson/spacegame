@@ -41,6 +41,8 @@ class Font : public non_copyable
 		UbfgInfo parseUbfg(std::string filename);
 		UbfgInfo info;
 		unsigned int textureId = 0;
+        unsigned int pointSize = 0;
+        std::string name;
 
         std::shared_ptr<InstanceMeshRenderable> createTextQuad();
         std::shared_ptr<InstanceMeshRenderable> textQuad;
@@ -56,6 +58,7 @@ class Fonts : public needs_setup<Fonts>
         static void setup();
         static std::shared_ptr<Font> title;
         static std::shared_ptr<Font> regular;
+        static std::shared_ptr<Font> console;
 };
 
 class Text : public Renderable , public has_model_mat

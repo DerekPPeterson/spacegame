@@ -45,6 +45,23 @@ class ResourceSphere : public Renderable, public Selectable,
         static std::shared_ptr<Model> m;
 };
 
+class AiIcon : public Renderable, public Selectable, public Object
+{
+    public:
+        AiIcon();
+        void queueDraw() override;
+        void update(UpdateInfo& info) override;
+    protected:
+        std::string curText = "";
+        float updateInterval = 0.1;
+        float lastUpdate = 0;
+        int curLines = 0;
+        int maxLines = 4;
+        int curLineLength = 0;
+        int maxLineLength = 4;
+        Text t;
+};
+
 class IconNum : public Renderable, public Selectable, 
      public Object, public UIObject
 {

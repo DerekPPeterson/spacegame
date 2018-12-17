@@ -38,10 +38,14 @@ UbfgInfo Font::parseUbfg(std::string filename)
 	regex texRegex("textures:\\s+(\\S+)");
 	regex charRegex("(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)");
 	regex kerning("(\\S+)\\s+(\\S+)\\s+(\\S+)");
+	regex namesizeRegex("(.*)\\s+(\\d+)pt");
 	smatch m;
 
 	for (string line; getline(file, line);) {
-		if (regex_search(line, m, texRegex)) {
+		if (regex_search(line, m, namesizeRegex)) {
+            name = m[1];
+            pointSize = stoi(m[2]);
+        } else if (regex_search(line, m, texRegex)) {
 			info.textureFilename = m[1];
 		} else if (regex_search(line, m, charRegex)) {
 			CharInfo character;
@@ -111,10 +115,12 @@ shared_ptr<InstanceMeshRenderable> Font::createTextQuad()
 
 std::shared_ptr<Font> Fonts::title;
 std::shared_ptr<Font> Fonts::regular;
+std::shared_ptr<Font> Fonts::console;
 void Fonts::setup() {
     LOG_INFO << "Loading all fonts";
     title = shared_ptr<Font>(new Font("./res/fonts/conthrax.fnt"));
     regular = shared_ptr<Font>(new Font("./res/fonts/gravity.fnt"));
+    console = shared_ptr<Font>(new Font("./res/fonts/console.fnt"));
 }
 volatile Fonts fonts; // need to instantiate fonts so setup gets run
 

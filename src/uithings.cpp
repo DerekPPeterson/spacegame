@@ -60,6 +60,37 @@ void ResourceSphere::update(UpdateInfo& info)
     rotation = info.curTime * 2 * 3.14 * 0.1;
 }
 
+AiIcon::AiIcon() : Renderable(SHADER_NONE), t(Fonts::console, "", {0, 2, 0}, 0, 0.4)
+{
+    position = {0, 0, 0};
+}
+
+void AiIcon::queueDraw()
+{
+    t.setModel(glm::translate(getModel(), {-0.7, 1, 0}));
+    t.queueDraw();
+}
+
+void AiIcon::update(UpdateInfo &info)
+{
+    if (curLineLength > maxLineLength) {
+        curText.push_back('\n');
+        curLineLength = 0;
+        curLines++;
+        if (curLines >= maxLines)
+        {
+            curText = curText.substr(curText.find('\n') + 1, curText.length());
+            curLines--;
+        }
+    }
+    if (info.curTime - lastUpdate > updateInterval) {
+        lastUpdate = info.curTime;
+        curText.push_back(rand() % 48 + '0');
+        t.setText(curText);
+        curLineLength++;
+    }
+}
+
 IconNum::IconNum(std::shared_ptr<Renderable> icon, float size) : 
     Renderable(SHADER_UI_LIGHTING), t(Fonts::title, "", {1.1, 1.1, 1.1}), 
     size(size), icon(icon)
@@ -102,6 +133,11 @@ ResourceDisplay::ResourceDisplay()
     auto resCounter = shared_ptr<IconNum>(new IconNum(resourceSphere));
     resCounter->setPos(warpCounter->getPos() + glm::vec3(0.4, 0, 0));
     displays.push_back(resCounter);
+
+    shared_ptr<AiIcon> aiIcon(new AiIcon());
+    auto aiCounter = shared_ptr<IconNum>(new IconNum(aiIcon));
+    aiCounter->setPos(resCounter->getPos() + glm::vec3(0.4, 0, 0));
+    displays.push_back(aiCounter);
 }
 
 void ResourceDisplay::update(UpdateInfo& info)
