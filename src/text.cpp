@@ -109,6 +109,15 @@ shared_ptr<InstanceMeshRenderable> Font::createTextQuad()
             }, {textureId}));
 };
 
+std::shared_ptr<Font> Fonts::title;
+std::shared_ptr<Font> Fonts::regular;
+void Fonts::setup() {
+    LOG_INFO << "Loading all fonts";
+    title = shared_ptr<Font>(new Font("./res/fonts/conthrax.fnt"));
+    regular = shared_ptr<Font>(new Font("./res/fonts/gravity.fnt"));
+}
+volatile Fonts fonts; // need to instantiate fonts so setup gets run
+
 struct CharInstanceData
 {
     glm::mat4 model;

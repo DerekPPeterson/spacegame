@@ -105,7 +105,7 @@ void Framebuffers::createNormalBlendingFramebuffer(int width, int height) {
 		glBindFramebuffer(GL_FRAMEBUFFER, normalBlendFramebuffer.id);
 		glBindTexture(GL_TEXTURE_2D, normalBlendFramebuffer.colorTextures[0]);
 		glTexImage2D(
-			GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL
+			GL_TEXTURE_2D, 0, GL_RG16, width, height, 0, GL_RG, GL_FLOAT, NULL
 		);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

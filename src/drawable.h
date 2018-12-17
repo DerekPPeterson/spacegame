@@ -13,7 +13,6 @@
 #include "nocopy.h"
 #include "camera.h"
 #include "input.h"
-#include "uithings.h"
 
 /* This is black magic to statically initilize the list of classes that need
  * to run their setup functions
@@ -69,7 +68,7 @@ class has_model_mat
         glm::mat4 model = glm::mat4(1.0f);
 };
 
-class UIObject 
+class UIObject : public virtual has_position
 {
     public:
         static void setViewInfo(int width, int height, glm::mat4 proj)
@@ -79,6 +78,7 @@ class UIObject
             projection = proj;
         };
         glm::vec3 calcWorldSpaceCoords(glm::vec2 screenCoords, float depth);
+        void setPosScreenspace(glm::vec2 screenSpaceCoords, float depth = 5);
     protected:
         static int screenWidth;
         static int screenHeight;

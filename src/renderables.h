@@ -41,7 +41,7 @@ typedef std::unordered_map<int,
 class Renderable
 {
     public:
-        Renderable(ShaderEnum stage) : stage(stage) {};
+        Renderable(unsigned int stage) : stage(stage) {};
         virtual ~Renderable() {};
         virtual void queueDraw();
         virtual void draw(Shader& shader) {};

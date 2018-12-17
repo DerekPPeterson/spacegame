@@ -24,7 +24,7 @@ struct DirLight {
 };
 
 uniform float ambientStrength = 0.3;
-uniform float specularStrength = 2.0;
+uniform float specularStrength = 1.0;
 
 
 vec3 calcDirLight(DirLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
@@ -42,7 +42,7 @@ vec3 calcDirLight(DirLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     vec3 reflectDir = reflect(-lightDir, normal);
 
     vec3 specular;
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 1);
     if (useTextures) {
         specular = specularStrength * spec * light.color * (texture(specular0, TexCoord).rgb + specularColor);
     } else {
@@ -60,10 +60,10 @@ void main()
     totalLight = ambientStrength * texture(diffuse0, TexCoord).rgb;
 
     DirLight light;
-    light.lightDir = normalize(vec3(0.5, 0.5, -1));
-    light.color = vec3(1, 1, 1);
+    light.lightDir = normalize(vec3(0.5, 0.5, 1));
+    light.color = vec3(0.1, 0.1, 0.1);
 
-    vec3 viewDir = vec3(0, 0, -1);
+    vec3 viewDir = vec3(0, 0, 1);
     totalLight += calcDirLight(light, normal, fragPos, viewDir);
 
     // reinhard tone mapping

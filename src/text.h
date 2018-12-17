@@ -48,6 +48,16 @@ class Font : public non_copyable
 		friend class Text;
 };
 
+/** Collection of fontst that can be used by text objects throughout applicaion
+ */
+class Fonts : public needs_setup<Fonts>
+{
+    public:
+        static void setup();
+        static std::shared_ptr<Font> title;
+        static std::shared_ptr<Font> regular;
+};
+
 class Text : public Renderable , public has_model_mat
 {
 	public:

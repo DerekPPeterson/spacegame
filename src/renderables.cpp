@@ -19,6 +19,7 @@ void Renderable::queueDraw() {
         SHADER_WARP_STEP1,
         SHADER_CARD,
         SHADER_TEXT,
+        SHADER_UI_LIGHTING,
     };
     for (auto s : stageList) {
         if (s & stage) {

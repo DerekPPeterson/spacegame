@@ -22,7 +22,7 @@ void main()
 
     bufTexCoords += refract(vec3(0, 0, 1), normal, 2).xy * 0.1;
     FragColor = texture(hdrBuffer0, bufTexCoords);
+    //FragColor = vec4(texture(normalAdjustBuffer, bufTexCoords).rg, 1, 1);
 
     BrightColor = texture(hdrBuffer1, bufTexCoords);
-    
 }    

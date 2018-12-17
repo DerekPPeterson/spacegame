@@ -74,11 +74,11 @@ GameState GameLogic::startGame()
         hand->addCard(deck->draw());
     }
 
-    //shared_ptr<WarpBeacon> beacon(new WarpBeacon());
-    //state.objects.emplace_back(beacon);
-    
     // TODO this is just temporary
-    
+    shared_ptr<ResourceDisplay> display(new ResourceDisplay());
+    state.objects.push_back(display);
+
+
     this->state = state;
 
     

@@ -52,6 +52,11 @@ glm::vec3 UIObject::calcWorldSpaceCoords(glm::vec2 screenCoords, float depth)
     return worldCoords;
 }
 
+void UIObject::setPosScreenspace(glm::vec2 screenCoords, float depth)
+{
+    setPos(calcWorldSpaceCoords(screenCoords, depth));
+}
+
 glm::vec2 calcScreenSpaceCoords(glm::vec3 position, 
         glm::mat4 projection, glm::mat4 view,
         int screenWidth, int screenHeight)

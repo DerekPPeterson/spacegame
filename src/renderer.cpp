@@ -136,6 +136,7 @@ void Renderer::renderMainScene()
 
     shaders[SHADER_UI_LIGHTING].use();
     shaders[SHADER_UI_LIGHTING].setMat4("projection", projection);
+    shaders[SHADER_UI_LIGHTING].setMat4("view", glm::mat4(1.0f));
     Renderable::drawStage(SHADER_UI_LIGHTING, shaders[SHADER_UI_LIGHTING]);
 
     shaders[SHADER_SKYBOX].use();
@@ -171,6 +172,7 @@ void Renderer::renderWarpEffects()
 
     glDisable(GL_CULL_FACE);  // No face culling, warp effects are only 2d quads
     glEnable(GL_BLEND);       // The first pass will add together all the warp
+    glDisable(GL_DEPTH_TEST);
     glBlendFunc(GL_ONE, GL_ONE);  // effect 2d vectors
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.normalBlendFramebuffer.id);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -183,6 +185,7 @@ void Renderer::renderWarpEffects()
     warpShader1.setInt("hdrBuffer", 1);
     Renderable::drawStage(SHADER_WARP_STEP1, shaders[SHADER_WARP_STEP1]);
     glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
 
     // Copy over depth info so we don't render the warp effect over planets etc
     glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffers.mainFramebuffer.id);
