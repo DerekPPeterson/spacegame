@@ -62,10 +62,11 @@ class has_position
 class has_model_mat
 {
     public:
+        has_model_mat() : model(1.0f) {};
         glm::mat4 getModel() const {return model;};
         void setModel(glm::mat4 m) {model = m;};
     protected:
-        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 model;
 };
 
 class UIObject : public virtual has_position

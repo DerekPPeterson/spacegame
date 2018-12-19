@@ -24,7 +24,7 @@ struct DirLight {
 };
 
 uniform float ambientStrength = 0.3;
-uniform float specularStrength = 1.0;
+uniform float specularStrength = 0.3;
 
 
 vec3 calcDirLight(DirLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
@@ -42,7 +42,7 @@ vec3 calcDirLight(DirLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     vec3 reflectDir = reflect(-lightDir, normal);
 
     vec3 specular;
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 1);
+    float spec = pow(max(dot(viewDir, reflectDir), 32), 1);
     if (useTextures) {
         specular = specularStrength * spec * light.color * (texture(specular0, TexCoord).rgb + specularColor);
     } else {

@@ -7,6 +7,33 @@ using namespace std;
 
 shared_ptr<Model> WarpBeacon::m;
 
+std::map<std::string, ResourceType> resourceStrings = {
+    {"wb", RESOURCE_WARP_BEACONS},
+    {"mat", RESOURCE_MATERIALS},
+    {"ai", RESOURCE_AI},
+    {"am", RESOURCE_ANTIMATTER},
+    {"inf", RESOURCE_INFLUENCE},
+};
+
+std::shared_ptr<Renderable> createIcon(ResourceType type)
+{
+    Renderable * icon = nullptr;
+    switch (type) {
+        case RESOURCE_WARP_BEACONS:
+            icon = new WarpBeacon(); break;
+        case RESOURCE_MATERIALS:
+            icon = new ResourceSphere(); break;
+        case RESOURCE_AI:
+            icon = new AiIcon(); break;
+        case RESOURCE_ANTIMATTER:
+            icon = new AntiMatterIcon(); break;
+        case RESOURCE_INFLUENCE:
+            icon = new InfluenceIcon(); break;
+    }
+    return shared_ptr<Renderable>(icon);
+};
+
+
 void WarpBeacon::setup()
 {
     m = shared_ptr<Model>(new Model("./res/models/warp_diamond/warp_diamond.obj"));
@@ -62,14 +89,27 @@ void ResourceSphere::update(UpdateInfo& info)
     rotation = info.curTime * 2 * 3.14 * 0.1;
 }
 
-AiIcon::AiIcon() : Renderable(SHADER_NONE), t(Fonts::console, "", {0, 2, 0}, 0, 0.4)
+AiIcon::AiIcon() : Renderable(SHADER_LAMP), t(Fonts::console, "", {0, 2, 0}, 1, 0.25)
 {
     position = {0, 0, 0};
 }
 
+void AiIcon::draw(Shader& shader)
+{
+    shader.setCommon(UNIFORM_USE_VIEW, false);
+    glm::mat4 screenModel = getModel();
+    screenModel = glm::scale(screenModel, glm::vec3(0.5));
+    screenModel = glm::translate(screenModel, {0, 0, -0.01});
+    shader.setCommon(UNIFORM_MODEL, screenModel);
+    shader.setCommon(UNIFORM_COLOR, {0, 0, 0});
+    Shapes::warpQuad->draw(shader);
+    shader.setCommon(UNIFORM_USE_VIEW, true);
+}
+
 void AiIcon::queueDraw()
 {
-    t.setModel(glm::translate(getModel(), {-0.7, 1, 0}));
+    Renderable::queueDraw();
+    t.setModel(glm::translate(getModel(), {-0.5, +0.5, 0}));
     t.queueDraw();
 }
 
@@ -98,8 +138,8 @@ void AntiMatterIcon::draw(Shader& shader)
 {
     shader.setCommon(UNIFORM_USE_VIEW, false);
     Orbit orbits[]  = {
-        {.radius = 0.5, .phase = 0, .inclination = 3.14 / 2},
-        {.radius = 0.5, .phase = 3.14, .inclination = 3.14 / 2},
+        {.radius = 0.35, .phase = 0, .inclination = 3.14 / 2},
+        {.radius = 0.35, .phase = 3.14, .inclination = 3.14 / 2},
     };
 
     glm::mat4 tmpModel = glm::rotate(getModel(), rotation, {1, 1, 0});
@@ -133,7 +173,7 @@ void AntiMatterIcon::drawWarp(Shader& shader)
 {
     shader.setBool("useView", false);
 
-    glm::mat4 warpModel = glm::scale(getModel(), glm::vec3(0.7));
+    glm::mat4 warpModel = glm::scale(getModel(), glm::vec3(0.5));
     warpModel = glm::translate(warpModel, 0.2f * -glm::vec3(getModel() * glm::vec4(0, 0, 0, 1)));
     shader.setCommon(UNIFORM_MODEL, warpModel);
     Shapes::warpQuad->draw(shader);
@@ -175,6 +215,7 @@ void InfluenceIcon::draw(Shader &shader)
 {
     shader.setBool("useView", false);
     glm::mat4 personModel = glm::translate(getModel(), {0, 0.1, 0});
+    personModel = glm::scale(getModel(), glm::vec3(0.8));
 
     shader.setCommon(UNIFORM_COLOR, {4, 0, 0});
     shader.setCommon(UNIFORM_MODEL, personModel);
@@ -196,11 +237,11 @@ void InfluenceIcon::update(UpdateInfo& info)
     curTime = info.curTime;
 }
 
-IconNum::IconNum(std::shared_ptr<Renderable> icon, float size) : 
+IconNum::IconNum(std::shared_ptr<Renderable> icon) : 
     Renderable(SHADER_UI_LIGHTING), t(Fonts::title, "", {1.1, 1.1, 1.1}), 
-    size(size), icon(icon)
+    icon(icon)
 {
-    position = calcWorldSpaceCoords({screenWidth / 2, screenHeight / 2}, 5);
+    position = {0, 0, 0};
 }
 
 void IconNum::update(UpdateInfo& info)
@@ -210,14 +251,10 @@ void IconNum::update(UpdateInfo& info)
 
 void IconNum::updateModel()
 {
-    model = glm::mat4(1.0f);
-    model = glm::translate(model, position);
-    model = glm::scale(model, glm::vec3(size));
 }
 
 void IconNum::queueDraw()
 {
-    updateModel();
     t.setText(to_string(val));
     t.setModel(glm::translate(model, glm::vec3(1, 0.75, 0)));
     t.queueDraw();
@@ -226,32 +263,29 @@ void IconNum::queueDraw()
     icon->queueDraw();
 }
 
-ResourceDisplay::ResourceDisplay()
-    : Renderable(SHADER_NONE)
+ResourceDisplay::ResourceDisplay(float iconSize)
+    : Renderable(SHADER_NONE), iconSize(iconSize)
 {
+    //setPosScreenspace({screenWidth * 0.05, screenHeight * 0.05});
+    position = {0, 0, 0};
     shared_ptr<WarpBeacon> beacon(new WarpBeacon());
     auto warpCounter = shared_ptr<IconNum>(new IconNum(beacon));
-    warpCounter->setPosScreenspace({screenWidth * 0.05, screenHeight * 0.05});
     displays.push_back(warpCounter);
 
     shared_ptr<ResourceSphere> resourceSphere(new ResourceSphere());
     auto resCounter = shared_ptr<IconNum>(new IconNum(resourceSphere));
-    resCounter->setPos(warpCounter->getPos() + glm::vec3(0.4, 0, 0));
     displays.push_back(resCounter);
 
     shared_ptr<AiIcon> aiIcon(new AiIcon());
     auto aiCounter = shared_ptr<IconNum>(new IconNum(aiIcon));
-    aiCounter->setPos(resCounter->getPos() + glm::vec3(0.4, 0, 0));
     displays.push_back(aiCounter);
 
     shared_ptr<AntiMatterIcon> antimatterIcon(new AntiMatterIcon());
     auto antimatterCounter = shared_ptr<IconNum>(new IconNum(antimatterIcon));
-    antimatterCounter->setPos(aiCounter->getPos() + glm::vec3(0.4, 0, 0));
     displays.push_back(antimatterCounter);
 
     shared_ptr<InfluenceIcon> influenceIcon(new InfluenceIcon());
     auto influenceCounter = shared_ptr<IconNum>(new IconNum(influenceIcon));
-    influenceCounter->setPos(antimatterCounter->getPos() + glm::vec3(0.4, 0, 0));
     displays.push_back(influenceCounter);
 }
 
@@ -264,7 +298,29 @@ void ResourceDisplay::update(UpdateInfo& info)
 
 void ResourceDisplay::queueDraw()
 {
+    glm::mat4 curModel = glm::translate(getModel(), getPos());
+    curModel = glm::scale(curModel, glm::vec3(iconSize));
+
     for (auto d : displays) {
+        d->setModel(curModel);
         d->queueDraw();
+        curModel = glm::translate(curModel, {4, 0, 0});
     }
+}
+
+void ResourceDisplay::set(ResourceAmount amount)
+{
+    for (auto p : amount) {
+        displays[p.first]->setVal(p.second);
+    }
+}
+
+void ResourceDisplay::set(ResourceType type, int val)
+{
+    displays[type]->setVal(val);
+}
+
+int ResourceDisplay::get(ResourceType type)
+{
+    return displays[type]->getVal();
 }

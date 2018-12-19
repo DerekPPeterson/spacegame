@@ -12,6 +12,9 @@
 #include <iostream>
 #include <experimental/filesystem>
 
+#include "uithings.h"
+
+
 using namespace std;
 using namespace std::experimental::filesystem;
 
@@ -124,6 +127,7 @@ void Fonts::setup() {
 }
 volatile Fonts fonts; // need to instantiate fonts so setup gets run
 
+
 struct CharInstanceData
 {
     glm::mat4 model;
@@ -132,26 +136,46 @@ struct CharInstanceData
     glm::vec2 charSize;
 };
 
-void Text::queueDraw()
-{
-    CharInstanceData data;
-    //TODO stop hardcoding 50pt text
-    // Activate font texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, font->textureId);
-    data.color = color;
+CharInfo iconInfo = {
+	.codepoint = 0,
+	.xpos = 0,
+	.ypos = 0,
+	.width = 50,
+	.height = 50,
+	.xoffset = 0,
+	.yoffset = 0,
+	.origw = 50,
+	.origh = 50,
+};
 
-    // Calculate character positions
+void Text::calcCharPositions()
+{
     glm::vec2 curCharPos = {0, 0}; 
-    vector<glm::vec2> charPositions;
-    string multiline;
     float curMaxWidth = maxwidth / size;
+
+    charPositions.clear();
+    icons.clear();
+    multiline.clear();
 
     unsigned int lastChar = 0;
     bool breakLines = true;
     for (int i = 0; i < text.size(); i++) {
         unsigned int c = text[i];
-        CharInfo charInfo = font->info.characters[c];
+        CharInfo charInfo; 
+
+        // Identify icon strings
+        if (c == '{') {
+            string key;
+            int j;
+            for (j = i + 1; j < text.size() and text[j] != '}'; j++) {
+                key.push_back(text[j]);
+            }
+            i = j;
+            charInfo = iconInfo;
+            icons.push_back(createIcon(resourceStrings[key]));
+        } else {
+            charInfo = font->info.characters[c];
+        }
         
         // Reset xpos and go down for newline
         if (c == '\n') {
@@ -188,13 +212,36 @@ void Text::queueDraw()
             }
         }
     }
+}
+
+void Text::queueDraw()
+{
+    CharInstanceData data;
+    //TODO stop hardcoding 50pt text
+    // Activate font texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, font->textureId);
+    data.color = color;
+
 
     // Actually render all of the characters
+    glm::vec2 curCharPos = {0, 0}; 
+    int curIcon = 0;
     for (int i = 0; i < charPositions.size(); i++) {
         unsigned int c = multiline[i];
         curCharPos = charPositions[i];
+        std::shared_ptr<Renderable> icon(nullptr);
 
-        CharInfo charInfo = font->info.characters[c];
+        CharInfo charInfo;
+        // Identify icon strings
+        if (c == '{') {
+            charInfo = iconInfo;
+            icon = icons[curIcon];
+            curIcon++;
+        } else {
+            charInfo = font->info.characters[c];
+        }
+
         data.TexCoordOffset = 
                 {charInfo.xpos / font->info.textureWidth, 
                  charInfo.ypos / font->info.textureHeight};
@@ -210,9 +257,19 @@ void Text::queueDraw()
                 0});
         charModel = glm::scale(charModel, {(float) charInfo.width / 50.0, charInfo.height / 50.0, 1});
         data.model = charModel;
-        font->textQuad->addInstance(&data);
+        
+        if (not icon) {
+            font->textQuad->addInstance(&data);
+        } else {
+            glm::mat4 iconModel = glm::translate(data.model, {1, -1, 0});
+            dynamic_pointer_cast<has_model_mat>(icon)->setModel(iconModel);
+        }
     }
     font->textQuad->queueDraw();
+
+    for (auto i : icons) {
+        i->queueDraw();
+    }
 }
 
 float Text::calcTransformedMaxWidth(float rawWidth)
@@ -221,4 +278,11 @@ float Text::calcTransformedMaxWidth(float rawWidth)
     glm::vec4 zero = model * glm::vec4(0, 0, 0, 1);
     glm::vec4 textEnd = model * glm::vec4(rawWidth, 0, 0, 1);
     return  glm::length(textEnd - zero);
+}
+
+void Text::update(UpdateInfo& info)
+{
+    for (auto i : icons) {
+        dynamic_pointer_cast<Object>(i)->update(info);
+    }
 }

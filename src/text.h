@@ -61,24 +61,28 @@ class Fonts : public needs_setup<Fonts>
         static std::shared_ptr<Font> console;
 };
 
-class Text : public Renderable , public has_model_mat
+class Text : public Renderable , public has_model_mat, public Object
 {
 	public:
 		Text(std::shared_ptr<Font> font, std::string text = "", glm::vec3 color = {1, 1, 1}, 
                 float maxwidth = 0, float size = 1) 
             : Renderable(SHADER_TEXT), 
               font(font), text(text), color(color), maxwidth(maxwidth),
-              size(size) {};
+              size(size) {calcCharPositions();};
+        void update(UpdateInfo& info) override;
         virtual void queueDraw() override;
-		void setText(std::string text) {this->text = text;};
+		void setText(std::string text) {this->text = text; calcCharPositions();};
 	private:
         float calcTransformedMaxWidth(float rawWidth);
+        void calcCharPositions();
         std::shared_ptr<Font> font;
 		std::string text;
+        std::string multiline;
         glm::vec3 color;
         float maxwidth;
         float size;
-
+        std::vector<std::shared_ptr<Renderable>> icons;
+        std::vector<glm::vec2> charPositions;
 };
 
 #endif

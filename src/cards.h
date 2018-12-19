@@ -8,13 +8,17 @@
 #include "uithings.h"
 
 #include <memory>
+#include <map>
 
 struct CardInfo
 {
     std::string name = "Long Card Name";
-    std::string text = "This is some card box text\nMore text";
+    std::string text = "Warp Beacon: {wb}\nMaterials: {mat}\nAI: {ai}\nAM: {am}\nInf: {inf}";
     glm::vec3 color = {0.1, 2, 2};
+    ResourceAmount cost = {{RESOURCE_MATERIALS, 1}, {RESOURCE_AI, 1}, {RESOURCE_ANTIMATTER, 1}, {RESOURCE_WARP_BEACONS, 1}, {RESOURCE_INFLUENCE, 1}};
 };
+
+std::string createCostString(ResourceAmount amount);
 
 class Card : public Renderable , public Object, public Dragable,
              public needs_setup<Card>
@@ -30,11 +34,10 @@ class Card : public Renderable , public Object, public Dragable,
         void onClick() override;
 
         static std::shared_ptr<LineModel> cardModel;
-        static std::shared_ptr<Font> cardFont;
-        static std::shared_ptr<Font> titleFont;
 
         Text titleText;
         Text cardText;
+        Text costText;
 
         float size = 0.2;
         glm::vec3 speed = {0, 0, 0};

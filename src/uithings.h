@@ -48,6 +48,7 @@ class AiIcon : public Renderable, public Selectable, public Object
 {
     public:
         AiIcon();
+        void draw(Shader& shader) override;
         void queueDraw() override;
         void update(UpdateInfo& info) override;
     protected:
@@ -96,27 +97,45 @@ class IconNum : public Renderable, public Selectable,
      public Object, public UIObject
 {
     public:
-        IconNum(std::shared_ptr<Renderable> icon, float size = 0.1);
+        IconNum(std::shared_ptr<Renderable> icon);
         void queueDraw() override;
         void setVal(int n) {val = n;};
+        int getVal() {return val;};
         virtual void update(UpdateInfo& info) override;
         void updateModel();
     private:
         int val = 0;
         Text t;
-        float size = 0.2;
         std::shared_ptr<Renderable> icon;
         // TODO might not want to use a shared_ptr to a Renderable here
 };
 
+enum ResourceType
+{
+    RESOURCE_WARP_BEACONS,
+    RESOURCE_MATERIALS,
+    RESOURCE_AI,
+    RESOURCE_ANTIMATTER,
+    RESOURCE_INFLUENCE,
+};
+
+extern std::map<std::string, ResourceType> resourceStrings;
+std::shared_ptr<Renderable> createIcon(ResourceType type);
+
+typedef std::map<ResourceType, int> ResourceAmount;
+
 class ResourceDisplay : public Renderable, public Object, 
-    public UIObject
+    public UIObject, public has_model_mat
 {
     public:
-        ResourceDisplay();
+        ResourceDisplay(float iconSize = 0.1);
         virtual void update(UpdateInfo& info) override;
         void queueDraw() override;
+        void set(ResourceAmount);
+        void set(ResourceType type, int val);
+        int get(ResourceType type);
     protected:
+        float iconSize = 0.1;
         std::vector<std::shared_ptr<IconNum>> displays;
 };
 

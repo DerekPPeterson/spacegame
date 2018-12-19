@@ -7,21 +7,32 @@
 
 #include <algorithm>
 #include <random>
+#include <sstream>
 
 using namespace std;
 
 // TODO different card models?
 shared_ptr<LineModel> Card::cardModel;
-shared_ptr<Font> Card::titleFont;
-shared_ptr<Font> Card::cardFont;
+
+std::string createCostString(ResourceAmount amount)
+{
+    stringstream ss;
+    for (auto p : resourceStrings) {
+        string str = p.first;
+        ResourceType type = p.second;
+
+        for (int i = 0; i < amount[type]; i++) {
+            ss << "{" << str << "}";
+        }
+    }
+    return ss.str();
+}
 
 void Card::setup()
 {
     LOG_INFO << "Loading card models/fonts";
     // make sure to update the quad vertices if the model changes
     cardModel = shared_ptr<LineModel>(new LineModel("./res/models/card/card.obj"));
-    titleFont = shared_ptr<Font>(new Font("res/fonts/conthrax.fnt"));
-    cardFont = shared_ptr<Font>(new Font("res/fonts/gravity.fnt"));
 }
 
 void Card::queueDraw() 
@@ -36,6 +47,12 @@ void Card::queueDraw()
     glm::mat4 textModel = glm::translate(model, {-0.8, -0.5, 0.03});
     cardText.setModel(textModel);
     cardText.queueDraw();
+
+    glm::mat4 costModel = glm::translate(model, {-1, 2, 0});
+    //costModel = glm::scale(costModel, glm::vec3(0.1));
+    costText.setModel(costModel);
+    costText.queueDraw();
+
 }
 
 void Card::draw(Shader& shader)
@@ -48,8 +65,9 @@ void Card::draw(Shader& shader)
 
 // TODO standerdize object setup methods
 Card::Card(CardInfo info) : Renderable(SHADER_CARD),
-    titleText(titleFont, info.name, info.color, 0, 0.2),
-    cardText(cardFont, info.text, info.color, 1.6, 0.15)
+    titleText(Fonts::title, info.name, info.color, 0, 0.2),
+    cardText(Fonts::regular, info.text, info.color, 1.6, 0.15),
+    costText(Fonts::regular, createCostString(info.cost), info.color, 1.6, 0.25)
 {
     position = {-1, -1, -5};
     // For clickbox
@@ -81,6 +99,8 @@ void Card::updateModel()
 void Card::update(UpdateInfo& info)
 {
     updateModel();
+    costText.update(info);
+    cardText.update(info);
 
     checkSetHoverQuad(info, true);
     checkSetDrag(info, true);
