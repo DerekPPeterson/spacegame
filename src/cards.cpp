@@ -63,7 +63,14 @@ void Card::draw(Shader& shader)
     // Text is not drawn here, it is queued for later
 }
 
-// TODO standerdize object setup methods
+map<ResourceType, glm::vec3> CARD_COLORS = {
+    {RESOURCE_WARP_BEACONS, {0, 2, 0}},
+    {RESOURCE_MATERIALS, {1 * 2, 2 * 0.560,  2 * 0.239}},
+    {RESOURCE_AI, {0, 0, 0}},
+    {RESOURCE_ANTIMATTER, {2 * 0.745, 2 * 0.654, 2 * 0.843}},
+    {RESOURCE_INFLUENCE, {2, 0, 0}},
+};
+
 Card::Card(CardInfo info) : Renderable(SHADER_CARD),
     titleText(Fonts::title, info.name, info.color, 0, 0.2),
     cardText(Fonts::regular, info.text, info.color, 1.6, 0.15),
@@ -77,6 +84,18 @@ Card::Card(CardInfo info) : Renderable(SHADER_CARD),
         {1, -1.6, 0},
         {-1, -1.6, 0},
     };
+
+    Card::info.color = {0, 0, 0};
+    int totalCost = 0;
+    for (auto p : info.cost) {
+        Card::info.color += CARD_COLORS[p.first] * (float) p.second;
+        totalCost += p.second;
+    }
+    Card::info.color /= totalCost;
+
+    titleText.setColor(Card::info.color);
+    cardText.setColor(Card::info.color);
+    cardText.setColor(Card::info.color);
 }
 
 void Card::updateModel()

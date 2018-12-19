@@ -14,6 +14,7 @@
 #include <plog/Log.h>
 
 #include <cxxopts.hpp>
+#include <ctime>
 
 //#include "shader.h"
 //#include "camera.h"
@@ -38,6 +39,8 @@ using namespace std;
 // TODO isolate these mouse/keyboard functions
 GLFWwindow* setupOpenGlContext(RenderOptions options)
 {
+    srand(time(NULL));
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);

@@ -59,9 +59,23 @@ GameState GameLogic::startGame()
     state.objects.push_back(hand);
     state.deck = curIndex++;
 
+    vector<ResourceType> resources {
+        RESOURCE_WARP_BEACONS,
+        RESOURCE_MATERIALS,
+        RESOURCE_AI,
+        RESOURCE_ANTIMATTER,
+        RESOURCE_INFLUENCE,
+    };
+
     // For now just use temp cards
     CardInfo info;
     for (int i = 0; i < 40; i++) {
+        CardInfo info;
+        info.cost.clear();
+        info.cost[resources[rand() % 5]] = 1;
+        if (rand() % 2) {
+            info.cost[resources[rand() % 5]] = 1;
+        }
         shared_ptr<Card> card(new Card(info));
         card->setVisible(false);
         deck->insert(card, DECK_BOTTOM);

@@ -72,6 +72,7 @@ class Text : public Renderable , public has_model_mat, public Object
         void update(UpdateInfo& info) override;
         virtual void queueDraw() override;
 		void setText(std::string text) {this->text = text; calcCharPositions();};
+		void setColor(glm::vec3 color) {this->color = color;};
 	private:
         float calcTransformedMaxWidth(float rawWidth);
         void calcCharPositions();
