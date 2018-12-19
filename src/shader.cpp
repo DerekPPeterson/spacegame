@@ -54,6 +54,7 @@ unordered_map<CommonUniforms, string> commonUniformNames = {
 
 void Shader::saveCommonUniformLocations()
 {
+    locations.resize(commonUniformNames.size());
     for (auto pair : commonUniformNames) {
         locations[pair.first] = glGetUniformLocation(ID, pair.second.c_str());
     }

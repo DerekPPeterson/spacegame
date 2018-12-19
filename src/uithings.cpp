@@ -147,6 +147,55 @@ void AntiMatterIcon::update(UpdateInfo& info)
 }
 
 
+InfluenceIcon::InfluenceIcon() : Renderable(SHADER_LAMP) 
+{
+    glm::vec3 followerPos = {-0.8, 0.2, -0.4};
+    for (int i = 0; i < nFollowers; i++) {
+        followers.push_back({
+                followerPos, 
+                rand_float_between(0, 2 * 3.14),
+                rand_float_between(0.1, 1),
+                });
+        followerPos.x += 0.45 + rand_float_between(-0.2, 0.2);
+        if (followerPos.x > 0.8) {
+            followerPos.x = -0.8;
+            followerPos.y += 0.1;
+            followerPos.z += -0.2 + rand_float_between(-0.1, 0.1);
+        }
+    }
+}
+
+std::shared_ptr<Model> InfluenceIcon::m;
+void InfluenceIcon::setup()
+{
+    m = shared_ptr<Model>(new Model("./res/models/person/person.obj"));
+}
+
+void InfluenceIcon::draw(Shader &shader)
+{
+    shader.setBool("useView", false);
+    glm::mat4 personModel = glm::translate(getModel(), {0, 0.1, 0});
+
+    shader.setCommon(UNIFORM_COLOR, {4, 0, 0});
+    shader.setCommon(UNIFORM_MODEL, personModel);
+    m->draw(shader);
+
+    shader.setCommon(UNIFORM_COLOR, {0.6, 0, 0});
+    for (auto f : followers) {
+        glm::mat4 tmpModel = glm::translate(personModel, f.pos);
+        tmpModel = glm::translate(tmpModel, {0, 0.2f * sin(f.speed * 2 * 3.14 * curTime + f.phase), 0});
+        tmpModel = glm::scale(tmpModel, glm::vec3(0.8));
+        shader.setCommon(UNIFORM_MODEL, tmpModel);
+        m->draw(shader);
+    }
+    shader.setBool("useView", true);
+}
+
+void InfluenceIcon::update(UpdateInfo& info)
+{
+    curTime = info.curTime;
+}
+
 IconNum::IconNum(std::shared_ptr<Renderable> icon, float size) : 
     Renderable(SHADER_UI_LIGHTING), t(Fonts::title, "", {1.1, 1.1, 1.1}), 
     size(size), icon(icon)
@@ -199,6 +248,11 @@ ResourceDisplay::ResourceDisplay()
     auto antimatterCounter = shared_ptr<IconNum>(new IconNum(antimatterIcon));
     antimatterCounter->setPos(aiCounter->getPos() + glm::vec3(0.4, 0, 0));
     displays.push_back(antimatterCounter);
+
+    shared_ptr<InfluenceIcon> influenceIcon(new InfluenceIcon());
+    auto influenceCounter = shared_ptr<IconNum>(new IconNum(influenceIcon));
+    influenceCounter->setPos(antimatterCounter->getPos() + glm::vec3(0.4, 0, 0));
+    displays.push_back(influenceCounter);
 }
 
 void ResourceDisplay::update(UpdateInfo& info)

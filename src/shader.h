@@ -9,6 +9,7 @@
 #include <sstream>
 #include <iostream>
 #include <unordered_map>
+#include <vector>
 
 
 enum CommonUniforms
@@ -42,7 +43,7 @@ class Shader
         void setCommon(CommonUniforms which, bool val) const;
     private:
         void saveCommonUniformLocations();
-        std::unordered_map<CommonUniforms, unsigned int> locations;
+        std::vector<unsigned int> locations;
 };
 
 #endif

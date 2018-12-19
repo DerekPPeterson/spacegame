@@ -72,6 +72,26 @@ class AntiMatterIcon : public Renderable, public Selectable, public Object
         float rotation;
 };
 
+class InfluenceIcon : public Renderable, public Selectable, public Object,
+    public needs_setup<InfluenceIcon>
+{
+    public:
+        InfluenceIcon();
+        void draw(Shader& shader) override;
+        void update(UpdateInfo& info) override;
+        static void setup();
+    protected:
+        struct follower {
+            glm::vec3 pos;
+            float phase;
+            float speed;
+        };
+        std::vector<follower> followers;
+        int nFollowers = 12;
+        float curTime = 0;
+        static std::shared_ptr<Model> m;
+};
+
 class IconNum : public Renderable, public Selectable, 
      public Object, public UIObject
 {
