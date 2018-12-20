@@ -12,6 +12,7 @@ enum EventType
     EVENT_NORMAL,
     EVENT_SYSTEM_CLICK, // data will be a std::pair representing i,j coords of 
                         // clicked system
+    EVENT_DRAW,         // data will be a pair representing playernum/number of cards
 };
 
 class Event : public non_copyable

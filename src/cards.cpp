@@ -160,9 +160,11 @@ Hand::Hand()
 
 void Hand::addCard(shared_ptr<Card> card)
 {
-    card->position = handPos;
-    card->setVisible(true);
-    cards.push_back(card);
+    if (card) {
+        card->position = handPos;
+        card->setVisible(true);
+        cards.push_back(card);
+    }
 }
 
 void Hand::update(UpdateInfo& info)
@@ -231,9 +233,13 @@ void Deck::shuffle()
 
 std::shared_ptr<Card> Deck::draw()
 {
-    auto card = cards.back();
-    cards.pop_back();
-    return card;
+    if (cards.size()) {
+        auto card = cards.back();
+        cards.pop_back();
+        return card;
+    } else {
+        return shared_ptr<Card>(nullptr);
+    }
 }
 
 void Deck::insert(std::shared_ptr<Card> card, DeckLocation location)

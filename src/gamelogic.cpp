@@ -56,7 +56,7 @@ GameState GameLogic::startGame()
 
     // TODO get decklist from somewhere out of current game
     shared_ptr<Deck> deck(new Deck({}));
-    state.objects.push_back(hand);
+    state.objects.push_back(deck);
     state.deck = curIndex++;
 
     vector<ResourceType> resources {
@@ -125,6 +125,12 @@ GameState GameLogic::main(GameState state) const
             static_pointer_cast<SpaceShip>(state.objects[i])->gotoSystem(
                     spacegrid->getSystem(systemCoords->first, systemCoords->second));
         }
+    }
+    shared_ptr<pair<unsigned int, unsigned int>> drawInfo = Event::getLatestEvent(EVENT_DRAW, true);
+    if (drawInfo) {
+        auto hand = static_pointer_cast<Hand>(state.objects[state.hand]);
+        auto deck = static_pointer_cast<Deck>(state.objects[state.deck]);
+        hand->addCard(deck->draw());
     }
 
     return state;

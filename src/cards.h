@@ -68,7 +68,7 @@ enum DeckLocation
     DECK_RANDOM
 };
 
-class Deck : Object
+class Deck : public Object
 {
     public:
         Deck(std::vector<std::shared_ptr<Card>>);

@@ -1,5 +1,7 @@
 #include "input.h"
 
+#include "event.h"
+
 #include <plog/Log.h>
 
 MouseInfo MOUSE_INFO;
@@ -30,6 +32,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
     camera->ProcessMouseScroll(yoffset);
 }
 
+// TODO better input press detect method
+bool d_released = true;
 void Input::process(float deltaTime) 
 {
     glfwPollEvents();
@@ -49,6 +53,14 @@ void Input::process(float deltaTime)
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
         camera->ProcessKeyboard(BACKWARD, deltaTime);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS && d_released) {
+        auto data = std::shared_ptr<std::pair<int, int>>(new std::pair<int, int>(0, 1));
+        d_released = false;
+        Event::triggerEvent(EVENT_DRAW, data);
+    } else if (glfwGetKey(window, GLFW_KEY_C) == GLFW_RELEASE) {
+        d_released = true;
     }
 }
 
