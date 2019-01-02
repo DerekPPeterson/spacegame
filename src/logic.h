@@ -13,6 +13,11 @@
 #include <cereal/types/complex.hpp>
 #include <cereal/types/memory.hpp>
 
+#include <prettyprint.hpp>
+#include <plog/Log.h>
+
+#include <stdarg.h>
+
 #define SERIALIZE(...) \
 template<class Archive> \
 void serialize(Archive & archive) \
@@ -34,13 +39,20 @@ namespace logic {
 
     using namespace std;
 
-    struct System
-    {
+    struct GameObject {
+        GameObject() {
+            static int curId = 1;
+            id = curId++;
+        };
         int id;
+    };
+
+    struct System : public GameObject
+    {
         SERIALIZE(id);
     };
 
-    struct Ship
+    struct Ship : public GameObject
     {
         string type;
         int attack;
@@ -64,22 +76,24 @@ namespace logic {
 
     typedef map<ResourceType, int> ResourceAmount;
     
-    struct Card
+    struct Card : public GameObject
     {
         string name;
         ResourceAmount cost;
         SERIALIZE(name, cost);
     };
 
-    struct Player
+    struct Player : public GameObject
     {
         string name;
         map<ResourceType, Resource> resources;
         vector<Card> deck;
         vector<Card> hand;
-        vector<Card> deleted;
+        vector<Card> discard;
         shared_ptr<Ship> flagship;
-        SERIALIZE(name, resources, deck, hand, deleted, flagship);
+        SERIALIZE(name, resources, deck, hand, discard, flagship);
+
+        void draw(int n=1);
     };
 
     enum TurnPhases {
@@ -102,6 +116,7 @@ namespace logic {
         public:
             void startGame();
             void writeStateToFile(string filename);
+            void print();
             SERIALIZE(turnInfo, players, ships, systems);
         protected:
             TurnInfo turnInfo;
