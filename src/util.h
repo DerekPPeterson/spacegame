@@ -3,20 +3,21 @@
 
 #include <random>
 #include <map>
+#include <string>
 
 inline float rand_float_between(float LO, float HI)
 {
     return LO + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(HI-LO)));
 }
 
-template <class T1, class T2>
-class bimap
+inline std::string randString(int n)
 {
-    public:
-
-    protected:
-        std::map<T1, T2> m1;
-        std::map<T2, T1> m2;
+    std::string charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    std::string ret;
+    for (int i = 0; i < n; i++) {
+        ret.push_back(charset[rand() % charset.size()]);
+    }
+    return ret;
 };
 
 #endif

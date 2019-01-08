@@ -9,6 +9,7 @@
 #include <functional>
 
 #include <cereal/archives/json.hpp>
+#include <cereal/archives/binary.hpp>
 #include <cereal/types/map.hpp>
 #include <cereal/types/vector.hpp>
 #include <cereal/types/list.hpp>
@@ -117,7 +118,7 @@ namespace logic {
     // A type used to keep track of all resource types
     typedef map<ResourceType, int> ResourceAmount;
 
-    void DEFAULT_CARD_RESOLVE(GameState& state) {
+    inline void DEFAULT_CARD_RESOLVE(GameState& state) {
         LOG_ERROR << "Resolving a card with a default resolve function";
     }
     
@@ -132,7 +133,7 @@ namespace logic {
             out << "(Card: " << c.name << " id " << c.id << ")";
             return out;
         }
-        SERIALIZE(name, cost);
+        SERIALIZE(id, name, cost);
     };
 
     struct Player : public GameObject
@@ -143,7 +144,7 @@ namespace logic {
         list<Card> hand;
         list<Card> discard;
         int flagshipId;
-        SERIALIZE(name, resources, deck, hand, discard, flagshipId);
+        SERIALIZE(id, name, resources, deck, hand, discard, flagshipId);
 
         friend ostream & operator << (ostream &out, const Player &c)
         {
