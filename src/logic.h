@@ -16,6 +16,7 @@
 #include <cereal/types/string.hpp>
 #include <cereal/types/complex.hpp>
 #include <cereal/types/memory.hpp>
+#include <cereal/types/functional.hpp>
 
 #include <prettyprint.hpp>
 #include <plog/Log.h>
@@ -53,18 +54,26 @@ namespace logic {
      * */
     struct GameObject {
         GameObject() {
-            static int curId = 1;
+            id = curId++;
+        };
+        
+        /* Call after copying game object if the copy needs to be a new object
+         */
+        void newId() {
             id = curId++;
         };
         int id;
+        static int curId;
     };
 
     /* System object, representing a valid location for ship, structures
      * etc to be placed */
     struct System : public GameObject
     {
-        SERIALIZE(id);
+        int controllerId = 0;
+        bool home = false;
         vector<int> adjacent;
+        SERIALIZE(id, controllerId, adjacent, home);
     };
 
     /* Ship object, representing a unit that can move and attack other ship
@@ -84,7 +93,8 @@ namespace logic {
 
         friend ostream & operator << (ostream &out, const Ship &c)
         {
-            out << "(Ship: " << c.type << " in system " << c.curSystemId << ")";
+            out << "(Ship: " << c.type << " in system " << c.curSystemId
+                << " owned by " << c.owner << ")";
             return out;
         }
 
@@ -121,19 +131,33 @@ namespace logic {
     inline void DEFAULT_CARD_RESOLVE(GameState& state) {
         LOG_ERROR << "Resolving a card with a default resolve function";
     }
-    
+
+    enum TargetType {
+        TARGET_SYSTEM,
+        TARGET_SHIP,
+    };
+    struct Target
+    {
+        TargetType type;
+        int id;
+        SERIALIZE(type, id);
+    };
+
     struct Card : public GameObject
     {
         string name;
+        string cardText;
         ResourceAmount cost;
         int playedBy = 0;
+        vector<int> targets;
+
         function<void(GameState&)> resolve = DEFAULT_CARD_RESOLVE;
-        function<vector<int>(GameState&)> getValidTargets;
+        function<pair<int, vector<Target>>(GameState&)> getValidTargets;
         friend ostream & operator << (ostream &out, const Card &c) {
             out << "(Card: " << c.name << " id " << c.id << ")";
             return out;
         }
-        SERIALIZE(id, name, cost);
+        SERIALIZE(id, name, cost, playedBy, targets);
     };
 
     struct Player : public GameObject
@@ -172,7 +196,6 @@ namespace logic {
         int whoseTurn;
         int activePlayer;
         vector<TurnPhases> phase;
-        bool selectTargets;
         SERIALIZE(whoseTurn, activePlayer, phase);
     };
 
@@ -197,6 +220,21 @@ namespace logic {
         SERIALIZE(type, playerId, id, targets, nTargets, description);
     };
 
+    enum ChangeType
+    {
+        CHANGE_ADD_SHIP,
+        CHANGE_REMOVE_SHIP,
+        CHANGE_PLAY_CARD,
+        CHANGE_DRAW_CARD,
+    };
+
+    struct Change
+    {
+        int changeNo;
+        ChangeType type;
+        vector<int> ids;
+    };
+
     class GameState
     {
         public:
@@ -217,6 +255,8 @@ namespace logic {
             System* getSystemById(int id);
             Card* getCardById(int id);
             WarpBeacon* getBeaconById(int id);
+            
+            vector<Change> getChangesAfter(int changeNo);
 
             void playCard(int cardId, int playerId);
             void resolveStackTop();
@@ -225,6 +265,7 @@ namespace logic {
 
             vector<Action> getValidCardActions();
             vector<Action> getValidBeaconActions();
+            vector<Action> getTargetActions();
 
             list<Player> players;
             list<Ship> ships;
@@ -232,6 +273,8 @@ namespace logic {
             list<WarpBeacon> beacons;
 
             list<Card> stack;
+
+            vector<Change> changes;
     };
 };
 

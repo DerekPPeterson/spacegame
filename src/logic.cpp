@@ -1,10 +1,14 @@
 #include "logic.h"
 
+#include "carddefinitions.h"
+
 #include <fstream>
 #include <algorithm>
 
 using namespace logic;
 using namespace std;
+
+int GameObject::curId = 1;
 
 
 // TODO dynamically load deck from somewhere
@@ -46,6 +50,9 @@ list<logic::System> createSystems(int n)
         }
     }
 
+    systems[0].home = true;
+    systems[n * n - 1].home = true;
+
     return list<System> {begin(systems), end(systems)};
 }
 
@@ -63,7 +70,9 @@ void GameState::startGame()
         // TODO load deck dynamically
         list<logic::Card> deck;
         for (int i = 0; i < 40; i++) {
-            deck.push_back({.name="Card " + to_string(i), .cost={{RESOURCE_AI, 1}}});
+            auto card = CardDefinitions::sample_ship;
+            card.newId();
+            deck.push_back(card);
         }
 
         Player p = {
@@ -83,11 +92,19 @@ void GameState::startGame()
             .shield = 10,
             .armour = 10,
             .movement = 1,
-            .owner = i,
-            .controller = i
+            .owner = p.id,
+            .controller = p.id
         };
-        ships.push_back(sampleFlagship);
+
+        for (auto& s : systems) {
+            if (s.home and not s.controllerId) {
+                sampleFlagship.curSystemId = s.id;
+                s.controllerId = p.id;
+                break;
+            }
+        }
         p.flagshipId = sampleFlagship.id;
+        ships.push_back(sampleFlagship);
     }
 
     turnInfo = {
@@ -139,6 +156,13 @@ Card* GameState::getCardById(int id)
     return card;
 }
 
+vector<Change> GameState::getChangesAfter(int changeNo)
+{
+    vector<Change> relevant;
+    relevant.insert(relevant.end(), changes.begin(), changes.end());
+    return relevant;
+}
+
 vector<Action> GameState::getValidCardActions()
 {
     // TODO more complicated logic
@@ -168,12 +192,56 @@ vector<Action> GameState::getValidBeaconActions()
     return actions;
 }
 
+vector<Action> GameState::getTargetActions()
+{
+    Action action;
+    vector<Target> targets;
+    vector<Action> actions;
+    if (turnInfo.phase.back() == PHASE_SELECT_CARD_TARGETS) {
+        auto card = stack.back();
+        auto p = card.getValidTargets(*this);
+        auto nTargets = p.first;
+        auto possibleTargets = p.second;
+
+        Action selectShipsAction = {
+            .type = ACTION_SELECT_SHIPS,
+            .playerId = card.playedBy,
+            .id = card.id,
+            .nTargets = nTargets,
+            .description = "Select targets from list for card: " + card.name,
+        };
+
+        Action selectSystemsAction = {
+            .type = ACTION_SELECT_SYSTEM,
+            .playerId = card.playedBy,
+            .id = card.id,
+            .nTargets = nTargets,
+            .description = "Select targets from list for card: " + card.name,
+        };
+
+        for (auto t : possibleTargets) {
+            switch (t.type) {
+                case TARGET_SHIP:
+                    selectShipsAction.targets.push_back(t.id);
+                    break;
+                case TARGET_SYSTEM:
+                    selectSystemsAction.targets.push_back(t.id);
+                    break;
+            }
+        }
+        if (selectShipsAction.targets.size()) {
+            actions.push_back(selectShipsAction);
+        }
+        if (selectSystemsAction.targets.size()) {
+            actions.push_back(selectSystemsAction);
+        }
+    }
+    return actions;
+}
+
 vector<Action> GameState::getPossibleActions()
 {
     vector<Action> actions;
-
-    auto cardActions = getValidCardActions();
-    auto moveActions = getValidBeaconActions();
 
     Action pass = 
     {
@@ -187,12 +255,24 @@ vector<Action> GameState::getPossibleActions()
         .playerId = turnInfo.activePlayer,
     };
 
-    actions.push_back(pass);
+    // Cannot do nothing if a target selection is needed
+    if (turnInfo.phase.back() != PHASE_SELECT_CARD_TARGETS 
+            and turnInfo.phase.back() != PHASE_SELECT_BEACON_TARGETS) {
+        actions.push_back(pass);
+    }
+
+    // Can only end the turn if it is the main phase
     if (turnInfo.phase.back() == PHASE_MAIN and turnInfo.activePlayer == turnInfo.whoseTurn) {
         actions.push_back(endTurn);
     }
+
+    auto cardActions = getValidCardActions();
+    auto moveActions = getValidBeaconActions();
+    auto targetActions = getTargetActions();
+
     actions.insert(actions.end(), cardActions.begin(), cardActions.end());
     actions.insert(actions.end(), moveActions.begin(), moveActions.end());
+    actions.insert(actions.end(), targetActions.begin(), targetActions.end());
 
     return actions;
 }
@@ -223,7 +303,8 @@ void GameState::performAction(Action action)
                 case ACTION_SELECT_SYSTEM:
                     LOG_ERROR << "Cannot select ships / system from main phase";
                     break;
-                }
+            }
+            break;
         case PHASE_MOVE:
             break; // TODO
         case PHASE_END:
@@ -243,6 +324,8 @@ void GameState::performAction(Action action)
             }
             break;
         case PHASE_SELECT_CARD_TARGETS:
+            stack.back().targets = action.targets;
+            turnInfo.phase.pop_back();
             break;
         case PHASE_SELECT_BEACON_TARGETS:
             break;
@@ -252,22 +335,27 @@ void GameState::performAction(Action action)
 void GameState::playCard(int cardId, int playerId)
 {
     auto player = getPlayerById(playerId);
-    auto it = find_if(player->hand.begin(), player->hand.end(), 
+    auto card = find_if(player->hand.begin(), player->hand.end(), 
             [cardId] (Card& c) {return c.id == cardId;});
-    it->playedBy = playerId;
-    stack.push_back(*it);
-    player->hand.erase(it);
+    card->playedBy = playerId;
+    stack.push_back(*card);
+    player->hand.erase(card);
+
 
     if (turnInfo.phase.back() != PHASE_RESOLVE_STACK) {
         turnInfo.phase.push_back(PHASE_RESOLVE_STACK);
+    }
+
+    if (card->getValidTargets) {
+        turnInfo.phase.push_back(PHASE_SELECT_CARD_TARGETS);
     }
 }
 
 void GameState::resolveStackTop()
 {
     auto card = stack.back();
-    stack.pop_back();
     card.resolve(*this);
+    stack.pop_back();
     auto player = getPlayerById(card.playedBy);
     player->discard.push_back(card);
     if (stack.size() == 0) {
@@ -328,8 +416,7 @@ ostream & logic::operator<< (ostream &out, const Action &c)
         case ACTION_PLACE_BEACON:
             out << "place beacon"; break;
         case ACTION_PLAY_CARD:
-            out << "play card"; 
-            break;
+            out << "play card"; break;
         case ACTION_END_TURN:
             out << "end turn"; break;
         case ACTION_SELECT_SHIPS:
@@ -339,6 +426,9 @@ ostream & logic::operator<< (ostream &out, const Action &c)
     }
     if (c.description.size()) {
         out << " " << c.description;
+    }
+    if (c.targets.size()) {
+        out << " pick " << c.nTargets << " targets: " << c.targets;
     }
     out << ")";
 
@@ -390,28 +480,3 @@ ostream & logic::operator<< (ostream &out, const GameState &c)
     return out;
 }
 
-
-
-//int main()
-//{
-//    static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
-//    plog::init(plog::verbose, &consoleAppender);
-//
-//    GameState state;
-//    state.startGame();
-//    cerr << state;
-//    state.writeStateToFile("testState.json");
-//    cerr << state;
-//
-//    while (1) {
-//        auto actions = state.getPossibleActions();
-//        int i = 0;
-//        for (auto a : actions) {
-//            cout << i++ << ": " << a << endl;
-//        }
-//        int selection;
-//        cin >> selection;
-//        state.performAction(actions[selection]);
-//        cerr << state;
-//    }
-//}
