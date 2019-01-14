@@ -284,6 +284,7 @@ void GameState::performAction(Action action)
         case PHASE_UPKEEP:
             // TODO handle fast actions
             LOG_INFO << "End upkeep, start main phase";
+            getPlayerById(turnInfo.whoseTurn)->draw();
             turnInfo.phase[0] = PHASE_MAIN;
             break;
         case PHASE_MAIN:
