@@ -81,7 +81,6 @@ void GameState::startGame()
             .resources = {{RESOURCE_WARP_BEACONS, {.amount = 0, .max=1, .perTurn=1}}},
         };
         p.draw(7);
-        players.push_back(p);
         LOG_INFO << "Adding player " << p.name;
 
         // Give them flagships TODO load chosen flagshipss
@@ -105,6 +104,7 @@ void GameState::startGame()
         }
         p.flagshipId = sampleFlagship.id;
         ships.push_back(sampleFlagship);
+        players.push_back(p);
     }
 
     turnInfo = {

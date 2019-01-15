@@ -44,7 +44,7 @@ class GameEndpoint
 		void setupRoutes() {
 			using namespace Rest;
 
-			Routes::Post(router, "/createGame", Routes::bind(&GameEndpoint::createGame, this));
+			Routes::Get(router, "/createGame", Routes::bind(&GameEndpoint::createGame, this));
 			Routes::Get(router, "/game/:gameid/state", Routes::bind(&GameEndpoint::getState, this));
 			Routes::Get(router, "/game/:gameid/action", Routes::bind(&GameEndpoint::getActions, this));
 			Routes::Post(router, "/game/:gameid/action", Routes::bind(&GameEndpoint::performAction, this));
