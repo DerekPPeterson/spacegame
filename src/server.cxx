@@ -55,11 +55,13 @@ class GameEndpoint
              GameState newGameState;
              newGameState.startGame();
              gamestates[gameId] = newGameState;
+             LOG_INFO << "Create new game with id: " << gameId;
              response.send(Http::Code::Ok, gameId);
          }
 
          void getState(const Rest::Request& request, Http::ResponseWriter response) {
             auto gameId = request.param(":gameid").as<string>();
+            LOG_INFO << "Got request for state for game id: " << gameId;
             stringstream ss;
             {
                 cereal::BinaryOutputArchive oarchive(ss);
@@ -70,6 +72,7 @@ class GameEndpoint
 
          void getActions(const Rest::Request& request, Http::ResponseWriter response) {
             auto gameId = request.param(":gameid").as<string>();
+            LOG_INFO << "Got request for actions for game id: " << gameId;
 
             vector<Action> actions = gamestates[gameId].getPossibleActions();
             stringstream ss;
@@ -82,6 +85,7 @@ class GameEndpoint
 
          void performAction(const Rest::Request& request, Http::ResponseWriter response) {
             auto gameId = request.param(":gameid").as<string>();
+             LOG_INFO << "Got request to perform action for game id: " << gameId;
             stringstream ss;
             ss << request.body();
             Action action;
@@ -90,6 +94,7 @@ class GameEndpoint
                 iarchive(action);
             }
             gamestates[gameId].performAction(action);
+            response.send(Http::Code::Ok, "");
          }
 
 	    std::shared_ptr<Http::Endpoint> httpEndpoint;
@@ -99,6 +104,9 @@ class GameEndpoint
 };
 
 int main() {
+    remove("server.log");
+    plog::init(plog::verbose, "server.log");
+
     Port port(40000);
 
     int thr = 2;

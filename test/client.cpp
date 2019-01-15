@@ -39,7 +39,7 @@ class LocalServerStarter
 
 };
 
-TEST_CASE("Game client start", "[GameClient]") {
+TEST_CASE("Basic Game Client Tests", "[GameClient]") {
     
     // Start server in background
     LocalServerStarter server;
@@ -52,7 +52,30 @@ TEST_CASE("Game client start", "[GameClient]") {
 
     auto state = client.getState();
 
+    // Some simple sanity checks
     REQUIRE(state.players.size() == 2);
     REQUIRE(state.players.front().flagshipId != 0);
+    REQUIRE(state.turnInfo.phase.back() == PHASE_MAIN);
+
+    // Test getting actions
+    auto actions = client.getActions();
+    REQUIRE(actions.size() != 0);
+    REQUIRE(actions.front().type == ACTION_NONE);
+
+    int p1Id = state.turnInfo.whoseTurn;
+
+    // Test ending turn
+    client.performAction(actions.front());
+    state = client.getState();
+
+    REQUIRE(state.turnInfo.phase.back() == PHASE_END);
+
+    actions = client.getActions();
+    REQUIRE(actions.front().type == ACTION_NONE);
+    client.performAction(actions.front());
+
+    state = client.getState();
+    REQUIRE(state.turnInfo.phase.back() == PHASE_UPKEEP);
+    REQUIRE(state.turnInfo.whoseTurn != p1Id);
 }
 

@@ -19,7 +19,7 @@ target_link_libraries(textgame glfw3 GL X11 pthread Xrandr Xi dl assimp bfd stdc
 add_executable(server src/server.cxx ${LOGIC_SOURCES})
 target_link_libraries(server glfw3 GL X11 pthread Xrandr Xi dl assimp bfd stdc++fs pistache curlpp curl)
 
-add_executable(tests src/tests.cxx ${TEST_SOURCES})
+add_executable(tests test/tests.cxx ${TEST_SOURCES})
 target_link_libraries(tests glfw3 GL X11 pthread Xrandr Xi dl assimp bfd stdc++fs pistache curlpp curl)
 
 
