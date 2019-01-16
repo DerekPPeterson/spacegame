@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <vector>
+#include <optional>
 #include "drawable.h"
 #include "renderer.h"
 #include "logic.h"
@@ -14,7 +15,10 @@ class GraphicsObjectHandler
 
         void startGame(logic::GameState initialState);
 
-        void updateState(std::vector<logic::Change>);
+        void setPossibleActions(std::vector<logic::Action> actions) {};
+        std::optional<logic::Action> getSelectedAction() {return {};};
+
+        void updateState(std::vector<logic::Change>) {};;
 
         /* Get all the currently active game objects
          */

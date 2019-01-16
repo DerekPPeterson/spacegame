@@ -3,8 +3,11 @@
 #include <sstream>
 #include <plog/Log.h>
 
+#include "timer.h"
+
 
 using namespace std;
+using namespace logic;
 using namespace curlpp::options;
 
 GameClient::GameClient(string serverAddr, int serverPort) 
@@ -31,8 +34,9 @@ void GameClient::startGame()
 template <class T> 
 T getObject(string path, int port)
 {
+    LOG_DEBUG << "Making server request to: " << path << " port: " << port;
     stringstream ss;
-    {
+    try {
         curlpp::Cleanup cleanup;
 
         curlpp::Easy request;
@@ -40,6 +44,10 @@ T getObject(string path, int port)
         request.setOpt(Port(port));
 
         ss << request;
+    } catch (curlpp::LogicError & e) {
+		LOG_ERROR << e.what() << std::endl;
+	} catch (curlpp::RuntimeError & e) {
+		LOG_ERROR << e.what() << std::endl;
     }
 
     T obj;
@@ -50,9 +58,30 @@ T getObject(string path, int port)
     return obj;
 }
 
-
 vector<Action> GameClient::getActions()
 {
+    if (Timer::get("start") - actionsLastRequest < rateLimit) {
+        return {};
+    }
+    actionsLastRequest = Timer::get("start");
+    if (not futureActions)
+    {
+        futureActions = async(launch::async, &GameClient::_getActions, this);
+        return {};
+    } else if (futureActions->wait_for(chrono::seconds(0)) == future_status::ready) {
+        auto actions = futureActions->get();
+        futureActions.reset();
+        return actions;
+    } else {
+        return {};
+    }
+}
+
+vector<Action> GameClient::_getActions() const
+{
+    if (actionPending) {
+        actionPending->wait();
+    }
     string path = serverAddr + "/game/" + gameId + "/action";
     return getObject<vector<Action>>(path, serverPort);
 }
@@ -63,7 +92,37 @@ GameState GameClient::getState()
     return getObject<GameState>(path, serverPort);
 }
 
+vector<logic::Change> GameClient::getChangesSince(int changeNo)
+{
+    if (Timer::get("start") - changesLastRequest < rateLimit) {
+        return {};
+    }
+    changesLastRequest = Timer::get("start");
+    if (not futureChanges)
+    {
+        futureChanges = async(launch::async, &GameClient::_getChangesSince, this, changeNo);
+        return {};
+    } else if (futureChanges->wait_for(chrono::seconds(0)) == future_status::ready) {
+        auto changes = futureChanges->get();
+        futureChanges.reset();
+        return changes;
+    } else {
+        return {};
+    }
+}
+
+vector<logic::Change> GameClient::_getChangesSince(int changeNo) const
+{
+    string path = serverAddr + "/game/" + gameId + "/changes/" + to_string(changeNo);
+    return getObject<vector<Change>>(path, serverPort);
+}
+
 void GameClient::performAction(Action action)
+{
+    actionPending = async(launch::async, &GameClient::_performAction, this, action);
+}
+
+void GameClient::_performAction(Action action) const
 {
     stringstream ss;
     {

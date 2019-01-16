@@ -25,6 +25,7 @@
 #include "timer.h"
 #include "objectupdater.h"
 #include "input.h"
+#include "logic.h"
 #include "gamelogic.h"
 #include "client.h"
 
@@ -132,6 +133,9 @@ int main(int argc, char **argv)
     info.screenHeight = options.screenHeight;
     info.projection = renderer.getProjection();
 
+    vector<logic::Action> actions;
+    int lastChangeNo = 0;
+
     while(not glfwWindowShouldClose(window))
     {
         // Prepare update data to update all objects for movement and such
@@ -141,12 +145,39 @@ int main(int argc, char **argv)
         frameTimes.push_back(info.deltaTime);
         LOG_INFO << "Frametime: " << info.deltaTime;
 
-        renderer.setToRender(graphicsObjectHandler.getRenderables());
+        if (actions.size()) {
+            // This will trigger animations and iterface for selecting
+            // an action
+            graphicsObjectHandler.setPossibleActions(actions);
+        } else {
+            // If there are no current actions get pending ones from the 
+            // server This might return an empty list, in which case we will
+            // ask again
+            actions = client.getActions();
+        }
+
+        // Once the player selects an action send it to the client and clear 
+        // the actions list
+        auto selectedAction = graphicsObjectHandler.getSelectedAction();
+        if (selectedAction) {
+            client.performAction(*selectedAction);
+            actions.clear();
+        }
+
+        // Get a list of changes to state from the server and queue game updates
+        // accordingly 
+        auto changes = client.getChangesSince(lastChangeNo);
+        if (changes.size()) {
+            lastChangeNo = changes.back().changeNo;
+            graphicsObjectHandler.updateState(changes);
+        }
 
         // Update objects
         updater.updateObjects(info, graphicsObjectHandler.getObjects());
         updater.waitForUpdates(); // Cannot overlap with render yet
 
+        // Render a frame
+        renderer.setToRender(graphicsObjectHandler.getRenderables());
         renderer.renderFrame();
         glfwSwapBuffers(window);
 

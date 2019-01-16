@@ -47,6 +47,7 @@ class GameEndpoint
 			Routes::Get(router, "/game/:gameid/state", Routes::bind(&GameEndpoint::getState, this));
 			Routes::Get(router, "/game/:gameid/action", Routes::bind(&GameEndpoint::getActions, this));
 			Routes::Post(router, "/game/:gameid/action", Routes::bind(&GameEndpoint::performAction, this));
+			Routes::Get(router, "/game/:gameid/changes/:changeNo", Routes::bind(&GameEndpoint::getChangesSince, this));
 		}
 
          void createGame(const Rest::Request& request, Http::ResponseWriter response) {
@@ -94,6 +95,22 @@ class GameEndpoint
             }
             gamestates[gameId].performAction(action);
             response.send(Http::Code::Ok, "");
+         }
+
+         void getChangesSince(const Rest::Request& request, Http::ResponseWriter response) {
+            auto gameId = request.param(":gameid").as<string>();
+            auto changeNo = request.param(":changeNo").as<string>();
+            LOG_INFO << "Got request for changes for game id: " << gameId 
+                << " since changeNo: " << changeNo;
+
+            // TODO actually implement this
+            vector<Change> changes = {};
+            stringstream ss;
+            {
+                cereal::PortableBinaryOutputArchive oarchive(ss);
+                oarchive(changes);
+            }
+            response.send(Http::Code::Ok, ss.str());
          }
 
 	    std::shared_ptr<Http::Endpoint> httpEndpoint;
