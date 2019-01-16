@@ -9,7 +9,7 @@
 #include <functional>
 
 #include <cereal/archives/json.hpp>
-#include <cereal/archives/binary.hpp>
+#include <cereal/archives/portable_binary.hpp>
 #include <cereal/types/map.hpp>
 #include <cereal/types/vector.hpp>
 #include <cereal/types/list.hpp>
@@ -43,11 +43,15 @@ enum ResourceType
     RESOURCE_INFLUENCE,
 };
 
+// A type used to keep track of all resource types
+typedef std::map<ResourceType, int> ResourceAmount;
+
+
 namespace logic {
 
     using namespace std;
 
-    class GameState;
+    struct GameState;
 
     /* Used to assign a unique id number to each game object when it is 
      * created
@@ -72,8 +76,9 @@ namespace logic {
     {
         int controllerId = 0;
         bool home = false;
+        int i, j;
         vector<int> adjacent;
-        SERIALIZE(id, controllerId, adjacent, home);
+        SERIALIZE(id, controllerId, adjacent, home, i, j);
     };
 
     /* Ship object, representing a unit that can move and attack other ship
@@ -124,9 +129,6 @@ namespace logic {
         int perTurn;    // Resource generation per turn
         SERIALIZE(amount, max, perTurn);
     };
-
-    // A type used to keep track of all resource types
-    typedef map<ResourceType, int> ResourceAmount;
 
     inline void DEFAULT_CARD_RESOLVE(GameState& state) {
         LOG_ERROR << "Resolving a card with a default resolve function";
@@ -233,48 +235,49 @@ namespace logic {
         int changeNo;
         ChangeType type;
         vector<int> ids;
+        SERIALIZE(changeNo, type, ids);
     };
 
-    class GameState
+    struct GameState
     {
-        public:
-            void startGame();
-            vector<Action> getPossibleActions();
-            void performAction(Action);
+        void startGame();
+        vector<Action> getPossibleActions();
+        void performAction(Action);
 
-            void writeStateToFile(string filename);
-            void print();
-            SERIALIZE(turnInfo, players, ships, systems);
+        void writeStateToFile(string filename);
+        void print();
+        SERIALIZE(turnInfo, players, ships, systems, beacons, stack, changes);
 
-            friend ostream & operator << (ostream &out, const GameState &c);
+        friend ostream & operator << (ostream &out, const GameState &c);
 
-            TurnInfo turnInfo;
+        TurnInfo turnInfo;
 
-            Player* getPlayerById(int id);
-            Ship* getShipById(int id);
-            System* getSystemById(int id);
-            Card* getCardById(int id);
-            WarpBeacon* getBeaconById(int id);
-            
-            vector<Change> getChangesAfter(int changeNo);
+        Player* getPlayerById(int id);
+        Ship* getShipById(int id);
+        System* getSystemById(int id);
+        System* getSystemByPos(int i, int j);
+        Card* getCardById(int id);
+        WarpBeacon* getBeaconById(int id);
+        
+        vector<Change> getChangesAfter(int changeNo);
 
-            void playCard(int cardId, int playerId);
-            void resolveStackTop();
-            void placeBeacon(int systemId, int ownerId);
-            void endTurn();
+        void playCard(int cardId, int playerId);
+        void resolveStackTop();
+        void placeBeacon(int systemId, int ownerId);
+        void endTurn();
 
-            vector<Action> getValidCardActions();
-            vector<Action> getValidBeaconActions();
-            vector<Action> getTargetActions();
+        vector<Action> getValidCardActions();
+        vector<Action> getValidBeaconActions();
+        vector<Action> getTargetActions();
 
-            list<Player> players;
-            list<Ship> ships;
-            list<System> systems;
-            list<WarpBeacon> beacons;
+        list<Player> players;
+        list<Ship> ships;
+        list<System> systems;
+        list<WarpBeacon> beacons;
 
-            list<Card> stack;
+        list<Card> stack;
 
-            vector<Change> changes;
+        vector<Change> changes;
     };
 };
 

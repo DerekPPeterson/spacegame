@@ -29,6 +29,9 @@ std::shared_ptr<Renderable> createIcon(ResourceType type)
             icon = new AntiMatterIcon(); break;
         case RESOURCE_INFLUENCE:
             icon = new InfluenceIcon(); break;
+        // TODO new icon for this?
+        case RESOURCE_ANY:
+            icon = nullptr; break;
     }
     return shared_ptr<Renderable>(icon);
 };

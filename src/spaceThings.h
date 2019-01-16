@@ -34,6 +34,7 @@ class System : public Object , public Selectable, public Renderable{
         virtual void queueDraw() override;
         virtual void update(UpdateInfo& info) override;
         glm::vec3 getPosition();
+        int gridx, gridy;
 
     protected:
         void onClick() override;
@@ -42,7 +43,6 @@ class System : public Object , public Selectable, public Renderable{
         std::vector<Planet> planets;
         glm::vec3 baseColor = glm::vec3(5, 5, 5);
         glm::vec3 hoverColor = glm::vec3(0, 15, 30);
-        int gridx, gridy;
 };
 
 class SpaceGrid : public Object, public Renderable
@@ -53,6 +53,7 @@ class SpaceGrid : public Object, public Renderable
         void queueDraw() override;
         System* getSystem(int i, int j);
         std::vector<std::shared_ptr<Object>> getAllSystems();
+        const int gridSize = 4;
     private:
         std::shared_ptr<System> grid[4][4];
 };

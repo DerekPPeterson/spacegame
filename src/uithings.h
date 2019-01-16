@@ -5,6 +5,7 @@
 #include "model.h"
 #include "drawable.h"
 #include "text.h"
+#include "logic.h"
 #include <memory>
 
 // Class to handle screen space info and transformations
@@ -110,19 +111,8 @@ class IconNum : public Renderable, public Selectable,
         // TODO might not want to use a shared_ptr to a Renderable here
 };
 
-enum ResourceType
-{
-    RESOURCE_WARP_BEACONS,
-    RESOURCE_MATERIALS,
-    RESOURCE_AI,
-    RESOURCE_ANTIMATTER,
-    RESOURCE_INFLUENCE,
-};
-
 extern std::map<std::string, ResourceType> resourceStrings;
 std::shared_ptr<Renderable> createIcon(ResourceType type);
-
-typedef std::map<ResourceType, int> ResourceAmount;
 
 class ResourceDisplay : public Renderable, public Object, 
     public UIObject, public has_model_mat

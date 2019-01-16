@@ -64,7 +64,7 @@ class GameEndpoint
             LOG_INFO << "Got request for state for game id: " << gameId;
             stringstream ss;
             {
-                cereal::BinaryOutputArchive oarchive(ss);
+                cereal::PortableBinaryOutputArchive oarchive(ss);
                 oarchive(gamestates[gameId]);
             }
             response.send(Http::Code::Ok, ss.str());
@@ -77,7 +77,7 @@ class GameEndpoint
             vector<Action> actions = gamestates[gameId].getPossibleActions();
             stringstream ss;
             {
-                cereal::BinaryOutputArchive oarchive(ss);
+                cereal::PortableBinaryOutputArchive oarchive(ss);
                 oarchive(actions);
             }
             response.send(Http::Code::Ok, ss.str());
@@ -90,7 +90,7 @@ class GameEndpoint
             ss << request.body();
             Action action;
             {
-                cereal::BinaryInputArchive iarchive(ss);
+                cereal::PortableBinaryInputArchive iarchive(ss);
                 iarchive(action);
             }
             gamestates[gameId].performAction(action);

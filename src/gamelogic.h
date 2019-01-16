@@ -5,43 +5,16 @@
 #include <vector>
 #include "drawable.h"
 #include "renderer.h"
+#include "logic.h"
 
-enum Phase {
-    PHASE_NONE,
-    PHASES_START_TURN,
-    PHASES_MAIN,
-    PHASES_RESOLVE_MOVEMENT,
-    PHASES_RESOLVE_CARD,
-};
-
-struct GameState
-{
-    Phase phase;
-    std::vector<std::shared_ptr<Object>> objects;
-
-    // Indexes into the above vector to keep track of particular types of 
-    // objects
-    int spacegrid;
-    std::vector<int> systems;
-    std::vector<int> units;
-    int deck;
-    int hand;
-    std::vector<int> cards;
-};
-
-class GameLogic
+class GraphicsObjectHandler
 {
     public:
-        GameLogic() {};
+        GraphicsObjectHandler() {};
 
-        /* Initialize and return a game state
-         */
-        GameState startGame();
+        void startGame(logic::GameState initialState);
 
-        /* Based on the current state, call the appropriate state function and
-         * update the state with the new state returned
-         */
-        void updateState();
+        void updateState(std::vector<logic::Change>);
 
         /* Get all the currently active game objects
          */
@@ -52,20 +25,11 @@ class GameLogic
         std::vector<std::shared_ptr<Renderable>> getRenderables();
 
     private:
-        /* Current game state
-         */
-        GameState state;
-
-        /* State transition functions all take the current state and return a
-         * new state. This could result in new game objects being created
-         * or destroyed. Can check and clear events to determine what state
-         * changes to make
-         */
-        GameState startTurn(GameState state) const;
-        GameState main(GameState state) const;
-        GameState resolveMovement(GameState state) const;
-        GameState resoveCard(GameState state) const;
-        
+        void initializePlayer(logic::Player);
+        void addObject(std::shared_ptr<Object> object);
+        std::shared_ptr<Object> getObject(int logicId);
+        std::vector<std::shared_ptr<Object>> objects;
+        std::map<int, int> index;
 };
 
 #endif

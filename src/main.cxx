@@ -26,6 +26,7 @@
 #include "objectupdater.h"
 #include "input.h"
 #include "gamelogic.h"
+#include "client.h"
 
 
 #include "renderer.h"
@@ -110,11 +111,16 @@ int main(int argc, char **argv)
 
     Renderer renderer(options, camera);
 
+    GameClient client("localhost", 40000);
+
+    // Animation updater
     ObjectUpdater updater(1); // Using 1 other thread for updating objects
 
-    GameLogic gameLogic;
-    gameLogic.startGame();
+    GraphicsObjectHandler graphicsObjectHandler;
+    client.startGame();
+    graphicsObjectHandler.startGame(client.getState());
 
+    // TODO create this somewhere else
     shared_ptr<Skybox> skybox(new Skybox("./res/textures/lightblue/"));
     renderer.addRenderable(skybox);
 
@@ -135,11 +141,10 @@ int main(int argc, char **argv)
         frameTimes.push_back(info.deltaTime);
         LOG_INFO << "Frametime: " << info.deltaTime;
 
-        gameLogic.updateState();
-        renderer.setToRender(gameLogic.getRenderables());
+        renderer.setToRender(graphicsObjectHandler.getRenderables());
 
         // Update objects
-        updater.updateObjects(info, gameLogic.getObjects());
+        updater.updateObjects(info, graphicsObjectHandler.getObjects());
         updater.waitForUpdates(); // Cannot overlap with render yet
 
         renderer.renderFrame();

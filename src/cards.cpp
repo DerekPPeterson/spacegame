@@ -98,6 +98,16 @@ Card::Card(CardInfo info) : Renderable(SHADER_CARD),
     cardText.setColor(Card::info.color);
 }
 
+std::shared_ptr<Card> Card::createFrom(logic::Card logicCard)
+{
+    CardInfo info = {
+        .name = logicCard.name,
+        .text = logicCard.cardText,
+        .cost = logicCard.cost,
+    };
+    return shared_ptr<Card>(new Card(info));
+}
+
 void Card::updateModel()
 {
     glm::mat4 model(1.0f);

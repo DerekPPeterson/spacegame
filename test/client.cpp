@@ -31,9 +31,6 @@ class LocalServerStarter
             p->kill();
             delete p;
         }
-        bool isRunning() {
-            return p->poll() == 0;
-        }
     private:
         Popen *p;
 

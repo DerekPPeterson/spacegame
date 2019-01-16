@@ -6,6 +6,7 @@
 #include "model.h"
 #include "text.h"
 #include "uithings.h"
+#include "logic.h"
 
 #include <memory>
 #include <map>
@@ -25,10 +26,12 @@ class Card : public Renderable , public Object, public Dragable,
 {
     public:
         Card(CardInfo info);
+        Card(logic::Card logicCard);
         virtual void draw(Shader& shader) override;
         virtual void queueDraw() override;
         virtual void update(UpdateInfo& info) override;
         static void setup();
+        static std::shared_ptr<Card> createFrom(logic::Card);
     protected:
         void updateModel();
         void onClick() override;

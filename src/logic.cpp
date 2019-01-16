@@ -45,6 +45,8 @@ list<logic::System> createSystems(int n)
                 } else {
                     systems[n * i + j].adjacent.push_back(
                             systems[n * adjacentPos[0] + adjacentPos[1]].id);
+                    systems[n * i + j].i = i;
+                    systems[n * i + j].j = j;
                 }
             }
         }
@@ -138,6 +140,17 @@ Ship* GameState::getShipById(int id)
 System* GameState::getSystemById(int id) 
 {
     return getById<System>(id, systems);
+}
+
+System* GameState::getSystemByPos(int i, int j) 
+{
+    auto it = find_if(systems.begin(), systems.end(), [i, j] (System& s) 
+            {return s.i == i and s.j == j;});
+    if (it == systems.end()) {
+        return nullptr;
+    } else {
+        return &(*it);
+    }
 }
 
 Card* GameState::getCardById(int id) 

@@ -44,7 +44,7 @@ T getObject(string path, int port)
 
     T obj;
     {
-        cereal::BinaryInputArchive iarchive(ss);
+        cereal::PortableBinaryInputArchive iarchive(ss);
         iarchive(obj);
     }
     return obj;
@@ -67,7 +67,7 @@ void GameClient::performAction(Action action)
 {
     stringstream ss;
     {
-        cereal::BinaryOutputArchive oarchive(ss);
+        cereal::PortableBinaryOutputArchive oarchive(ss);
         oarchive(action);
     }
 
