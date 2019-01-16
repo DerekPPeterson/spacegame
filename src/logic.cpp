@@ -63,7 +63,7 @@ void GameState::startGame()
     LOG_INFO << "Setting up game";
 
     LOG_INFO << "Initilializing systems";
-    systems = createSystems(4);
+    systems = createSystems(SPACEGRID_SIZE);
 
     LOG_INFO << "Creating player objects";
     for (int i = 0; i < 2; i++) {
@@ -88,7 +88,7 @@ void GameState::startGame()
         // Give them flagships TODO load chosen flagshipss
         LOG_INFO << "Added flagship for " << p.name;
         logic::Ship sampleFlagship = {
-            .type = "Sample Flagship",
+            .type = "SS1",
             .attack = 1,
             .shield = 10,
             .armour = 10,

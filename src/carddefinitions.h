@@ -20,7 +20,7 @@ void createSampleShip(GameState& state)
 {
     auto card = state.stack.back();
     Ship sampleShip = {
-        .type = "Sample",
+        .type = "SS1",
         .attack = 1,
         .shield = 0,
         .armour = 1,

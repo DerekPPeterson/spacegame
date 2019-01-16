@@ -25,8 +25,7 @@ class GameEndpoint
 
 		void init(size_t thr = 2) {
 			auto opts = Http::Endpoint::options()
-				.threads(thr)
-				.flags(Tcp::Options::InstallSignalHandler);
+				.threads(thr);
 			httpEndpoint->init(opts);
 			setupRoutes();
 		}

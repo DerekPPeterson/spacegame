@@ -115,8 +115,8 @@ void System::onClick()
     Event::triggerEvent(EVENT_SYSTEM_CLICK, location);
 }
 
-#define GRID_X 2
-#define GRID_Y 2
+#define GRID_X SPACEGRID_SIZE
+#define GRID_Y SPACEGRID_SIZE
 
 SpaceGrid::SpaceGrid() : Renderable(SHADER_NONE)
 {
@@ -168,6 +168,12 @@ shared_ptr<Model> SpaceShip::warpQuad;
 map<string, string> MODEL_PATHS = {
     {"SS1", "./res/models/SS1_OBJ/SS1.obj"}
 };
+
+std::shared_ptr<SpaceShip> SpaceShip::createFrom(logic::Ship logicShip, System* s)
+{
+    auto ship = shared_ptr<SpaceShip>(new SpaceShip(logicShip.type, s));
+    return ship;
+}
 
 void SpaceShip::loadModel(string type)
 {

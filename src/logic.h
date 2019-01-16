@@ -46,6 +46,8 @@ enum ResourceType
 // A type used to keep track of all resource types
 typedef std::map<ResourceType, int> ResourceAmount;
 
+// The size of the spacegrid to create
+#define SPACEGRID_SIZE 3
 
 namespace logic {
 
@@ -159,7 +161,7 @@ namespace logic {
             out << "(Card: " << c.name << " id " << c.id << ")";
             return out;
         }
-        SERIALIZE(id, name, cost, playedBy, targets);
+        SERIALIZE(id, name, cardText, cost, playedBy, targets);
     };
 
     struct Player : public GameObject

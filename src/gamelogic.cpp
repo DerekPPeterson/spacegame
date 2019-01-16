@@ -74,7 +74,14 @@ void GraphicsObjectHandler::startGame(logic::GameState initialState)
     for (auto o: systems) {
         auto s = dynamic_pointer_cast<System>(o);
         s->logicId = initialState.getSystemByPos(s->gridx, s->gridy)->id;
+        addObject(s);
     }
 
     initializePlayer(initialState.players.front());
+
+    for (auto logicShip : initialState.ships) {
+        auto ship = SpaceShip::createFrom(logicShip, 
+                dynamic_cast<System*>(getObject(logicShip.curSystemId).get()));
+        addObject(ship);
+    }
 }

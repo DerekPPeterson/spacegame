@@ -12,6 +12,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "renderables.h"
+#include "logic.h"
 
 typedef struct Orbit {
     float radius;
@@ -53,9 +54,8 @@ class SpaceGrid : public Object, public Renderable
         void queueDraw() override;
         System* getSystem(int i, int j);
         std::vector<std::shared_ptr<Object>> getAllSystems();
-        const int gridSize = 4;
     private:
-        std::shared_ptr<System> grid[4][4];
+        std::shared_ptr<System> grid[SPACEGRID_SIZE][SPACEGRID_SIZE];
 };
 
 
@@ -68,6 +68,7 @@ class SpaceShip : public Object, public Renderable
         virtual void drawWarp(Shader& shader) override;
         void gotoSystem(System *system);
         virtual void update(UpdateInfo& info) override;
+        static std::shared_ptr<SpaceShip> createFrom(logic::Ship logicShip, System *s);
     
     protected:
         std::string type;
