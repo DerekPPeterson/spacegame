@@ -123,7 +123,6 @@ int main(int argc, char **argv)
     shared_ptr<Skybox> skybox(new Skybox("./res/textures/lightblue/"));
     renderer.addRenderable(skybox);
 
-    Timer::global = Timer("global"); // restart global timer
     vector<float> frameTimes; // Used for calculating average frametime
     UpdateInfo info; 
     info.camera = &camera;
@@ -134,6 +133,7 @@ int main(int argc, char **argv)
     vector<logic::Action> actions;
     int lastChangeNo = 0;
 
+    Timer::global = Timer("global"); // restart global timer
     while(not glfwWindowShouldClose(window))
     {
         // Prepare update data to update all objects for movement and such

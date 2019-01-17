@@ -27,7 +27,7 @@ float Timer::get()
 float Timer::getDelta()
 {
     auto curTime = std::chrono::system_clock::now();
-    fsec deltaTime = curTime - started;
+    fsec deltaTime = curTime - lastChecked;
     lastChecked = curTime;
     return deltaTime.count();
 }
