@@ -74,7 +74,6 @@ Renderer::Renderer(RenderOptions options, Camera& camera) :
 	projection = glm::perspectiveRH((float) glm::radians(45.0), 
             (float) options.screenWidth / options.screenHeight, 0.1f, 10000.0f);
     compileLinkShaders(); // TODO auto gen cpp code for shaders
-    Timer::create("renderer_start");
 
     // Enable some options for good line drawing
     glEnable(GL_LINE_SMOOTH);

@@ -19,6 +19,8 @@
 #include <cereal/types/complex.hpp>
 #include <cereal/types/memory.hpp>
 #include <cereal/types/functional.hpp>
+#include <cereal/types/common.hpp>
+#include <cereal/types/utility.hpp>
 
 #include <prettyprint.hpp>
 #include <plog/Log.h>
@@ -182,7 +184,7 @@ namespace logic {
             return out;
         }
 
-        void draw(int n=1);
+        pair<int, vector<int>> draw(int n=1);
     };
 
     enum TurnPhases {
@@ -228,18 +230,21 @@ namespace logic {
 
     enum ChangeType
     {
-        CHANGE_ADD_SHIP,
-        CHANGE_REMOVE_SHIP,
-        CHANGE_PLAY_CARD,
-        CHANGE_DRAW_CARD,
+        CHANGE_ADD_SHIP,    // data will be ship that was added
+        CHANGE_REMOVE_SHIP, // data will be ship that was removed
+        CHANGE_PLAY_CARD,   // data will be cardId of card that was played
+        CHANGE_RESOLVE_CARD,   // data will be cardId of card that was resolved
+        CHANGE_DRAW_CARDS,   // data will be pair of playerid, cardId
+        CHANGE_PHASE_CHANGE, // data will be turnInfo
+        CHANGE_PLACE_BEACON, // data will be WarpBeacon object
     };
 
     struct Change
     {
-        int changeNo;
+        int changeNo = 0;
         ChangeType type;
-        variant<Ship, int, Card, Player> data;
-        SERIALIZE(changeNo, type, data);
+        variant<Ship, int, Card, Player, TurnInfo, pair<int, vector<int>>, WarpBeacon> data;
+        SERIALIZE(type, data);
     };
 
     struct GameState
@@ -265,15 +270,6 @@ namespace logic {
         
         vector<Change> getChangesAfter(int changeNo);
 
-        void playCard(int cardId, int playerId);
-        void resolveStackTop();
-        void placeBeacon(int systemId, int ownerId);
-        void endTurn();
-
-        vector<Action> getValidCardActions();
-        vector<Action> getValidBeaconActions();
-        vector<Action> getTargetActions();
-
         list<Player> players;
         list<Ship> ships;
         list<System> systems;
@@ -282,6 +278,16 @@ namespace logic {
         list<Card> stack;
 
         vector<Change> changes;
+
+        private:
+            void playCard(int cardId, int playerId);
+            void resolveStackTop();
+            void placeBeacon(int systemId, int ownerId);
+            void endTurn();
+
+            vector<Action> getValidCardActions();
+            vector<Action> getValidBeaconActions();
+            vector<Action> getTargetActions();
     };
 };
 

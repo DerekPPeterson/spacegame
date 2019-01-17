@@ -2,6 +2,7 @@
 
 #include "logic.h"
 #include "client.h"
+#include "timer.h"
 
 #include <subprocess.hpp>
 
@@ -56,6 +57,9 @@ TEST_CASE("Basic Game Client Tests", "[GameClient]") {
 
     // Test getting actions
     auto actions = client.getActions();
+    while (not actions.size()) {
+        actions = client.getActions();
+    }
     REQUIRE(actions.size() != 0);
     REQUIRE(actions.front().type == ACTION_NONE);
 
@@ -63,6 +67,7 @@ TEST_CASE("Basic Game Client Tests", "[GameClient]") {
 
     // Test ending turn
     client.performAction(actions.front());
+    usleep(2e5);
     state = client.getState();
 
     REQUIRE(state.turnInfo.phase.back() == PHASE_END);

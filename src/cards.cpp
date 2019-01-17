@@ -118,10 +118,10 @@ void Card::updateModel()
     //tmpPosition.y += 0.1 * sin(3.14 / 4 * Timer::get("start") + phase);
     model = glm::translate(model, tmpPosition);
     model = glm::scale(model, {size, size, size});
-    float angleY = 3.1415f / 16 * sin(3.14159 / 2 * Timer::get("start") + phase);
+    float angleY = 3.1415f / 16 * sin(3.14159 / 2 * Timer::global.get() + phase);
     model = glm::rotate(model, angleY, {0, 1, 0});
     if (isHovered) {
-        float angleX = 3.1415f / 16 * sin(3.14159 * Timer::get("start") + phase);
+        float angleX = 3.1415f / 16 * sin(3.14159 * Timer::global.get() + phase);
         model = glm::rotate(model, angleX, {1, 0, 0});
     }
     setModel(model);

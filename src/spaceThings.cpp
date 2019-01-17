@@ -51,7 +51,7 @@ glm::vec3 calcOrbitPosition(glm::vec3 systemPosition, Orbit &orbit)
     transform = glm::rotate(transform, orbit.phase, {0, 1, 0});
     glm::vec3 orbitAxis = glm::rotateX(glm::vec3(0, 1, 0), orbit.inclination);
     transform = glm::rotate(transform, 
-             1.0f / (float) pow(orbit.radius , 3.0/2.0) * Timer::get("start"), 
+             1.0f / (float) pow(orbit.radius , 3.0/2.0) * Timer::global.get(), 
             orbitAxis);
     transform = glm::translate(transform, glm::vec3(orbit.radius, 0, 0));
 

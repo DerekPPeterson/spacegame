@@ -60,12 +60,12 @@ T getObject(string path, int port)
 
 vector<Action> GameClient::getActions()
 {
-    if (Timer::get("start") - actionsLastRequest < rateLimit) {
+    if (timer.get() - actionsLastRequest < rateLimit) {
         return {};
     }
-    actionsLastRequest = Timer::get("start");
     if (not futureActions)
     {
+        actionsLastRequest = timer.get();
         futureActions = async(launch::async, &GameClient::_getActions, this);
         return {};
     } else if (futureActions->wait_for(chrono::seconds(0)) == future_status::ready) {
@@ -94,12 +94,12 @@ GameState GameClient::getState()
 
 vector<logic::Change> GameClient::getChangesSince(int changeNo)
 {
-    if (Timer::get("start") - changesLastRequest < rateLimit) {
+    if (timer.get() - changesLastRequest < rateLimit) {
         return {};
     }
-    changesLastRequest = Timer::get("start");
     if (not futureChanges)
     {
+        changesLastRequest = timer.get();
         futureChanges = async(launch::async, &GameClient::_getChangesSince, this, changeNo);
         return {};
     } else if (futureChanges->wait_for(chrono::seconds(0)) == future_status::ready) {

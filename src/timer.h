@@ -2,18 +2,23 @@
 #define TIMER_H
 
 #include <string>
+#include <chrono>
 
 class Timer
 {
     public:
-    // Start a new timer counting from 0
-    static void create(std::string name);
-    // Delete a timer
-    static void remove(std::string name);
-    // Get the time since the timer was started
-    static float get(std::string name);
-    // Get the time since the timer was either started or checked w/ this func
-    static float getDelta(std::string name);
+        // Start a new timer counting from 0
+        Timer(std::string name = "");
+        // Get the time since the timer was started
+        float get();
+        // Get the time since the timer was either started or checked w/ this func
+        float getDelta();
+
+        std::string name;
+        std::chrono::time_point<std::chrono::system_clock> started;
+         std::chrono::time_point<std::chrono::system_clock> lastChecked;
+
+        static Timer global;
 };
 
 #endif

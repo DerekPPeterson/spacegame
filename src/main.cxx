@@ -74,8 +74,6 @@ GLFWwindow* setupOpenGlContext(RenderOptions options)
         throw std::runtime_error("Failed to initialize GLAD");
     }
 
-    Timer::create("start");
-
     // set size of opengl viewport to size of window
     glViewport(0, 0, options.screenWidth, options.screenHeight);
     return window;
@@ -125,7 +123,7 @@ int main(int argc, char **argv)
     shared_ptr<Skybox> skybox(new Skybox("./res/textures/lightblue/"));
     renderer.addRenderable(skybox);
 
-    Timer::create("frametime");
+    Timer::global = Timer("global"); // restart global timer
     vector<float> frameTimes; // Used for calculating average frametime
     UpdateInfo info; 
     info.camera = &camera;
@@ -139,8 +137,8 @@ int main(int argc, char **argv)
     while(not glfwWindowShouldClose(window))
     {
         // Prepare update data to update all objects for movement and such
-        info.deltaTime = Timer::getDelta("frametime");
-        info.curTime = Timer::get("frametime");
+        info.deltaTime = Timer::global.getDelta();
+        info.curTime = Timer::global.get();
         info.mouse = input.mouse;
         frameTimes.push_back(info.deltaTime);
         LOG_INFO << "Frametime: " << info.deltaTime;

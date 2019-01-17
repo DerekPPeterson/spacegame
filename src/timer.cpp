@@ -6,45 +6,27 @@
 
 using namespace std;
 
-struct TimerData {
-    string name;
-    float started;
-    float lastChecked;
-};
+Timer Timer::global;
 
-map<string, TimerData> TIMERS;
-
-void Timer::create(string name)
+Timer::Timer(string name)
 {
-    TimerData newTimer;
-    newTimer.name = name;
-    newTimer.started = glfwGetTime();
-    newTimer.lastChecked = newTimer.started;
-
-    if (TIMERS.find(name) == TIMERS.end()) {
-        TIMERS[name] = newTimer;
-    } else {
-        throw runtime_error("Timer already exists with name: " + name);
-    }
+    this->name = name;
+    started = std::chrono::system_clock::now();
+    lastChecked = started;
 }
 
-void Timer::remove(string name)
+float Timer::get()
 {
-    TIMERS.erase(name);
+    auto curTime = std::chrono::system_clock::now();
+    auto deltaTime = curTime - started;
+    return deltaTime.count();
 }
 
-float Timer::get(string name)
+float Timer::getDelta()
 {
-    float curTime = glfwGetTime();
-    float deltaTime = curTime - TIMERS[name].started;
-    return deltaTime;
-}
-
-float Timer::getDelta(string name)
-{
-    float curTime = glfwGetTime();
-    float deltaTime = curTime - TIMERS[name].lastChecked;
-    TIMERS[name].lastChecked = curTime;
-    return deltaTime;
+    auto curTime = std::chrono::system_clock::now();
+    auto deltaTime = curTime - started;
+    lastChecked = curTime;
+    return deltaTime.count();
 }
 

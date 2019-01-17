@@ -171,6 +171,9 @@ Card* GameState::getCardById(int id)
 
 vector<Change> GameState::getChangesAfter(int changeNo)
 {
+    for (int i = 1; i < changes.size() + 1; i++) {
+        changes[i].changeNo = i;
+    }
     vector<Change> relevant;
     relevant.insert(relevant.end(), changes.begin(), changes.end());
     return relevant;
@@ -294,12 +297,16 @@ vector<Action> GameState::getPossibleActions()
 void GameState::performAction(Action action)
 {
     switch (turnInfo.phase.back()) {
-        case PHASE_UPKEEP:
+        case PHASE_UPKEEP: {
             // TODO handle fast actions
             LOG_INFO << "End upkeep, start main phase";
-            getPlayerById(turnInfo.whoseTurn)->draw();
+            auto drawInfo = getPlayerById(turnInfo.whoseTurn)->draw();
+            changes.push_back({.type = CHANGE_DRAW_CARDS, .data = drawInfo});
+            drawInfo = {};
             turnInfo.phase[0] = PHASE_MAIN;
+            changes.push_back({.type = CHANGE_PHASE_CHANGE, .data = turnInfo});
             break;
+        }
         case PHASE_MAIN:
             switch (action.type) {
                 case ACTION_PLAY_CARD:
@@ -312,6 +319,7 @@ void GameState::performAction(Action action)
                 case ACTION_NONE: 
                 case ACTION_END_TURN:
                     turnInfo.phase[0] = PHASE_END;
+                    changes.push_back({.type = CHANGE_PHASE_CHANGE, .data = turnInfo});
                     break;
                 case ACTION_SELECT_SHIPS:
                 case ACTION_SELECT_SYSTEM:
@@ -364,6 +372,8 @@ void GameState::playCard(int cardId, int playerId)
     }
 
     LOG_INFO << "Played card: " << card->name;
+
+    changes.push_back({.type = CHANGE_PLAY_CARD, .data = card->id});
 }
 
 void GameState::resolveStackTop()
@@ -376,6 +386,7 @@ void GameState::resolveStackTop()
     if (stack.size() == 0) {
         turnInfo.phase.pop_back();
     }
+    changes.push_back({.type = CHANGE_RESOLVE_CARD, .data=card.id});
 }
 
 void GameState::placeBeacon(int systemId, int ownerId)
@@ -387,6 +398,7 @@ void GameState::placeBeacon(int systemId, int ownerId)
     beacons.push_back(beacon);
     turnInfo.phase[0] = PHASE_MOVE;
     turnInfo.phase.push_back(PHASE_SELECT_CARD_TARGETS);
+    changes.push_back({.type = CHANGE_PLACE_BEACON, .data = beacon});
 }
 
 void GameState::endTurn()
@@ -407,8 +419,9 @@ void GameState::endTurn()
     turnInfo.phase[0] = PHASE_UPKEEP;
 };
 
-void Player::draw(int n)
+pair<int, vector<int>> Player::draw(int n)
 {
+    vector<int> cardIds;
     for (int i = 0; i < n; i++) {
         if (not deck.size()) {
             // TODO handle drawing from empty deck
@@ -418,8 +431,10 @@ void Player::draw(int n)
         auto card = deck.back();
         deck.pop_back();
         hand.push_back(card);
+        cardIds.push_back(card.id);
         LOG_INFO << "Player " << name << " drew a card: " << card.name;
     }
+    return {id, cardIds};
 };
 
 ostream & logic::operator<< (ostream &out, const Action &c)

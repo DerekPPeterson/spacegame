@@ -11,6 +11,7 @@
 #include <curlpp/Options.hpp>
 
 #include "logic.h"
+#include "timer.h"
 
 
 class GameClient
@@ -64,6 +65,8 @@ class GameClient
         float changesLastRequest = 0;
         std::vector<logic::Change> _getChangesSince(int changeNo) const;
         std::optional<std::future<std::vector<logic::Change>>> futureChanges;
+
+        Timer timer;
 };
 
 #endif
