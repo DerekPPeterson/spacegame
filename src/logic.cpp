@@ -355,7 +355,6 @@ void GameState::playCard(int cardId, int playerId)
     stack.push_back(*card);
     player->hand.erase(card);
 
-
     if (turnInfo.phase.back() != PHASE_RESOLVE_STACK) {
         turnInfo.phase.push_back(PHASE_RESOLVE_STACK);
     }
@@ -363,6 +362,8 @@ void GameState::playCard(int cardId, int playerId)
     if (card->getValidTargets) {
         turnInfo.phase.push_back(PHASE_SELECT_CARD_TARGETS);
     }
+
+    LOG_INFO << "Played card: " << card->name;
 }
 
 void GameState::resolveStackTop()

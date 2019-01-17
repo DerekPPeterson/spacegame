@@ -7,11 +7,13 @@
 #include <map>
 #include <memory>
 #include <functional>
+#include <variant>
 
 #include <cereal/archives/json.hpp>
 #include <cereal/archives/portable_binary.hpp>
 #include <cereal/types/map.hpp>
 #include <cereal/types/vector.hpp>
+#include <cereal/types/variant.hpp>
 #include <cereal/types/list.hpp>
 #include <cereal/types/string.hpp>
 #include <cereal/types/complex.hpp>
@@ -236,8 +238,8 @@ namespace logic {
     {
         int changeNo;
         ChangeType type;
-        vector<int> ids;
-        SERIALIZE(changeNo, type, ids);
+        variant<Ship, int, Card, Player> data;
+        SERIALIZE(changeNo, type, data);
     };
 
     struct GameState
