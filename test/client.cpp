@@ -61,7 +61,8 @@ TEST_CASE("Basic Game Client Tests", "[GameClient]") {
         actions = client.getActions();
     }
     REQUIRE(actions.size() != 0);
-    REQUIRE(actions.front().type == ACTION_NONE);
+    auto t = actions.front().type;
+    REQUIRE(t == ACTION_NONE);
 
     int p1Id = state.turnInfo.whoseTurn;
 
@@ -70,11 +71,17 @@ TEST_CASE("Basic Game Client Tests", "[GameClient]") {
     usleep(2e5);
     state = client.getState();
 
+    cout << state;
+    
     REQUIRE(state.turnInfo.phase.back() == PHASE_END);
 
     actions = client.getActions();
+    while (not actions.size()) {
+        actions = client.getActions();
+    }
     REQUIRE(actions.front().type == ACTION_NONE);
     client.performAction(actions.front());
+    usleep(1e5);
 
     state = client.getState();
     REQUIRE(state.turnInfo.phase.back() == PHASE_UPKEEP);
