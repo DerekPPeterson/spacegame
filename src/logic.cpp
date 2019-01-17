@@ -40,7 +40,7 @@ list<logic::System> createSystems(int n)
             for (auto dir : dirs) {
                 int adjacentPos[2] = {i + dir[0], j + dir[1]};
                 if (adjacentPos[0] < 0 or adjacentPos[0] >= n or
-                        adjacentPos[1] < 0 or adjacentPos[0] > n) {
+                        adjacentPos[1] < 0 or adjacentPos[1] >= n) {
                     continue;
                 } else {
                     systems[n * i + j].adjacent.push_back(
@@ -360,8 +360,6 @@ void GameState::playCard(int cardId, int playerId)
     auto card = find_if(player->hand.begin(), player->hand.end(), 
             [cardId] (Card& c) {return c.id == cardId;});
     card->playedBy = playerId;
-    stack.push_back(*card);
-    player->hand.erase(card);
 
     if (turnInfo.phase.back() != PHASE_RESOLVE_STACK) {
         turnInfo.phase.push_back(PHASE_RESOLVE_STACK);
@@ -371,9 +369,12 @@ void GameState::playCard(int cardId, int playerId)
         turnInfo.phase.push_back(PHASE_SELECT_CARD_TARGETS);
     }
 
+    changes.push_back({.type = CHANGE_PLAY_CARD, .data = card->id});
+    stack.push_back(*card);
+    player->hand.erase(card);
+
     LOG_INFO << "Played card: " << card->name;
 
-    changes.push_back({.type = CHANGE_PLAY_CARD, .data = card->id});
 }
 
 void GameState::resolveStackTop()

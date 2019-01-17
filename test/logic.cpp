@@ -22,9 +22,9 @@ TEST_CASE("Basic Game Logic Tests", "[GameState]") {
                 break;
             }
         }
-        //state.performAction(playCard);
-        //auto changes = state.getChangesAfter(0);
-        //REQUIRE(changes[0].type == CHANGE_PLAY_CARD);
-        //REQUIRE(get<int>(changes[0].data) == playCard.id);
+        state.performAction(playCard);
+        auto changes = state.getChangesAfter(0);
+        REQUIRE(changes[0].type == CHANGE_PLAY_CARD);
+        REQUIRE(get<int>(changes[0].data) == playCard.id);
     }
 }
