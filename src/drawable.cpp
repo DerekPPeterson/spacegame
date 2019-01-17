@@ -169,6 +169,7 @@ void Dragable::checkSetDrag(UpdateInfo info, bool screenSpace)
         dragging = false;
         if (beingDragged == this) {
             beingDragged = NULL;
+            onRelease();
         }
     }
 

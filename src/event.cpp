@@ -1,55 +1,30 @@
+
 #include "event.h"
 
-#include <plog/Log.h>
+std::map<EventType, std::queue<EventData>> Event::events;
 
-using namespace std;
-
-std::list<shared_ptr<Event>> Event::events;
-
-void Event::triggerEvent(EventType type, std::shared_ptr<void> data)
+std::vector<EventData> Event::getEvents(EventType type)
 {
-    events.push_back(shared_ptr<Event>(new Event(type, data)));
-}
-
-template <class T>
-std::vector<std::shared_ptr<T>> Event::getEvents(EventType type)
-{
-    vector<shared_ptr<T>> ret;
-    for (auto it = events.begin(); it != events.end(); it++) {
-        if (it->get()->type == type) {
-            ret.push_back(static_pointer_cast<T>(it->get()->data));
-            it = events.erase(it);
-            it--;
-        }
+	std::vector<EventData> ret;
+    for (int i = 0; i < events[type].size(); i++) {
+        ret.push_back(events[type].front());
+        events[type].pop();
     }
 
     return ret;
 }
 
-template <class T>
-std::shared_ptr<T> Event::_getLatestEvent(EventType type, bool clearOthers)
+std::optional<EventData> Event::getNextEvent(EventType type, bool clearOthers)
 {
-    std::shared_ptr<T> ret(nullptr);
-
-    auto it = events.end();
-    while (it != events.begin()) {
-        it--;
-        if (it->get()->type == type) {
-            if (ret == nullptr) {
-                ret = static_pointer_cast<T>(it->get()->data);
-                it = events.erase(it);
-                LOG_INFO << "Event (type=" << type << ") was processed";
-            } else if (clearOthers) {
-                it = events.erase(it);
-            }
-        }
+	std::optional<EventData> ret;
+    if (events[type].size()) {
+        ret = events[type].front();
+        events[type].pop();
     }
-    return ret;
-}
 
-shared_ptr<pair<unsigned int, unsigned int>> Event::getLatestEvent(
-        EventType type, bool clearOthers)
-{
-    return _getLatestEvent<std::pair<unsigned int, unsigned int>>(
-                type, clearOthers);
+    if (clearOthers) {
+        events[type] = {};
+    }
+
+    return ret;
 }

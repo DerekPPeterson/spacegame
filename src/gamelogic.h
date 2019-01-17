@@ -15,8 +15,11 @@ class GraphicsObjectHandler
 
         void startGame(logic::GameState initialState);
 
-        void setPossibleActions(std::vector<logic::Action> actions) {};
-        std::optional<logic::Action> getSelectedAction() {return {};};
+        void setPossibleActions(std::vector<logic::Action> actions) 
+        {
+            this->actions = actions;
+        };
+        std::optional<logic::Action> getSelectedAction();
 
         void updateState(std::vector<logic::Change>) {};;
 
@@ -28,12 +31,20 @@ class GraphicsObjectHandler
          */
         std::vector<std::shared_ptr<Renderable>> getRenderables();
 
+        /* This is called every frame to check for click events and such
+         */
+        void checkEvents();
+
     private:
         void initializePlayer(logic::Player);
         void addObject(std::shared_ptr<Object> object);
+
         std::shared_ptr<Object> getObject(int logicId);
         std::vector<std::shared_ptr<Object>> objects;
         std::map<int, int> index;
+
+        std::vector<logic::Action> actions;
+        std::optional<logic::Action> selectedAction;
 };
 
 #endif

@@ -2,6 +2,7 @@
 
 #include "timer.h"
 #include "util.h"
+#include "event.h"
 
 #include <plog/Log.h>
 
@@ -57,7 +58,7 @@ void Card::queueDraw()
 
 void Card::draw(Shader& shader)
 {
-    shader.setVec3("color", info.color);
+    shader.setVec3("color", info.color * highlight);
     shader.setCommon(UNIFORM_MODEL, model);
     cardModel->draw(shader);
     // Text is not drawn here, it is queued for later
@@ -105,7 +106,9 @@ std::shared_ptr<Card> Card::createFrom(logic::Card logicCard)
         .text = logicCard.cardText,
         .cost = logicCard.cost,
     };
-    return shared_ptr<Card>(new Card(info));
+    auto card = shared_ptr<Card>(new Card(info));
+    card->logicId = logicCard.id;
+    return card;
 }
 
 void Card::updateModel()
@@ -156,12 +159,26 @@ void Card::update(UpdateInfo& info)
             size = targetSize;
         }
     }
+
+    if (position.y > -0.45) {
+        highlight = 3;
+    } else {
+        highlight = 1;
+    }
 }
 
 void Card::onClick()
 {
     LOG_INFO << "Card: " << info.name << " clicked";
 };
+
+void Card::onRelease()
+{
+    LOG_INFO << "Card: " << info.name << " released at: " << position.x << position.y;
+    if (position.y > -0.45) {
+        Event::triggerEvent(EVENT_PLAY_CARD, logicId);
+    }
+}
 
 Hand::Hand()
 {

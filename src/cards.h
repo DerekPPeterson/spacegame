@@ -35,6 +35,7 @@ class Card : public Renderable , public Object, public Dragable,
     protected:
         void updateModel();
         void onClick() override;
+        void onRelease() override;
 
         static std::shared_ptr<LineModel> cardModel;
 
@@ -47,6 +48,8 @@ class Card : public Renderable , public Object, public Dragable,
         float phase = 0;
 
         CardInfo info;
+
+        float highlight = 1;
 
         friend class Hand;
 };

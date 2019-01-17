@@ -158,6 +158,7 @@ int main(int argc, char **argv)
 
         // Once the player selects an action send it to the client and clear 
         // the actions list
+        graphicsObjectHandler.checkEvents();
         auto selectedAction = graphicsObjectHandler.getSelectedAction();
         if (selectedAction) {
             client.performAction(*selectedAction);

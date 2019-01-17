@@ -85,3 +85,22 @@ void GraphicsObjectHandler::startGame(logic::GameState initialState)
         addObject(ship);
     }
 }
+
+optional<logic::Action> GraphicsObjectHandler::getSelectedAction()
+{
+    auto ret = selectedAction;
+    selectedAction.reset();
+    return ret;
+}
+
+void GraphicsObjectHandler::checkEvents()
+{
+     auto cardId = Event::getNextEvent(EVENT_PLAY_CARD);
+     if (cardId) {
+         for (auto action : actions) {
+             if (action.type == logic::ACTION_PLAY_CARD and action.id == get<int>(*cardId)) {
+                selectedAction = action;
+             }
+         }
+     }
+}

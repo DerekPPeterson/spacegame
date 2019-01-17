@@ -116,6 +116,7 @@ class Dragable : public Selectable, virtual public UIObject
 {
     protected:
         void checkSetDrag(UpdateInfo info, bool screenSpace = false);
+        virtual void onRelease() {};
         bool dragging = false;
         glm::vec3 dragDisplacement;
         glm::vec3 lastDragPos;

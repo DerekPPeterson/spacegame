@@ -56,9 +56,8 @@ void Input::process(float deltaTime)
     }
 
     if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS && d_released) {
-        auto data = std::shared_ptr<std::pair<int, int>>(new std::pair<int, int>(0, 1));
         d_released = false;
-        Event::triggerEvent(EVENT_DRAW, data);
+        Event::triggerEvent(EVENT_DRAW, std::pair<int, int>(0, 1));
     } else if (glfwGetKey(window, GLFW_KEY_C) == GLFW_RELEASE) {
         d_released = true;
     }
