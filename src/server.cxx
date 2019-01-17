@@ -99,16 +99,15 @@ class GameEndpoint
 
          void getChangesSince(const Rest::Request& request, Http::ResponseWriter response) {
             auto gameId = request.param(":gameid").as<string>();
-            auto changeNo = request.param(":changeNo").as<string>();
+            auto changeNo = request.param(":changeNo").as<int>();
             LOG_INFO << "Got request for changes for game id: " << gameId 
                 << " since changeNo: " << changeNo;
 
             // TODO actually implement this
-            vector<Change> changes = {};
             stringstream ss;
             {
                 cereal::PortableBinaryOutputArchive oarchive(ss);
-                oarchive(changes);
+                oarchive(gamestates[gameId].getChangesAfter(changeNo));
             }
             response.send(Http::Code::Ok, ss.str());
          }

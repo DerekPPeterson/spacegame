@@ -84,5 +84,12 @@ TEST_CASE("Basic Game Client Tests", "[GameClient]") {
     state = client.getState();
     REQUIRE(state.turnInfo.phase.back() == PHASE_UPKEEP);
     REQUIRE(state.turnInfo.whoseTurn != p1Id);
+
+    // Test getting changelist
+    auto changes = client.getChangesSince(0);
+    while (not changes.size()) {
+        changes = client.getChangesSince(0);
+    }
+    REQUIRE(changes.size() > 0);
 }
 

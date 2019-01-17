@@ -8,6 +8,8 @@ using namespace std;
 
 Timer Timer::global;
 
+typedef chrono::duration<float> fsec;
+
 Timer::Timer(string name)
 {
     this->name = name;
@@ -18,14 +20,14 @@ Timer::Timer(string name)
 float Timer::get()
 {
     auto curTime = std::chrono::system_clock::now();
-    auto deltaTime = curTime - started;
+    fsec deltaTime = curTime - started;
     return deltaTime.count();
 }
 
 float Timer::getDelta()
 {
     auto curTime = std::chrono::system_clock::now();
-    auto deltaTime = curTime - started;
+    fsec deltaTime = curTime - started;
     lastChecked = curTime;
     return deltaTime.count();
 }
