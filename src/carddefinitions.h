@@ -30,6 +30,7 @@ void createSampleShip(GameState& state)
         .curSystemId = card.targets[0]
     };
     state.ships.push_back(sampleShip);
+    state.changes.push_back({.type = CHANGE_ADD_SHIP, .data = sampleShip});
 }
 
 namespace CardDefinitions {

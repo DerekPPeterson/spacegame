@@ -171,11 +171,11 @@ Card* GameState::getCardById(int id)
 
 vector<Change> GameState::getChangesAfter(int changeNo)
 {
-    for (int i = 1; i < changes.size() + 1; i++) {
-        changes[i].changeNo = i;
+    for (int i = 0; i < changes.size(); i++) {
+        changes[i].changeNo = i + 1;
     }
     vector<Change> relevant;
-    relevant.insert(relevant.end(), changes.begin(), changes.end());
+    relevant.insert(relevant.end(), changes.begin() + changeNo, changes.end());
     return relevant;
 }
 
@@ -380,6 +380,7 @@ void GameState::playCard(int cardId, int playerId)
 void GameState::resolveStackTop()
 {
     auto card = stack.back();
+    changes.push_back({.type = CHANGE_RESOLVE_CARD, .data=card.id});
     card.resolve(*this);
     stack.pop_back();
     auto player = getPlayerById(card.playedBy);
@@ -387,7 +388,6 @@ void GameState::resolveStackTop()
     if (stack.size() == 0) {
         turnInfo.phase.pop_back();
     }
-    changes.push_back({.type = CHANGE_RESOLVE_CARD, .data=card.id});
 }
 
 void GameState::placeBeacon(int systemId, int ownerId)

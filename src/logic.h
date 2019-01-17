@@ -245,6 +245,10 @@ namespace logic {
         ChangeType type;
         variant<Ship, int, Card, Player, TurnInfo, pair<int, vector<int>>, WarpBeacon> data;
         SERIALIZE(type, data);
+        friend ostream & operator << (ostream &out, const Change &c) {
+            out << "(Change: no " << c.changeNo << " type: " << c.type << ")";
+            return out;
+        }
     };
 
     struct GameState
@@ -268,7 +272,7 @@ namespace logic {
         Card* getCardById(int id);
         WarpBeacon* getBeaconById(int id);
         
-        vector<Change> getChangesAfter(int changeNo);
+        vector<Change> getChangesAfter(int changeNo = 0);
 
         list<Player> players;
         list<Ship> ships;
