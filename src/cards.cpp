@@ -261,85 +261,28 @@ void Hand::update(UpdateInfo& info)
 
     float cardSpacing = (2.0 + 0.2) * 0.2;
         
-
     SpringSystem springSystem;
-    //auto right = shared_ptr<SpringObject>(new SpringObject(position));
-    //auto left = shared_ptr<SpringObject>(new SpringObject(
-    //            glm::vec3(-2.2f * cards.size() * cards.front()->size, 0, 0) + position));
-    //springSystem.objects.push_back(left);
-    //springSystem.objects.push_back(right);
-
-    //auto card = cards[0];
-    //auto spring = shared_ptr<Spring>(new Spring(springLength, left, card));
-    //springSystem.objects.push_back(card);
-    //springSystem.springs.push_back(spring);
 
     for (int i = 0; i < cards.size(); i++) {
+        // Cast card to a spring object for use in the springsystem
         auto card = cards[i];
-        card->fixed = card->dragging;
+        card->fixed = card->dragging; // some glitching without this
+        auto cardSpringObject = dynamic_pointer_cast<SpringObject>(card);
+
+        // Create a fixed position to attach the card to
         auto fixedPos = position - glm::vec3(i * cardSpacing, 0, 0);
         auto fixed = shared_ptr<SpringObject>(new SpringObject(fixedPos));
         fixed->fixed = true;
+
+        // connect position and card with spring
         auto spring = shared_ptr<Spring>(new Spring(0, card, fixed));
-        auto cardSpringObject = dynamic_pointer_cast<SpringObject>(card);
+
         springSystem.objects.push_back(fixed);
         springSystem.objects.push_back(cardSpringObject);
         springSystem.springs.push_back(spring);
     }
 
-    //card = cards.back();
-    //spring = shared_ptr<Spring>(new Spring(springLength, right, card));
-    //springSystem.objects.push_back(card);
-    //springSystem.springs.push_back(spring);
-
     springSystem.updatePositions(info.deltaTime);
-
-    //float cardSpacing = 0.2; // fraction of card size
-    //float springiness = 20; // spring constant (ish)
-    //float width = 2;        // width of card model
-    //float damping = sqrt(springiness);      // force to slow down cards
-    //float right = position.x;
-    //float left = right;     
-    //for (int i = 0; i < cards.size(); i++) {
-    //    left -= width * cards[i]->size * (1 + cardSpacing);
-    //}
-    //vector<glm::vec3> newPositions(cards.size());
-    //for (int i = 0; i < cards.size(); i++) {
-    //    glm::vec3 acceleration = {0, 0, 0};
-
-    //    // Calculate horizontal acceleration of cards due to adjacent cards
-    //    if (i > 0) {
-    //        acceleration.x -= springiness * (cards[i]->position.x - cards[i-1]->position.x - width * cards[i]->size * (1 + cardSpacing));
-    //    } else {
-    //        acceleration.x += springiness * (-cards[i]->position.x + left - width * cards[i]->size * (1 + cardSpacing));
-    //    }
-    //    if (i < cards.size() - 1) {
-    //        acceleration.x += springiness * (-cards[i]->position.x + cards[i+1]->position.x - width * cards[i]->size * (1 + cardSpacing));
-    //    } else {
-    //        acceleration.x += springiness * (-cards[i]->position.x + right - width * cards[i]->size * (1 + cardSpacing));
-    //    }
-
-    //    // if a card is hovered it shouldn't move horizontally
-    //    if (cards[i]->isHovered) {
-    //        acceleration.x = 0;
-    //    }
-    //    
-    //    // Pull cards back to the hand if they are not activly being dragged
-    //    if (not cards[i]->beingDragged) {
-    //        acceleration.y = -springiness * (cards[i]->getPos().y - position.y);
-    //    }
-
-    //    // Calculate new card positions
-    //    acceleration -= cards[i]->speed * damping;
-    //    acceleration *= info.deltaTime;
-    //    cards[i]->speed += acceleration;
-    //    newPositions[i] = cards[i]->position + cards[i]->speed * info.deltaTime;
-    //}
-
-    //// Update card positions
-    //for (int i = 0; i < cards.size(); i++) {
-    //    cards[i]->position = newPositions[i];
-    //}
 }
 
 
