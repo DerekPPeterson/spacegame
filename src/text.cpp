@@ -157,6 +157,8 @@ void Text::calcCharPositions()
     icons.clear();
     multiline.clear();
 
+    float maxCharPos = 0;
+
     unsigned int lastChar = 0;
     bool breakLines = true;
     for (int i = 0; i < text.size(); i++) {
@@ -188,6 +190,10 @@ void Text::calcCharPositions()
             charPositions.push_back(curCharPos);
             multiline.push_back(c);
             curCharPos.x += charInfo.origw / 50 + kerningDist;
+
+            if (curCharPos.x > maxCharPos) {
+                maxCharPos = curCharPos.x;
+            }
         }
 
         // If we exceed the width then go back to the last space
@@ -212,6 +218,8 @@ void Text::calcCharPositions()
             }
         }
     }
+
+    actualMaxWidth = maxCharPos;
 }
 
 void Text::queueDraw()
@@ -284,5 +292,15 @@ void Text::update(UpdateInfo& info)
 {
     for (auto i : icons) {
         dynamic_pointer_cast<Object>(i)->update(info);
+    }
+}
+
+float Text::calcWidth()
+{
+    if (maxwidth) {
+        return maxwidth;
+    } else {
+        calcCharPositions();
+        return actualMaxWidth * size;
     }
 }

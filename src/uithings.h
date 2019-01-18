@@ -6,6 +6,7 @@
 #include "drawable.h"
 #include "text.h"
 #include "logic.h"
+#include "util.h"
 #include <memory>
 
 // Class to handle screen space info and transformations
@@ -127,6 +128,23 @@ class ResourceDisplay : public Renderable, public Object,
     protected:
         float iconSize = 0.1;
         std::vector<std::shared_ptr<IconNum>> displays;
+};
+
+class Button : public Object, public Renderable, public UIObject,
+    public Selectable
+{
+    public:
+        Button(std::string text, glm::vec3 position, glm::vec3 color, float size);
+        virtual void queueDraw() override;
+        virtual void draw(Shader& shader) override;
+        virtual void update(UpdateInfo& info) override;
+        virtual void onClick() override;
+    protected:
+        glm::vec3 color;
+        std::unique_ptr<LineMesh> lineMesh;
+        std::string label;
+        Text text;
+        float size;
 };
 
 #endif

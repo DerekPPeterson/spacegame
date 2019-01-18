@@ -88,6 +88,9 @@ void GraphicsObjectHandler::startGame(logic::GameState initialState)
                 dynamic_cast<System*>(getObject(logicShip.curSystemId).get()));
         addObject(ship);
     }
+
+    auto button = make_shared<Button>("Pass", glm::vec3(0.9, 0.7, -5), glm::vec3(0, 2, 2), 0.1);
+    addObject(button);
 }
 
 optional<logic::Action> GraphicsObjectHandler::getSelectedAction()
@@ -107,6 +110,15 @@ void GraphicsObjectHandler::checkEvents()
                 auto card = dynamic_pointer_cast<Card>(getObject(action.id));
                 myHand->removeCard(card);
                 stack->addCard(card);
+             }
+         }
+     }
+
+     auto buttonString = Event::getNextEvent(EVENT_BUTTON_PRESS);
+     if (buttonString and get<string>(*buttonString) == "Pass") {
+         for (auto action : actions) {
+             if (action.type == logic::ACTION_NONE or action.type == logic::ACTION_END_TURN) {
+                 selectedAction = action;
              }
          }
      }
@@ -130,6 +142,7 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
                 addObject(ship);
             }
             default:
+                LOG_ERROR << "Received unhandled change from server: " << change;
                 ;
         }
     }

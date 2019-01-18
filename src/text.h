@@ -65,7 +65,7 @@ class Text : public Renderable , public has_model_mat, public Object
 {
 	public:
 		Text(std::shared_ptr<Font> font, std::string text = "", glm::vec3 color = {1, 1, 1}, 
-                float maxwidth = 0, float size = 1) 
+                float maxwidth = 0, float size = 0.8) 
             : Renderable(SHADER_TEXT), 
               font(font), text(text), color(color), maxwidth(maxwidth),
               size(size) {calcCharPositions();};
@@ -73,6 +73,7 @@ class Text : public Renderable , public has_model_mat, public Object
         virtual void queueDraw() override;
 		void setText(std::string text) {this->text = text; calcCharPositions();};
 		void setColor(glm::vec3 color) {this->color = color;};
+        float calcWidth();
 	private:
         float calcTransformedMaxWidth(float rawWidth);
         void calcCharPositions();
@@ -81,6 +82,7 @@ class Text : public Renderable , public has_model_mat, public Object
         std::string multiline;
         glm::vec3 color;
         float maxwidth;
+        float actualMaxWidth;
         float size;
         std::vector<std::shared_ptr<Renderable>> icons;
         std::vector<glm::vec2> charPositions;

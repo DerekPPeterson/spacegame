@@ -7,6 +7,7 @@
 #include <queue>
 #include <list>
 #include <variant>
+#include <string>
 
 #include <plog/Log.h>
 
@@ -18,9 +19,10 @@ enum EventType
                         // clicked system
     EVENT_DRAW,         // data will be a pair representing playernum/number of cards
     EVENT_PLAY_CARD,    // data will be the logicId of the card
+    EVENT_BUTTON_PRESS, // data will be the string of the pressed button
 };
 
-typedef std::variant<int, std::pair<int, int>> EventData;
+typedef std::variant<int, std::pair<int, int>, std::string> EventData;
 
 class Event : public non_copyable
 {

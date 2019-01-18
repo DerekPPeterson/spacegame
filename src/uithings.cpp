@@ -2,6 +2,7 @@
 
 #include "spaceThings.h"
 #include "util.h"
+#include "event.h"
 
 using namespace std;
 
@@ -326,4 +327,73 @@ void ResourceDisplay::set(ResourceType type, int val)
 int ResourceDisplay::get(ResourceType type)
 {
     return displays[type]->getVal();
+}
+
+Button::Button(std::string label, glm::vec3 position, glm::vec3 color, float size)
+    : Renderable(SHADER_CARD), color(color), label(label), 
+      text(Fonts::title, label, color, 0, 5.0/8), size(size)
+{
+    setPos(calcWorldSpaceCoords({position.x * screenWidth, position.y * screenHeight}, -position.z));
+
+    model = glm::translate(model, getPos());
+    model = glm::scale(model, glm::vec3(size));
+
+    setVisible(true);
+
+    float padding = 0.1;
+    text.setModel(glm::translate(model, {padding, -padding, 0}));
+
+    float textwidth = text.calcWidth();
+
+    /* Create the LineMesh like so:
+     *(0, 0)
+     *     +-------------------+
+     *     |                   |
+     *     |Text (with padding)|
+     *     |                   |
+     *     +-------------------+
+     *                     (textwidth + padding * 2, -1 - padding * 2)
+     */
+     vector<glm::vec3> vertices = {
+         {0, 0, 0},
+         {textwidth + 2 * padding, 0, 0},
+         {textwidth + 2 * padding, -1 - padding * 2, 0},
+         {0, -1 - padding * 2, 0},
+         {0, 0, -0.2},
+         {textwidth + 2 * padding, 0, -0.2},
+         {textwidth + 2 * padding, -1 - padding * 2, -0.2},
+         {0, -1 - padding * 2, -0.2},
+     };
+     vector<unsigned int> indices = {
+        0, 1, 1, 2, 2, 3, 3, 0,
+        4, 5, 5, 6, 6, 7, 7, 4,
+        0, 4, 1, 5, 2, 6, 3, 7,
+     };
+     lineMesh = make_unique<LineMesh>(vertices, indices);
+
+     // create clickbox vertices
+     quadVertices.insert(quadVertices.begin(), vertices.begin(), vertices.begin() + 4);
+}
+
+void Button::queueDraw() 
+{
+    Renderable::queueDraw();
+    text.queueDraw();
+}
+
+void Button::draw(Shader& shader) 
+{
+    shader.setCommon(UNIFORM_MODEL, model);
+    shader.setCommon(UNIFORM_COLOR, color);
+    lineMesh->draw(shader);
+}
+
+void Button::update(UpdateInfo& info)
+{
+    checkSetHoverQuad(info, true);
+}
+
+void Button::onClick()
+{
+    Event::triggerEvent<string>(EVENT_BUTTON_PRESS, label);
 }
