@@ -46,6 +46,7 @@ void SpringSystem::updatePositions(float deltaTime)
             object->acceleration += -object->speed * damping;
             object->speed += object->acceleration * deltaTime;
             object->setPos(object->getPos() + object->speed * deltaTime);
+        } else {
         }
     }
 }
@@ -220,7 +221,7 @@ void Card::onRelease()
 
 Hand::Hand()
 {
-    position = calcWorldSpaceCoords({screenWidth, screenHeight * 0.9}, 5);
+    position = calcWorldSpaceCoords({screenWidth * 0.9, screenHeight * 0.9}, 5);
     cardsAreVisible = true;
     cardsAreDragable = true;
     zone = ZONE_HAND;
@@ -256,33 +257,40 @@ void CardZone::removeCard(shared_ptr<Card> card)
 void Hand::update(UpdateInfo& info)
 {
     sort(cards.begin(), cards.end(), [](const shared_ptr<Card> a, const shared_ptr<Card> b) 
-            {return a->getPos().x < b->getPos().x;});
+            {return a->getPos().x > b->getPos().x;});
+
+    float cardSpacing = (2.0 + 0.2) * 0.2;
+        
 
     SpringSystem springSystem;
-    auto right = shared_ptr<SpringObject>(new SpringObject(position));
-    auto left = shared_ptr<SpringObject>(new SpringObject(
-                glm::vec3(-2.2f * cards.size(), 0, 0) + position));
-    springSystem.objects.push_back(left);
-    springSystem.objects.push_back(right);
+    //auto right = shared_ptr<SpringObject>(new SpringObject(position));
+    //auto left = shared_ptr<SpringObject>(new SpringObject(
+    //            glm::vec3(-2.2f * cards.size() * cards.front()->size, 0, 0) + position));
+    //springSystem.objects.push_back(left);
+    //springSystem.objects.push_back(right);
 
-    auto card = cards[0];
-    auto spring = shared_ptr<Spring>(new Spring(left, card));
-    springSystem.objects.push_back(card);
-    springSystem.springs.push_back(spring);
+    //auto card = cards[0];
+    //auto spring = shared_ptr<Spring>(new Spring(springLength, left, card));
+    //springSystem.objects.push_back(card);
+    //springSystem.springs.push_back(spring);
 
-    for (int i = 1; i < cards.size(); i++) {
+    for (int i = 0; i < cards.size(); i++) {
         auto card = cards[i];
-        auto prevCard = cards[i-1];
-        auto spring = shared_ptr<Spring>(new Spring(card, prevCard));
+        card->fixed = card->dragging;
+        auto fixedPos = position - glm::vec3(i * cardSpacing, 0, 0);
+        auto fixed = shared_ptr<SpringObject>(new SpringObject(fixedPos));
+        fixed->fixed = true;
+        auto spring = shared_ptr<Spring>(new Spring(0, card, fixed));
         auto cardSpringObject = dynamic_pointer_cast<SpringObject>(card);
+        springSystem.objects.push_back(fixed);
         springSystem.objects.push_back(cardSpringObject);
         springSystem.springs.push_back(spring);
     }
 
-    card = cards.back();
-    spring = shared_ptr<Spring>(new Spring(right, card));
-    springSystem.objects.push_back(card);
-    springSystem.springs.push_back(spring);
+    //card = cards.back();
+    //spring = shared_ptr<Spring>(new Spring(springLength, right, card));
+    //springSystem.objects.push_back(card);
+    //springSystem.springs.push_back(spring);
 
     springSystem.updatePositions(info.deltaTime);
 

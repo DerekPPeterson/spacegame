@@ -46,8 +46,8 @@ struct SpringObject : virtual public has_position
 struct Spring
 {
     Spring() {};
-    Spring(std::shared_ptr<SpringObject> a, std::shared_ptr<SpringObject> b )
-        : a(a), b(b) {};
+    Spring(float l, std::shared_ptr<SpringObject> a, std::shared_ptr<SpringObject> b )
+        : l(l), a(a), b(b) {};
     float k = 20;
     float l = 1;
     std::shared_ptr<SpringObject> a;
