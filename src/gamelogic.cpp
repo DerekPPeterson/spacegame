@@ -116,14 +116,19 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
 {
     for (auto change : changes) {
         switch (change.type) {
-            case logic::CHANGE_RESOLVE_CARD:
-                {
-                    auto cardId = get<int>(change.data);
-                    auto card = dynamic_pointer_cast<Card>(getObject(cardId));
-                    stack->removeCard(card);
-                    discard->addCard(card);
-                    break;
-                }
+            case logic::CHANGE_RESOLVE_CARD: {
+                auto cardId = get<int>(change.data);
+                auto card = dynamic_pointer_cast<Card>(getObject(cardId));
+                stack->removeCard(card);
+                discard->addCard(card);
+                break;
+            }
+            case logic::CHANGE_ADD_SHIP: {
+                auto logicShip = get<logic::Ship>(change.data);
+                auto system = dynamic_pointer_cast<System>(getObject(logicShip.curSystemId));
+                auto ship = SpaceShip::createFrom(logicShip, system.get());
+                addObject(ship);
+            }
             default:
                 ;
         }
