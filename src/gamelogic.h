@@ -21,7 +21,7 @@ class GraphicsObjectHandler
         };
         std::optional<logic::Action> getSelectedAction();
 
-        void updateState(std::vector<logic::Change>) {};;
+        void updateState(std::vector<logic::Change>);
 
         /* Get all the currently active game objects
          */

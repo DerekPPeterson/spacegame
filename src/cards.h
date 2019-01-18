@@ -21,16 +21,28 @@ struct CardInfo
 
 std::string createCostString(ResourceAmount amount);
 
+enum CardZone
+{
+    ZONE_DECK,
+    ZONE_HAND,
+    ZONE_STACK,
+    ZONE_DISCARD
+};
+
 class Card : public Renderable , public Object, public Dragable,
              public needs_setup<Card>
 {
     public:
         Card(CardInfo info);
         Card(logic::Card logicCard);
+
         virtual void draw(Shader& shader) override;
         virtual void queueDraw() override;
         virtual void update(UpdateInfo& info) override;
         static void setup();
+
+        void play();
+
         static std::shared_ptr<Card> createFrom(logic::Card);
     protected:
         void updateModel();
@@ -48,10 +60,25 @@ class Card : public Renderable , public Object, public Dragable,
         float phase = 0;
 
         CardInfo info;
+        CardZone zone = ZONE_DECK;
 
         float highlight = 1;
 
         friend class Hand;
+        friend class Stack;
+};
+
+class Stack : public Object, public UIObject
+{
+    public:
+        Stack();
+        void addCard(std::shared_ptr<Card> card);
+        void removeCard(std::shared_ptr<Card> card);
+        virtual void update(UpdateInfo& info) override;
+        std::vector<std::shared_ptr<Object>> getAllCards();
+    private:
+        std::vector<std::shared_ptr<Card>> cards;
+        glm::vec3 stackPos;
 };
 
 class Hand : public Object, public UIObject
@@ -59,6 +86,7 @@ class Hand : public Object, public UIObject
     public:
         Hand();
         void addCard(std::shared_ptr<Card> card);
+        void removeCard(std::shared_ptr<Card> card);
         virtual void update(UpdateInfo& info) override;
         std::vector<std::shared_ptr<Object>> getAllCards();
     private:

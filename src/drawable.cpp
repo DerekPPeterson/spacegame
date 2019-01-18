@@ -154,6 +154,10 @@ Dragable* Dragable::beingDragged = NULL;
 
 void Dragable::checkSetDrag(UpdateInfo info, bool screenSpace)
 {
+    if (not dragEnabled) {
+        return;
+    }
+
     glm::vec3 curDragPos = calcWorldSpaceCoords(info.mouse.position, position.z);
     curDragPos.x = screenWidth - curDragPos.x;
     curDragPos.y = screenHeight - curDragPos.y;

@@ -114,6 +114,8 @@ class Selectable : public virtual has_position, public virtual has_model_mat
 
 class Dragable : public Selectable, virtual public UIObject
 {
+    public:
+        bool dragEnabled = false;
     protected:
         void checkSetDrag(UpdateInfo info, bool screenSpace = false);
         virtual void onRelease() {};

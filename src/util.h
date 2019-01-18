@@ -20,4 +20,26 @@ inline std::string randString(int n)
     return ret;
 };
 
+template <class T>
+class Interpolated
+{
+    public:
+        Interpolated(T initial, T min, T max, T speed) 
+            : curVal(initial), min(min), max(max), speed(speed) {};
+        void update(float deltaTime)
+        {
+            curVal += speed * deltaTime;
+            if (curVal > max) {
+                curVal = max;
+            } else if (curVal < min) {
+                curVal = min;
+            }
+        }
+        T curVal;
+    protected:
+        T min;
+        T max;
+        T speed;
+};
+
 #endif

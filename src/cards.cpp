@@ -190,6 +190,7 @@ void Hand::addCard(shared_ptr<Card> card)
     if (card) {
         card->position = handPos;
         card->setVisible(true);
+        card->dragEnabled = true;
         cards.push_back(card);
     }
 }
@@ -247,10 +248,24 @@ void Hand::update(UpdateInfo& info)
     }
 }
 
+Stack::Stack()
+{
+    stackPos = calcWorldSpaceCoords({screenWidth * 0.8, screenHeight * 0.5}, 5);
+}
+
+void Stack::addCard(shared_ptr<Card> card)
+{
+    if (card) {
+        card->setVisible(true);
+        card->dragEnabled = false;
+        cards.push_back(card);
+    }
+}
+
+
 Deck::Deck(std::vector<std::shared_ptr<Card>> cards) :
     cards(cards)
 {
-    shuffle();
 }
 
 void Deck::shuffle()
