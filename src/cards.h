@@ -10,6 +10,7 @@
 
 #include <memory>
 #include <map>
+#include <iostream>
 
 struct CardInfo
 {
@@ -21,13 +22,16 @@ struct CardInfo
 
 std::string createCostString(ResourceAmount amount);
 
-enum CardZone
+enum Zone
 {
+    ZONE_NONE,
     ZONE_DECK,
     ZONE_HAND,
     ZONE_STACK,
     ZONE_DISCARD
 };
+
+std::ostream & operator<<(std::ostream &os, const Zone& p);
 
 class Card : public Renderable , public Object, public Dragable,
              public needs_setup<Card>
@@ -60,38 +64,43 @@ class Card : public Renderable , public Object, public Dragable,
         float phase = 0;
 
         CardInfo info;
-        CardZone zone = ZONE_DECK;
+        Zone zone;
 
         float highlight = 1;
 
+        friend class CardZone;
         friend class Hand;
-        friend class Stack;
+        friend class Deck;
 };
 
-class Stack : public Object, public UIObject
+class CardZone : public Object, public UIObject, virtual public has_position
+{
+    public:
+        //CardZone();
+        virtual void addCard(std::shared_ptr<Card> card);
+        //virtual void removeCard(std::shared_ptr<Card> card);
+        //virtual void update(UpdateInfo& info) override;
+        std::vector<std::shared_ptr<Object>> getAllCards();
+    protected:
+        std::vector<std::shared_ptr<Card>> cards;
+        bool cardsAreVisible = false;
+        bool cardsAreDragable = false;
+        Zone zone = ZONE_NONE;
+};
+
+class Stack : public CardZone
 {
     public:
         Stack();
-        void addCard(std::shared_ptr<Card> card);
-        void removeCard(std::shared_ptr<Card> card);
-        virtual void update(UpdateInfo& info) override;
-        std::vector<std::shared_ptr<Object>> getAllCards();
-    private:
-        std::vector<std::shared_ptr<Card>> cards;
-        glm::vec3 stackPos;
+        //virtual void update(UpdateInfo& info) override {};
+        //std::vector<std::shared_ptr<Object>> getAllCards() {};
 };
 
-class Hand : public Object, public UIObject
+class Hand : public CardZone
 {
     public:
         Hand();
-        void addCard(std::shared_ptr<Card> card);
-        void removeCard(std::shared_ptr<Card> card);
         virtual void update(UpdateInfo& info) override;
-        std::vector<std::shared_ptr<Object>> getAllCards();
-    private:
-        std::vector<std::shared_ptr<Card>> cards;
-        glm::vec3(handPos);
 };
 
 // TODO render deck?

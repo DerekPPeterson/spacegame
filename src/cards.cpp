@@ -12,6 +12,22 @@
 
 using namespace std;
 
+std::ostream & operator<<(std::ostream &os, const Zone& p) {
+    switch (p) {
+        case ZONE_NONE:
+            os << "ZONE_NONE"; break;
+        case ZONE_DECK:
+            os << "ZONE_DECK"; break;
+        case ZONE_HAND:
+            os << "ZONE_HAND"; break;
+        case ZONE_STACK:
+            os << "ZONE_STACK"; break;
+        case ZONE_DISCARD:
+            os << "ZONE_DISCARD"; break;
+    }
+    return os;
+}
+
 // TODO different card models?
 shared_ptr<LineModel> Card::cardModel;
 
@@ -182,16 +198,20 @@ void Card::onRelease()
 
 Hand::Hand()
 {
-    handPos = calcWorldSpaceCoords({screenWidth, screenHeight * 0.9}, 5);
+    position = calcWorldSpaceCoords({screenWidth, screenHeight * 0.9}, 5);
+    cardsAreVisible = true;
+    cardsAreDragable = true;
 }
 
-void Hand::addCard(shared_ptr<Card> card)
+void CardZone::addCard(shared_ptr<Card> card)
 {
     if (card) {
-        card->position = handPos;
-        card->setVisible(true);
-        card->dragEnabled = true;
+        card->setVisible(cardsAreVisible);
+        card->dragEnabled = cardsAreDragable;
         cards.push_back(card);
+        LOG_INFO << "Added card: '" << card->info.name << "' to " << zone;
+    } else {
+        LOG_ERROR << "Tried to add a nullptr to a card zone";
     }
 }
 
@@ -204,7 +224,7 @@ void Hand::update(UpdateInfo& info)
     float springiness = 20; // spring constant (ish)
     float width = 2;        // width of card model
     float damping = sqrt(springiness);      // force to slow down cards
-    float right = handPos.x;
+    float right = position.x;
     float left = right;     
     for (int i = 0; i < cards.size(); i++) {
         left -= width * cards[i]->size * (1 + cardSpacing);
@@ -232,7 +252,7 @@ void Hand::update(UpdateInfo& info)
         
         // Pull cards back to the hand if they are not activly being dragged
         if (not cards[i]->beingDragged) {
-            acceleration.y = -springiness * (cards[i]->getPos().y - handPos.y);
+            acceleration.y = -springiness * (cards[i]->getPos().y - position.y);
         }
 
         // Calculate new card positions
@@ -250,18 +270,8 @@ void Hand::update(UpdateInfo& info)
 
 Stack::Stack()
 {
-    stackPos = calcWorldSpaceCoords({screenWidth * 0.8, screenHeight * 0.5}, 5);
+    setPos(calcWorldSpaceCoords({screenWidth * 0.8, screenHeight * 0.5}, 5));
 }
-
-void Stack::addCard(shared_ptr<Card> card)
-{
-    if (card) {
-        card->setVisible(true);
-        card->dragEnabled = false;
-        cards.push_back(card);
-    }
-}
-
 
 Deck::Deck(std::vector<std::shared_ptr<Card>> cards) :
     cards(cards)
