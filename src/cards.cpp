@@ -199,11 +199,11 @@ void Card::update(UpdateInfo& info)
         }
     }
 
-    if (position.y > -0.45) {
-        highlight = 3;
-    } else {
-        highlight = 1;
-    }
+    //if (position.y > -0.45) {
+    //    highlight = 3;
+    //} else {
+    //    highlight = 1;
+    //}
 }
 
 void Card::onClick()
@@ -313,6 +313,34 @@ void Stack::update(UpdateInfo& info)
     springSystem.updatePositions(info.deltaTime);
 }
 
+void Discard::update(UpdateInfo& info)
+{
+    float cardSpacing = 0.2;
+        
+    SpringSystem springSystem;
+
+    for (int i = 0; i < cards.size(); i++) {
+        // Cast card to a spring object for use in the springsystem
+        auto card = cards[i];
+        auto cardSpringObject = dynamic_pointer_cast<SpringObject>(card);
+        cardSpringObject->fixed = false;
+
+        // Create a fixed position to attach the card to
+        auto fixedPos = position - glm::vec3(0, 0, cardSpacing * (cards.size() - i - 1));
+        auto fixed = shared_ptr<SpringObject>(new SpringObject(fixedPos));
+        fixed->fixed = true;
+
+        // connect position and card with spring
+        auto spring = shared_ptr<Spring>(new Spring(0, card, fixed));
+
+        springSystem.objects.push_back(fixed);
+        springSystem.objects.push_back(cardSpringObject);
+        springSystem.springs.push_back(spring);
+    }
+
+    springSystem.updatePositions(info.deltaTime);
+}
+
 
 Stack::Stack()
 {
@@ -322,10 +350,23 @@ Stack::Stack()
     zone = ZONE_STACK;
 }
 
-Deck::Deck(std::vector<std::shared_ptr<Card>> cards)
+Deck::Deck()
 {
-    this->cards = cards;
-    for (auto card : cards) {
-        card->zone = ZONE_DECK;
-    }
+    cardsAreVisible = true;
+    cardsAreDragable = false;
+    zone = ZONE_DECK;
+}
+
+Discard::Discard()
+{
+    position = calcWorldSpaceCoords({screenWidth * 0.1, screenHeight * 0.9}, 5);
+    cardsAreVisible = true;
+    cardsAreDragable = false;
+    zone = ZONE_DISCARD;
+}
+
+void Discard::addCard(shared_ptr<Card> card)
+{
+    CardZone::addCard(card);
+    card->highlight = 0.3;
 }

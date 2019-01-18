@@ -17,7 +17,13 @@ struct CardInfo
     std::string name = "Long Card Name";
     std::string text = "Warp Beacon: {wb}\nMaterials: {mat}\nAI: {ai}\nAM: {am}\nInf: {inf}";
     glm::vec3 color = {0.1, 2, 2};
-    ResourceAmount cost = {{RESOURCE_MATERIALS, 1}, {RESOURCE_AI, 1}, {RESOURCE_ANTIMATTER, 1}, {RESOURCE_WARP_BEACONS, 1}, {RESOURCE_INFLUENCE, 1}};
+    ResourceAmount cost = {
+        {RESOURCE_MATERIALS, 1}, 
+        {RESOURCE_AI, 1}, 
+        {RESOURCE_ANTIMATTER, 1}, 
+        {RESOURCE_WARP_BEACONS, 1}, 
+        {RESOURCE_INFLUENCE, 1}
+    };
 };
 
 std::string createCostString(ResourceAmount amount);
@@ -112,6 +118,7 @@ class Card : public Renderable , public Object, public Dragable,
         friend class CardZone;
         friend class Hand;
         friend class Deck;
+        friend class Discard;
 };
 
 class CardZone : public Object, public UIObject, virtual public has_position
@@ -146,7 +153,15 @@ class Hand : public CardZone
 class Deck : public CardZone
 {
     public:
-        Deck(std::vector<std::shared_ptr<Card>>);
+        Deck();
+};
+
+class Discard : public CardZone
+{
+    public:
+        Discard(); 
+        virtual void update(UpdateInfo& info) override;
+        virtual void addCard(std::shared_ptr<Card> card) override;
 };
 
 #endif

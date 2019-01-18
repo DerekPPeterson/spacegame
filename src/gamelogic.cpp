@@ -45,9 +45,9 @@ shared_ptr<Object> GraphicsObjectHandler::getObject(int logicId)
 
 void GraphicsObjectHandler::initializePlayer(logic::Player player)
 {
-    myHand = shared_ptr<Hand>(new Hand());
+    myHand = make_shared<Hand>();
     addObject(myHand);
-    shared_ptr<Deck> deck(new Deck({}));
+    auto deck = make_shared<Deck>();
     addObject(deck);
 
     for (auto logicCard : player.hand) {
@@ -64,7 +64,7 @@ void GraphicsObjectHandler::initializePlayer(logic::Player player)
 
 void GraphicsObjectHandler::startGame(logic::GameState initialState) 
 {
-    shared_ptr<SpaceGrid> spacegrid(new SpaceGrid);
+    auto spacegrid = make_shared<SpaceGrid>();
     addObject(spacegrid);
 
     vector<std::shared_ptr<Object>> systems = spacegrid->getAllSystems();
@@ -78,8 +78,10 @@ void GraphicsObjectHandler::startGame(logic::GameState initialState)
 
     initializePlayer(initialState.players.front());
 
-    stack = shared_ptr<Stack>(new Stack());
+    stack = make_shared<Stack>();
     addObject(stack);
+    discard = make_shared<Discard>();
+    addObject(discard);
 
     for (auto logicShip : initialState.ships) {
         auto ship = SpaceShip::createFrom(logicShip, 
@@ -114,8 +116,12 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
 {
     for (auto change : changes) {
         switch (change.type) {
-            case logic::CHANGE_PLAY_CARD:
+            case logic::CHANGE_RESOLVE_CARD:
                 {
+                    auto cardId = get<int>(change.data);
+                    auto card = dynamic_pointer_cast<Card>(getObject(cardId));
+                    stack->removeCard(card);
+                    discard->addCard(card);
                     break;
                 }
             default:
