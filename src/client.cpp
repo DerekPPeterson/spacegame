@@ -103,11 +103,13 @@ vector<logic::Change> GameClient::getChangesSince(int changeNo)
         futureChanges = async(launch::async, &GameClient::_getChangesSince, this, changeNo);
         return {};
     } else if (futureChanges->wait_for(chrono::seconds(0)) == future_status::ready) {
+        changesLastRequest = 0; // reset timer to submit a request immediatly
         auto changes = futureChanges->get();
-        futureChanges.reset();
         if (changes.size()) {
             LOG_INFO << "Got " << changes.size() << "changes from server, biggest changeNo: " << changes.back().changeNo;
         }
+
+        futureChanges.reset();
         return changes;
     } else {
         return {};
@@ -123,6 +125,7 @@ vector<logic::Change> GameClient::_getChangesSince(int changeNo) const
 void GameClient::performAction(Action action)
 {
     actionPending = async(launch::async, &GameClient::_performAction, this, action);
+    changesLastRequest = 0; // Start requesting changes right after performing action
 }
 
 void GameClient::_performAction(Action action) const
