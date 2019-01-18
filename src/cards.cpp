@@ -10,6 +10,9 @@
 #include <random>
 #include <sstream>
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
+
 using namespace std;
 
 std::ostream & operator<<(std::ostream &os, const Zone& p) {
@@ -26,6 +29,25 @@ std::ostream & operator<<(std::ostream &os, const Zone& p) {
             os << "ZONE_DISCARD"; break;
     }
     return os;
+}
+
+void SpringSystem::updatePositions(float deltaTime)
+{
+    for (auto& object : objects) {
+        object->acceleration = {0, 0, 0};
+    }
+    for (auto& spring : springs) {
+        auto force = spring->calcForceAonB();
+        spring->b->acceleration += force / spring->b->mass;
+        spring->a->acceleration -= force / spring->a->mass;
+    }
+    for (auto& object : objects) {
+        if (not object->fixed) {
+            object->acceleration += -object->speed * damping;
+            object->speed += object->acceleration * deltaTime;
+            object->setPos(object->getPos() + object->speed * deltaTime);
+        }
+    }
 }
 
 // TODO different card models?
@@ -201,6 +223,7 @@ Hand::Hand()
     position = calcWorldSpaceCoords({screenWidth, screenHeight * 0.9}, 5);
     cardsAreVisible = true;
     cardsAreDragable = true;
+    zone = ZONE_HAND;
 }
 
 void CardZone::addCard(shared_ptr<Card> card)
@@ -208,6 +231,7 @@ void CardZone::addCard(shared_ptr<Card> card)
     if (card) {
         card->setVisible(cardsAreVisible);
         card->dragEnabled = cardsAreDragable;
+        card->zone = zone;
         cards.push_back(card);
         LOG_INFO << "Added card: '" << card->info.name << "' to " << zone;
     } else {
@@ -215,97 +239,115 @@ void CardZone::addCard(shared_ptr<Card> card)
     }
 }
 
+void CardZone::removeCard(shared_ptr<Card> card)
+{
+    if (card) {
+        card->setVisible(false);
+        card->dragEnabled = false;
+        card->zone = ZONE_NONE;
+        cards.push_back(card);
+        LOG_INFO << "Added card: '" << card->info.name << "' to " << zone;
+    } else {
+        LOG_ERROR << "Tried to add a nullptr to a card zone";
+    }
+}
+
+
 void Hand::update(UpdateInfo& info)
 {
     sort(cards.begin(), cards.end(), [](const shared_ptr<Card> a, const shared_ptr<Card> b) 
             {return a->getPos().x < b->getPos().x;});
 
-    float cardSpacing = 0.2; // fraction of card size
-    float springiness = 20; // spring constant (ish)
-    float width = 2;        // width of card model
-    float damping = sqrt(springiness);      // force to slow down cards
-    float right = position.x;
-    float left = right;     
-    for (int i = 0; i < cards.size(); i++) {
-        left -= width * cards[i]->size * (1 + cardSpacing);
-    }
-    vector<glm::vec3> newPositions(cards.size());
-    for (int i = 0; i < cards.size(); i++) {
-        glm::vec3 acceleration = {0, 0, 0};
+    SpringSystem springSystem;
+    auto right = shared_ptr<SpringObject>(new SpringObject(position));
+    auto left = shared_ptr<SpringObject>(new SpringObject(
+                glm::vec3(-2.2f * cards.size(), 0, 0) + position));
+    springSystem.objects.push_back(left);
+    springSystem.objects.push_back(right);
 
-        // Calculate horizontal acceleration of cards due to adjacent cards
-        if (i > 0) {
-            acceleration.x -= springiness * (cards[i]->position.x - cards[i-1]->position.x - width * cards[i]->size * (1 + cardSpacing));
-        } else {
-            acceleration.x += springiness * (-cards[i]->position.x + left - width * cards[i]->size * (1 + cardSpacing));
-        }
-        if (i < cards.size() - 1) {
-            acceleration.x += springiness * (-cards[i]->position.x + cards[i+1]->position.x - width * cards[i]->size * (1 + cardSpacing));
-        } else {
-            acceleration.x += springiness * (-cards[i]->position.x + right - width * cards[i]->size * (1 + cardSpacing));
-        }
+    auto card = cards[0];
+    auto spring = shared_ptr<Spring>(new Spring(left, card));
+    springSystem.objects.push_back(card);
+    springSystem.springs.push_back(spring);
 
-        // if a card is hovered it shouldn't move horizontally
-        if (cards[i]->isHovered) {
-            acceleration.x = 0;
-        }
-        
-        // Pull cards back to the hand if they are not activly being dragged
-        if (not cards[i]->beingDragged) {
-            acceleration.y = -springiness * (cards[i]->getPos().y - position.y);
-        }
-
-        // Calculate new card positions
-        acceleration -= cards[i]->speed * damping;
-        acceleration *= info.deltaTime;
-        cards[i]->speed += acceleration;
-        newPositions[i] = cards[i]->position + cards[i]->speed * info.deltaTime;
+    for (int i = 1; i < cards.size(); i++) {
+        auto card = cards[i];
+        auto prevCard = cards[i-1];
+        auto spring = shared_ptr<Spring>(new Spring(card, prevCard));
+        auto cardSpringObject = dynamic_pointer_cast<SpringObject>(card);
+        springSystem.objects.push_back(cardSpringObject);
+        springSystem.springs.push_back(spring);
     }
 
-    // Update card positions
-    for (int i = 0; i < cards.size(); i++) {
-        cards[i]->position = newPositions[i];
-    }
+    card = cards.back();
+    spring = shared_ptr<Spring>(new Spring(right, card));
+    springSystem.objects.push_back(card);
+    springSystem.springs.push_back(spring);
+
+    springSystem.updatePositions(info.deltaTime);
+
+    //float cardSpacing = 0.2; // fraction of card size
+    //float springiness = 20; // spring constant (ish)
+    //float width = 2;        // width of card model
+    //float damping = sqrt(springiness);      // force to slow down cards
+    //float right = position.x;
+    //float left = right;     
+    //for (int i = 0; i < cards.size(); i++) {
+    //    left -= width * cards[i]->size * (1 + cardSpacing);
+    //}
+    //vector<glm::vec3> newPositions(cards.size());
+    //for (int i = 0; i < cards.size(); i++) {
+    //    glm::vec3 acceleration = {0, 0, 0};
+
+    //    // Calculate horizontal acceleration of cards due to adjacent cards
+    //    if (i > 0) {
+    //        acceleration.x -= springiness * (cards[i]->position.x - cards[i-1]->position.x - width * cards[i]->size * (1 + cardSpacing));
+    //    } else {
+    //        acceleration.x += springiness * (-cards[i]->position.x + left - width * cards[i]->size * (1 + cardSpacing));
+    //    }
+    //    if (i < cards.size() - 1) {
+    //        acceleration.x += springiness * (-cards[i]->position.x + cards[i+1]->position.x - width * cards[i]->size * (1 + cardSpacing));
+    //    } else {
+    //        acceleration.x += springiness * (-cards[i]->position.x + right - width * cards[i]->size * (1 + cardSpacing));
+    //    }
+
+    //    // if a card is hovered it shouldn't move horizontally
+    //    if (cards[i]->isHovered) {
+    //        acceleration.x = 0;
+    //    }
+    //    
+    //    // Pull cards back to the hand if they are not activly being dragged
+    //    if (not cards[i]->beingDragged) {
+    //        acceleration.y = -springiness * (cards[i]->getPos().y - position.y);
+    //    }
+
+    //    // Calculate new card positions
+    //    acceleration -= cards[i]->speed * damping;
+    //    acceleration *= info.deltaTime;
+    //    cards[i]->speed += acceleration;
+    //    newPositions[i] = cards[i]->position + cards[i]->speed * info.deltaTime;
+    //}
+
+    //// Update card positions
+    //for (int i = 0; i < cards.size(); i++) {
+    //    cards[i]->position = newPositions[i];
+    //}
 }
+
+
 
 Stack::Stack()
 {
     setPos(calcWorldSpaceCoords({screenWidth * 0.8, screenHeight * 0.5}, 5));
+    cardsAreVisible = true;
+    cardsAreDragable = false;
+    zone = ZONE_STACK;
 }
 
-Deck::Deck(std::vector<std::shared_ptr<Card>> cards) :
-    cards(cards)
+Deck::Deck(std::vector<std::shared_ptr<Card>> cards)
 {
-}
-
-void Deck::shuffle()
-{
-    random_shuffle(cards.begin(), cards.end());
-}
-
-std::shared_ptr<Card> Deck::draw()
-{
-    if (cards.size()) {
-        auto card = cards.back();
-        cards.pop_back();
-        return card;
-    } else {
-        return shared_ptr<Card>(nullptr);
-    }
-}
-
-void Deck::insert(std::shared_ptr<Card> card, DeckLocation location)
-{
-    vector<shared_ptr<Card>> toInsert = {card};
-    switch (location) {
-        case DECK_TOP:
-            cards.insert(cards.begin(), toInsert.begin(), toInsert.end());
-            break;
-        case DECK_BOTTOM:
-            cards.push_back(card);
-            break;
-        case DECK_RANDOM:
-            auto insertIt = cards.begin() + rand() % cards.size();
-            cards.insert(insertIt, toInsert.begin(), toInsert.end());
+    this->cards = cards;
+    for (auto card : cards) {
+        card->zone = ZONE_DECK;
     }
 }
