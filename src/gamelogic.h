@@ -8,6 +8,8 @@
 #include "renderer.h"
 #include "logic.h"
 
+#include "cards.h"
+
 class GraphicsObjectHandler
 {
     public:
@@ -18,6 +20,9 @@ class GraphicsObjectHandler
         void setPossibleActions(std::vector<logic::Action> actions) 
         {
             this->actions = actions;
+            if (actions.size() == 1) {
+                selectedAction = actions[0];
+            }
         };
         std::optional<logic::Action> getSelectedAction();
 
@@ -45,6 +50,10 @@ class GraphicsObjectHandler
 
         std::vector<logic::Action> actions;
         std::optional<logic::Action> selectedAction;
+    
+        // common objects that need to be referred to:
+        std::shared_ptr<Stack> stack;
+        std::shared_ptr<Hand> myHand;
 };
 
 #endif

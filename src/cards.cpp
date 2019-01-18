@@ -179,7 +179,7 @@ void Card::update(UpdateInfo& info)
     float sizeChangeRate = 3;
     float targetSize;
 
-    if (isHovered) {
+    if (isHovered or zone == ZONE_STACK) {
         targetSize = 0.4;
     } else {
         targetSize = 0.2;
@@ -246,8 +246,8 @@ void CardZone::removeCard(shared_ptr<Card> card)
         card->setVisible(false);
         card->dragEnabled = false;
         card->zone = ZONE_NONE;
-        cards.push_back(card);
-        LOG_INFO << "Added card: '" << card->info.name << "' to " << zone;
+        cards.erase(remove(cards.begin(), cards.end(), card), cards.end());
+        LOG_INFO << "Removed card: '" << card->info.name << "' from " << zone;
     } else {
         LOG_ERROR << "Tried to add a nullptr to a card zone";
     }
@@ -285,6 +285,33 @@ void Hand::update(UpdateInfo& info)
     springSystem.updatePositions(info.deltaTime);
 }
 
+void Stack::update(UpdateInfo& info)
+{
+    float cardSpacing = 0.5;
+        
+    SpringSystem springSystem;
+
+    for (int i = 0; i < cards.size(); i++) {
+        // Cast card to a spring object for use in the springsystem
+        auto card = cards[i];
+        auto cardSpringObject = dynamic_pointer_cast<SpringObject>(card);
+        cardSpringObject->fixed = false;
+
+        // Create a fixed position to attach the card to
+        auto fixedPos = position - glm::vec3(-cardSpacing * 0.2 * i, 0, cardSpacing * (cards.size() - i - 1));
+        auto fixed = shared_ptr<SpringObject>(new SpringObject(fixedPos));
+        fixed->fixed = true;
+
+        // connect position and card with spring
+        auto spring = shared_ptr<Spring>(new Spring(0, card, fixed));
+
+        springSystem.objects.push_back(fixed);
+        springSystem.objects.push_back(cardSpringObject);
+        springSystem.springs.push_back(spring);
+    }
+
+    springSystem.updatePositions(info.deltaTime);
+}
 
 
 Stack::Stack()

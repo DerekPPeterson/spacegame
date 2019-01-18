@@ -244,7 +244,7 @@ namespace logic {
         int changeNo = 0;
         ChangeType type;
         variant<Ship, int, Card, Player, TurnInfo, pair<int, vector<int>>, WarpBeacon> data;
-        SERIALIZE(type, data);
+        SERIALIZE(changeNo, type, data);
         friend ostream & operator << (ostream &out, const Change &c) {
             out << "(Change: no " << c.changeNo << " type: " << c.type << ")";
             return out;

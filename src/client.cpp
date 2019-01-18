@@ -105,6 +105,9 @@ vector<logic::Change> GameClient::getChangesSince(int changeNo)
     } else if (futureChanges->wait_for(chrono::seconds(0)) == future_status::ready) {
         auto changes = futureChanges->get();
         futureChanges.reset();
+        if (changes.size()) {
+            LOG_INFO << "Got " << changes.size() << "changes from server, biggest changeNo: " << changes.back().changeNo;
+        }
         return changes;
     } else {
         return {};

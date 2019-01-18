@@ -121,7 +121,7 @@ class CardZone : public Object, public UIObject, virtual public has_position
         virtual void addCard(std::shared_ptr<Card> card);
         virtual void removeCard(std::shared_ptr<Card> card);
         //virtual void update(UpdateInfo& info) override;
-        std::vector<std::shared_ptr<Object>> getAllCards();
+        //std::vector<std::shared_ptr<Object>> getAllCards();
     protected:
         std::vector<std::shared_ptr<Card>> cards;
         bool cardsAreVisible = false;
@@ -133,8 +133,7 @@ class Stack : public CardZone
 {
     public:
         Stack();
-        //virtual void update(UpdateInfo& info) override {};
-        //std::vector<std::shared_ptr<Object>> getAllCards() {};
+        virtual void update(UpdateInfo& info) override;
 };
 
 class Hand : public CardZone

@@ -1,6 +1,5 @@
 #include "gamelogic.h"
 #include "spaceThings.h"
-#include "cards.h"
 #include "uithings.h"
 
 #include <exception>
@@ -46,14 +45,14 @@ shared_ptr<Object> GraphicsObjectHandler::getObject(int logicId)
 
 void GraphicsObjectHandler::initializePlayer(logic::Player player)
 {
-    shared_ptr<Hand> hand(new Hand());
-    addObject(hand);
+    myHand = shared_ptr<Hand>(new Hand());
+    addObject(myHand);
     shared_ptr<Deck> deck(new Deck({}));
     addObject(deck);
 
     for (auto logicCard : player.hand) {
         auto card = Card::createFrom(logicCard);
-        hand->addCard(card);
+        myHand->addCard(card);
         addObject(card);
     }
     for (auto logicCard : player.deck) {
@@ -79,6 +78,9 @@ void GraphicsObjectHandler::startGame(logic::GameState initialState)
 
     initializePlayer(initialState.players.front());
 
+    stack = shared_ptr<Stack>(new Stack());
+    addObject(stack);
+
     for (auto logicShip : initialState.ships) {
         auto ship = SpaceShip::createFrom(logicShip, 
                 dynamic_cast<System*>(getObject(logicShip.curSystemId).get()));
@@ -100,6 +102,9 @@ void GraphicsObjectHandler::checkEvents()
          for (auto action : actions) {
              if (action.type == logic::ACTION_PLAY_CARD and action.id == get<int>(*cardId)) {
                 selectedAction = action;
+                auto card = dynamic_pointer_cast<Card>(getObject(action.id));
+                myHand->removeCard(card);
+                stack->addCard(card);
              }
          }
      }
@@ -111,9 +116,6 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
         switch (change.type) {
             case logic::CHANGE_PLAY_CARD:
                 {
-                    auto cardId = get<int>(change.data);
-                    auto card = dynamic_pointer_cast<Card>(getObject(cardId));
-                    //card->play();
                     break;
                 }
             default:

@@ -16,12 +16,7 @@
 #include <cxxopts.hpp>
 #include <ctime>
 
-//#include "shader.h"
-//#include "camera.h"
-//#include "model.h"
 #include "cubemap.h"
-//#include "drawable.h"
-//#include "framebuffer.h"
 #include "timer.h"
 #include "objectupdater.h"
 #include "input.h"
@@ -90,7 +85,10 @@ int main(int argc, char **argv)
         ;
     auto result = opts.parse(argc, argv);
 
-    remove(result["logfile"].as<string>().c_str());
+    //remove(result["logfile"].as<string>().c_str());
+    std::ofstream ofs;
+    ofs.open(result["logfile"].as<string>().c_str(), std::ofstream::out | std::ofstream::trunc);
+    ofs.close();
     plog::init(plog::verbose, result["logfile"].as<string>().c_str());
     LOG_INFO << "Starting program";
 
@@ -141,7 +139,7 @@ int main(int argc, char **argv)
         info.curTime = Timer::global.get();
         info.mouse = input.mouse;
         frameTimes.push_back(info.deltaTime);
-        LOG_INFO << "Frametime: " << info.deltaTime;
+        LOG_VERBOSE << "Frametime: " << info.deltaTime;
 
         if (actions.size()) {
             // This will trigger animations and iterface for selecting
