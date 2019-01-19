@@ -21,6 +21,8 @@
 
 // - apt-get install binutils-dev ...
 // - g++/clang++ -lbfd ...
+#pragma clang diagnostic warning "-Wmacro-redefined"
+#pragma clang diagnostic ignored "-Wmacro-redefined"
 #define BACKWARD_HAS_BFD 1
 
 #include "backward.hpp"

@@ -41,6 +41,8 @@ class GraphicsObjectHandler
         void checkEvents();
 
     private:
+        int playerId;
+
         void initializePlayer(logic::Player);
         void addObject(std::shared_ptr<Object> object);
 

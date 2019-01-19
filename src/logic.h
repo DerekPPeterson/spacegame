@@ -184,7 +184,7 @@ namespace logic {
             return out;
         }
 
-        pair<int, vector<int>> draw(int n=1);
+        pair<int, Card> draw();
     };
 
     enum TurnPhases {
@@ -234,7 +234,7 @@ namespace logic {
         CHANGE_REMOVE_SHIP, // data will be ship that was removed
         CHANGE_PLAY_CARD,   // data will be cardId of card that was played
         CHANGE_RESOLVE_CARD,   // data will be cardId of card that was resolved
-        CHANGE_DRAW_CARDS,   // data will be pair of playerid, cardId
+        CHANGE_DRAW_CARD,   // data will be pair of playerid, Card
         CHANGE_PHASE_CHANGE, // data will be turnInfo
         CHANGE_PLACE_BEACON, // data will be WarpBeacon object
     };
@@ -243,7 +243,7 @@ namespace logic {
     {
         int changeNo = 0;
         ChangeType type;
-        variant<Ship, int, Card, Player, TurnInfo, pair<int, vector<int>>, WarpBeacon> data;
+        variant<Ship, int, Card, Player, TurnInfo, pair<int, Card>, WarpBeacon> data;
         SERIALIZE(changeNo, type, data);
         friend ostream & operator << (ostream &out, const Change &c) {
             out << "(Change: no " << c.changeNo << " type: " << c.type << ")";

@@ -5,7 +5,7 @@ include_directories(SYSTEM include src)
 file(GLOB SOURCES "src/*.cpp" "src/*.c")
 file(GLOB TEST_SOURCES "test/*.cpp" "test/.*c")
 
-set(CMAKE_C_FLAGS "-Wall -Wmost -Werror -O0 -g")
+set(CMAKE_C_FLAGS "-Wall -Wextra -O0 -g")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++17")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ")
 

@@ -82,7 +82,9 @@ void GameState::startGame()
             .deck = deck,
             .resources = {{RESOURCE_WARP_BEACONS, {.amount = 0, .max=1, .perTurn=1}}},
         };
-        p.draw(7);
+        for (int i = 0; i < 7; i++) {
+            p.draw();
+        }
         LOG_INFO << "Adding player " << p.name;
 
         // Give them flagships TODO load chosen flagshipss
@@ -301,7 +303,7 @@ void GameState::performAction(Action action)
             // TODO handle fast actions
             LOG_INFO << "End upkeep, start main phase";
             auto drawInfo = getPlayerById(turnInfo.whoseTurn)->draw();
-            changes.push_back({.type = CHANGE_DRAW_CARDS, .data = drawInfo});
+            changes.push_back({.type = CHANGE_DRAW_CARD, .data = drawInfo});
             drawInfo = {};
             turnInfo.phase[0] = PHASE_MAIN;
             changes.push_back({.type = CHANGE_PHASE_CHANGE, .data = turnInfo});
@@ -420,22 +422,19 @@ void GameState::endTurn()
     turnInfo.phase[0] = PHASE_UPKEEP;
 };
 
-pair<int, vector<int>> Player::draw(int n)
+pair<int, Card> Player::draw()
 {
-    vector<int> cardIds;
-    for (int i = 0; i < n; i++) {
-        if (not deck.size()) {
-            // TODO handle drawing from empty deck
-            // probably instant loss
-            break;
-        };
-        auto card = deck.back();
-        deck.pop_back();
-        hand.push_back(card);
-        cardIds.push_back(card.id);
-        LOG_INFO << "Player " << name << " drew a card: " << card.name;
-    }
-    return {id, cardIds};
+    if (not deck.size()) {
+        // TODO handle drawing from empty deck
+        // probably instant loss
+        return {id, Card()};
+        LOG_INFO << "Player " << name << " drew from an empty deck";
+    };
+    auto card = deck.back();
+    deck.pop_back();
+    hand.push_back(card);
+    LOG_INFO << "Player " << name << " drew a card: " << card.name;
+    return {id, card};
 };
 
 ostream & logic::operator<< (ostream &out, const Action &c)
