@@ -144,6 +144,7 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
                     auto system = dynamic_pointer_cast<System>(getObject(logicShip.curSystemId));
                     auto ship = SpaceShip::createFrom(logicShip, system.get());
                     addObject(ship);
+                    break;
                 }
             case logic::CHANGE_DRAW_CARD:
                 {

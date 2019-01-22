@@ -5,16 +5,17 @@ include_directories(SYSTEM include src)
 file(GLOB SOURCES "src/*.cpp" "src/*.c")
 file(GLOB TEST_SOURCES "test/*.cpp" "test/.*c")
 
-set(CMAKE_C_FLAGS "-Wall -Wextra -O0 -g")
+set(CMAKE_C_FLAGS "-Wall -O0 -g")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++17")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ")
 
 set(LIBS bfd glfw3 GL X11 pthread Xrandr Xi dl assimp stdc++fs curlpp curl pistache)
 
 add_library(spacegamelib STATIC ${SOURCES})
+target_link_libraries(spacegamelib ${LIBS} )
 
-add_executable(app src/main.cxx)
-target_link_libraries(app pthread spacegamelib ${LIBS} )
+add_executable(app src/main.cxx src/backward.cpp)
+target_link_libraries(app bfd dl pthread spacegamelib ${LIBS} )
 
 add_executable(textgame src/textgame.cxx )
 target_link_libraries(textgame spacegamelib ${LIBS})
