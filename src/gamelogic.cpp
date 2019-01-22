@@ -45,17 +45,30 @@ shared_ptr<Object> GraphicsObjectHandler::getObject(int logicId)
 
 void GraphicsObjectHandler::initializePlayer(logic::Player player)
 {
-    hand = make_shared<Hand>(glm::vec2(0.9, 0.9));
-    addObject(hand);
-    enemyHand = make_shared<Hand>(glm::vec2(0.9, 0.1));
-    addObject(enemyHand);
-    auto deck = make_shared<Deck>();
-    addObject(deck);
+    shared_ptr<Deck> newDeck;
+    shared_ptr<Hand> newHand;
+
+    if (player.id == playerId) {
+        newHand = make_shared<Hand>(glm::vec2(0.9, 0.9));
+        newDeck = make_shared<Deck>();
+        hand = newHand;
+    } else {
+        newHand = make_shared<Hand>(glm::vec2(0.9, 0.05));
+        newDeck = make_shared<Deck>();
+        enemyHand = newHand;
+    }
+    addObject(newHand);
+    addObject(newDeck);
 
     for (auto logicCard : player.hand) {
         auto card = Card::createFrom(logicCard);
-        hand->addCard(card);
+        newHand->addCard(card);
         addObject(card);
+
+        if (player.id != playerId) {
+            card->setFaceUp(false);
+            card->enemyOwned = true;
+        }
     }
     for (auto logicCard : player.deck) {
         auto card = Card::createFrom(logicCard);
@@ -80,7 +93,11 @@ void GraphicsObjectHandler::startGame(logic::GameState initialState)
         addObject(s);
     }
 
-    initializePlayer(initialState.players.front());
+    // TODO handle players better
+    auto me = initialState.players.front();
+    playerId = me.id;
+    initializePlayer(me);
+    initializePlayer(initialState.players.back());
 
     stack = make_shared<Stack>();
     addObject(stack);
