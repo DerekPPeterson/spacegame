@@ -69,19 +69,21 @@ void GameState::startGame()
     for (int i = 0; i < 2; i++) {
         // Create player objects
 
+        Player p = {
+            .name = "Player" + to_string(i),
+            .resources = {{RESOURCE_WARP_BEACONS, {.amount = 0, .max=1, .perTurn=1}}},
+        };
+
         // TODO load deck dynamically
         list<logic::Card> deck;
         for (int i = 0; i < 40; i++) {
             auto card = CardDefinitions::sample_ship;
             card.newId();
+            card.ownerId = p.id;
             deck.push_back(card);
         }
+        p.deck = deck;
 
-        Player p = {
-            .name = "Player" + to_string(i),
-            .deck = deck,
-            .resources = {{RESOURCE_WARP_BEACONS, {.amount = 0, .max=1, .perTurn=1}}},
-        };
         for (int i = 0; i < 7; i++) {
             p.draw();
         }

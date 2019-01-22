@@ -56,7 +56,10 @@ class GraphicsObjectHandler
         // common objects that need to be referred to:
         std::shared_ptr<Stack> stack;
         std::shared_ptr<Discard> discard;
-        std::shared_ptr<Hand> myHand;
+        std::shared_ptr<Hand> hand;
+
+        std::shared_ptr<Discard> enemyDiscard;
+        std::shared_ptr<Hand> enemyHand;
 };
 
 #endif

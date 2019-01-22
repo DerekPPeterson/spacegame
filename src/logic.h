@@ -157,6 +157,7 @@ namespace logic {
         string cardText;
         ResourceAmount cost;
         int playedBy = 0;
+        int ownerId = 0;
         vector<int> targets;
 
         function<void(GameState&)> resolve = DEFAULT_CARD_RESOLVE;
@@ -165,7 +166,7 @@ namespace logic {
             out << "(Card: " << c.name << " id " << c.id << ")";
             return out;
         }
-        SERIALIZE(id, name, cardText, cost, playedBy, targets);
+        SERIALIZE(id, name, cardText, cost, playedBy, targets, ownerId);
     };
 
     struct Player : public GameObject

@@ -45,14 +45,16 @@ shared_ptr<Object> GraphicsObjectHandler::getObject(int logicId)
 
 void GraphicsObjectHandler::initializePlayer(logic::Player player)
 {
-    myHand = make_shared<Hand>();
-    addObject(myHand);
+    hand = make_shared<Hand>(glm::vec2(0.9, 0.9));
+    addObject(hand);
+    enemyHand = make_shared<Hand>(glm::vec2(0.9, 0.1));
+    addObject(enemyHand);
     auto deck = make_shared<Deck>();
     addObject(deck);
 
     for (auto logicCard : player.hand) {
         auto card = Card::createFrom(logicCard);
-        myHand->addCard(card);
+        hand->addCard(card);
         addObject(card);
     }
     for (auto logicCard : player.deck) {
@@ -110,7 +112,7 @@ void GraphicsObjectHandler::checkEvents()
              if (action.type == logic::ACTION_PLAY_CARD and action.id == get<int>(*cardId)) {
                 selectedAction = action;
                 auto card = dynamic_pointer_cast<Card>(getObject(action.id));
-                myHand->removeCard(card);
+                hand->removeCard(card);
                 stack->addCard(card);
              }
          }
@@ -153,7 +155,11 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
                     auto card = Card::createFrom(drawInfo.second);
                     addObject(card);
                     if (drawInfo.first == playerId) {
-                        myHand->addCard(card);
+                        hand->addCard(card);
+                    } else {
+                        card->enemyOwned = true;
+                        card->setFaceUp(false);
+                        enemyHand->addCard(card);
                     }
                 }
 

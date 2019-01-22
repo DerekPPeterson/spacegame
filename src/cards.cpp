@@ -53,6 +53,7 @@ void SpringSystem::updatePositions(float deltaTime)
 
 // TODO different card models?
 shared_ptr<LineModel> Card::cardModel;
+shared_ptr<LineModel> Card::cardBackModel;
 
 std::string createCostString(ResourceAmount amount)
 {
@@ -73,34 +74,47 @@ void Card::setup()
     LOG_INFO << "Loading card models/fonts";
     // make sure to update the quad vertices if the model changes
     cardModel = shared_ptr<LineModel>(new LineModel("./res/models/card/card.obj"));
+    cardBackModel = shared_ptr<LineModel>(new LineModel("./res/models/card_back/card_back.obj"));
 }
 
 void Card::queueDraw() 
 {
     Renderable::queueDraw();
 
-    glm::mat4 titleModel = glm::translate(model, {-1.3, -1.6, 0});
-    titleModel = glm::rotate(titleModel, 3.141f / 2, {0, 0, 1});
-    titleText.setModel(titleModel);
-    titleText.queueDraw();
+    if (faceUp) {
+        glm::mat4 titleModel = glm::translate(model, {-1.3, -1.6, 0});
+        titleModel = glm::rotate(titleModel, 3.141f / 2, {0, 0, 1});
+        titleText.setModel(titleModel);
+        titleText.queueDraw();
 
-    glm::mat4 textModel = glm::translate(model, {-0.8, -0.5, 0.03});
-    cardText.setModel(textModel);
-    cardText.queueDraw();
+        glm::mat4 textModel = glm::translate(model, {-0.8, -0.5, 0.03});
+        cardText.setModel(textModel);
+        cardText.queueDraw();
 
-    glm::mat4 costModel = glm::translate(model, {-1, 2, 0});
-    //costModel = glm::scale(costModel, glm::vec3(0.1));
-    costText.setModel(costModel);
-    costText.queueDraw();
-
+        glm::mat4 costModel = glm::translate(model, {-1, 2, 0});
+        //costModel = glm::scale(costModel, glm::vec3(0.1));
+        costText.setModel(costModel);
+        costText.queueDraw();
+    }
 }
 
 void Card::draw(Shader& shader)
 {
     shader.setVec3("color", info.color * highlight);
     shader.setCommon(UNIFORM_MODEL, model);
-    cardModel->draw(shader);
+
+
+    if (faceUp) {
+        cardModel->draw(shader);
+    } else {
+        cardBackModel->draw(shader);
+    }
     // Text is not drawn here, it is queued for later
+}
+
+void Card::setFaceUp(bool faceUp) 
+{
+    this->faceUp = faceUp;
 }
 
 map<ResourceType, glm::vec3> CARD_COLORS = {
@@ -144,6 +158,7 @@ std::shared_ptr<Card> Card::createFrom(logic::Card logicCard)
         .name = logicCard.name,
         .text = logicCard.cardText,
         .cost = logicCard.cost,
+        .ownerId = logicCard.ownerId,
     };
     auto card = shared_ptr<Card>(new Card(info));
     card->logicId = logicCard.id;
@@ -219,9 +234,10 @@ void Card::onRelease()
     }
 }
 
-Hand::Hand()
+Hand::Hand(glm::vec2 screenPos)
 {
-    position = calcWorldSpaceCoords({screenWidth * 0.9, screenHeight * 0.9}, 5);
+    position = calcWorldSpaceCoords(
+            {screenWidth * screenPos.x, screenHeight * screenPos.y}, 5);
     cardsAreVisible = true;
     cardsAreDragable = true;
     zone = ZONE_HAND;
@@ -231,7 +247,11 @@ void CardZone::addCard(shared_ptr<Card> card)
 {
     if (card) {
         card->setVisible(cardsAreVisible);
-        card->dragEnabled = cardsAreDragable;
+        if (card->enemyOwned) {
+            card->dragEnabled = false; }
+        else {
+            card->dragEnabled = cardsAreDragable;
+        }
         card->zone = zone;
         cards.push_back(card);
         LOG_INFO << "Added card: '" << card->info.name << "' to " << zone;

@@ -24,6 +24,7 @@ struct CardInfo
         {RESOURCE_WARP_BEACONS, 1}, 
         {RESOURCE_INFLUENCE, 1}
     };
+    int ownerId = 0;
 };
 
 std::string createCostString(ResourceAmount amount);
@@ -92,15 +93,21 @@ class Card : public Renderable , public Object, public Dragable,
         virtual void update(UpdateInfo& info) override;
         static void setup();
 
+        void setFaceUp(bool faceUp);
+
         void play();
 
         static std::shared_ptr<Card> createFrom(logic::Card);
+
+        bool enemyOwned = false;
     protected:
         void updateModel();
         void onClick() override;
         void onRelease() override;
 
+        bool faceUp = true;
         static std::shared_ptr<LineModel> cardModel;
+        static std::shared_ptr<LineModel> cardBackModel;
 
         Text titleText;
         Text cardText;
@@ -112,6 +119,7 @@ class Card : public Renderable , public Object, public Dragable,
 
         CardInfo info;
         Zone zone;
+
 
         float highlight = 1;
 
@@ -146,7 +154,7 @@ class Stack : public CardZone
 class Hand : public CardZone
 {
     public:
-        Hand();
+        Hand(glm::vec2 screenPos);
         virtual void update(UpdateInfo& info) override;
 };
 
