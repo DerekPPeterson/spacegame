@@ -6,7 +6,7 @@ file(GLOB SOURCES "src/*.cpp" "src/*.c")
 file(GLOB TEST_SOURCES "test/*.cpp" "test/.*c")
 
 set(CMAKE_C_FLAGS "-Wall -O0 -g")
-set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++17")
+set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++17 -Wimplicit-fallthrough")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ")
 
 set(LIBS bfd glfw3 GL X11 pthread Xrandr Xi dl assimp stdc++fs curlpp curl pistache)

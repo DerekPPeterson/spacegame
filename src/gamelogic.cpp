@@ -116,7 +116,7 @@ void GraphicsObjectHandler::startGame(logic::GameState initialState)
     auto button = make_shared<Button>("Pass", glm::vec3(0.9, 0.7, -5), glm::vec3(0, 2, 2), 0.1);
     addObject(button);
 
-    auto turnIndicator = make_shared<TurnIndicator>(glm::vec3(0.5, 0.5, -5), playerId, initialState.turnInfo);
+    turnIndicator = make_shared<TurnIndicator>(glm::vec3(0.05, 0.05, -5), playerId, initialState.turnInfo);
     addObject(turnIndicator);
 }
 
@@ -184,6 +184,13 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
                         card->setFaceUp(false);
                         enemyHand->addCard(card);
                     }
+                    break;
+                }
+            case logic::CHANGE_PHASE_CHANGE:
+                {
+                    auto turnInfo = get<logic::TurnInfo>(change.data);
+                    turnIndicator->changeTurn(turnInfo);
+                    break;
                 }
 
             default:

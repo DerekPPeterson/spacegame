@@ -60,6 +60,8 @@ class GraphicsObjectHandler
 
         std::shared_ptr<Discard> enemyDiscard;
         std::shared_ptr<Hand> enemyHand;
+
+        std::shared_ptr<TurnIndicator> turnIndicator;
 };
 
 #endif
