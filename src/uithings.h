@@ -147,5 +147,23 @@ class Button : public Object, public Renderable, public UIObject,
         float size;
 };
 
+class TurnIndicator : public Object, public Renderable, public UIObject,
+    public has_model_mat
+{
+    public:
+        TurnIndicator(glm::vec3 screenPos, int localPlayer, logic::TurnInfo turnInfo);
+        void changeTurn(logic::TurnInfo newTurnInfo);
+
+        virtual void queueDraw() override;
+        //virtual void draw(Shader& shader) override;
+    private:
+        logic::TurnInfo turnInfo;
+        Text turnText;
+        Text phaseText;
+        glm::vec3 color;
+        int localPlayer;
+        float size = 0.1;
+};
+
 #endif
 

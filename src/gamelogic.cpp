@@ -115,6 +115,9 @@ void GraphicsObjectHandler::startGame(logic::GameState initialState)
 
     auto button = make_shared<Button>("Pass", glm::vec3(0.9, 0.7, -5), glm::vec3(0, 2, 2), 0.1);
     addObject(button);
+
+    auto turnIndicator = make_shared<TurnIndicator>(glm::vec3(0.5, 0.5, -5), playerId, initialState.turnInfo);
+    addObject(turnIndicator);
 }
 
 optional<logic::Action> GraphicsObjectHandler::getSelectedAction()

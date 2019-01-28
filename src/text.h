@@ -64,7 +64,8 @@ class Fonts : public needs_setup<Fonts>
 class Text : public Renderable , public has_model_mat, public Object
 {
 	public:
-		Text(std::shared_ptr<Font> font, std::string text = "", glm::vec3 color = {1, 1, 1}, 
+		Text(std::shared_ptr<Font> font = Fonts::regular, 
+                std::string text = "", glm::vec3 color = {1, 1, 1}, 
                 float maxwidth = 0, float size = 0.8) 
             : Renderable(SHADER_TEXT), 
               font(font), text(text), color(color), maxwidth(maxwidth),

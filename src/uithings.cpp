@@ -397,3 +397,51 @@ void Button::onClick()
 {
     Event::triggerEvent<string>(EVENT_BUTTON_PRESS, label);
 }
+
+void TurnIndicator::changeTurn(logic::TurnInfo newTurnInfo)
+{
+    turnInfo = newTurnInfo;
+
+    if (newTurnInfo.whoseTurn == localPlayer) {
+        color = {0, 1, 1};
+        turnText.setText("Your Turn");
+    } else {
+        color = {1, 0, 0};
+        turnText.setText("Enemy Turn");
+    }
+
+    switch (turnInfo.phase.front()) {
+        case logic::PHASE_UPKEEP:
+            phaseText.setText("Upkeep Phase"); break;
+        case logic::PHASE_MAIN:
+            phaseText.setText("Main Phase"); break;
+        case logic::PHASE_MOVE:
+            phaseText.setText("Movement Phase"); break;
+        case logic::PHASE_END:
+            phaseText.setText("End Phase"); break;
+        default:
+            LOG_ERROR << "Incorrect phase given";
+    }
+
+    turnText.setColor(color);
+    phaseText.setColor(color);
+}
+
+TurnIndicator::TurnIndicator(glm::vec3 screenPos, int localPlayer, logic::TurnInfo turnInfo)
+    : Renderable(SHADER_CARD), turnText(Fonts::title), phaseText(Fonts::title), localPlayer(localPlayer)
+{
+    setPos(calcWorldSpaceCoords({screenPos.x * screenWidth, screenPos.y * screenHeight}, -screenPos.z));
+    setModel(glm::translate(model, getPos()));
+    setModel(glm::scale(model, glm::vec3(size)));
+    changeTurn(turnInfo);
+    setVisible(true);
+    turnText.setModel(glm::translate(getModel(), {0, 0, 0}));
+    phaseText.setModel(glm::translate(getModel(), {0, -1, 0}));
+}
+
+void TurnIndicator::queueDraw()
+{
+    Renderable::queueDraw();
+    turnText.queueDraw();
+    phaseText.queueDraw();
+}
