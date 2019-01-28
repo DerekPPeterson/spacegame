@@ -10,3 +10,4 @@ tags
 assimp/
 *.trace
 *.log
+*.a
