@@ -119,12 +119,27 @@ void GraphicsObjectHandler::startGame(logic::GameState initialState, int myPlaye
         addObject(ship);
     }
 
-    auto button = make_shared<Button>("Pass", glm::vec3(0.9, 0.7, -5), glm::vec3(0, 2, 2), 0.1);
-    addObject(button);
+    passButton = make_shared<Button>("Pass", glm::vec3(0.9, 0.7, -5), glm::vec3(0, 2, 2), 0.1);
+    addObject(passButton);
 
     turnIndicator = make_shared<TurnIndicator>(glm::vec3(0.05, 0.05, -5), playerId, initialState.turnInfo);
     addObject(turnIndicator);
 }
+
+void GraphicsObjectHandler::setPossibleActions(std::vector<logic::Action> actions) 
+{
+    this->actions = actions;
+    if (actions.size() == 1) {
+        selectedAction = actions[0];
+    }
+    
+    passButton->setActive(false);
+    for (auto a : actions) {
+        if (a.type == logic::ACTION_NONE) {
+            passButton->setActive(true);
+        }
+    }
+};
 
 optional<logic::Action> GraphicsObjectHandler::getSelectedAction()
 {

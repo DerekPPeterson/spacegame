@@ -139,12 +139,14 @@ class Button : public Object, public Renderable, public UIObject,
         virtual void draw(Shader& shader) override;
         virtual void update(UpdateInfo& info) override;
         virtual void onClick() override;
+        void setActive(bool active) {this->active = active;};
     protected:
         glm::vec3 color;
         std::unique_ptr<LineMesh> lineMesh;
         std::string label;
         Text text;
         float size;
+        bool active = false;
 };
 
 class TurnIndicator : public Object, public Renderable, public UIObject,

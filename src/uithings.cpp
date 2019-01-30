@@ -378,13 +378,14 @@ Button::Button(std::string label, glm::vec3 position, glm::vec3 color, float siz
 void Button::queueDraw() 
 {
     Renderable::queueDraw();
+    text.setColor(color * (active ? 1.0f : 0.5f));
     text.queueDraw();
 }
 
 void Button::draw(Shader& shader) 
 {
     shader.setCommon(UNIFORM_MODEL, model);
-    shader.setCommon(UNIFORM_COLOR, color);
+    shader.setCommon(UNIFORM_COLOR, color * (active ? 1.0f : 0.5f));
     lineMesh->draw(shader);
 }
 
@@ -395,7 +396,9 @@ void Button::update(UpdateInfo& info)
 
 void Button::onClick()
 {
-    Event::triggerEvent<string>(EVENT_BUTTON_PRESS, label);
+    if (active) {
+        Event::triggerEvent<string>(EVENT_BUTTON_PRESS, label);
+    }
 }
 
 void TurnIndicator::changeTurn(logic::TurnInfo newTurnInfo)
