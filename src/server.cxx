@@ -100,13 +100,13 @@ class GameEndpoint
         void joinGame(const Rest::Request& request, Http::ResponseWriter response) {
             auto r = getRequestData(request.body());
             auto user = r.first;
-            string gameId = r.second;
+             auto gameId = request.param(":gameid").as<string>();
 
-            auto game = games[gameId];
+            auto& game = games[gameId];
             user.playerId = game.state.players.back().id;
             game.players.push_back(user);
 
-            LOG_INFO << "Create new game with id: " << gameId;
+            LOG_INFO << "Player " << user.username << " joined game with id: " << gameId;
             response.send(Http::Code::Ok, gameId);
          }
 
@@ -135,10 +135,12 @@ class GameEndpoint
          }
 
          void getActions(const Rest::Request& request, Http::ResponseWriter response) {
+            auto r = getRequestData(request.body());
+            auto user = r.first;
             auto gameId = request.param(":gameid").as<string>();
             LOG_INFO << "Got request for actions for game id: " << gameId;
 
-            vector<Action> actions = games[gameId].state.getPossibleActions();
+            vector<Action> actions = games[gameId].state.getPossibleActions(user.playerId);
             stringstream ss;
             {
                 cereal::PortableBinaryOutputArchive oarchive(ss);

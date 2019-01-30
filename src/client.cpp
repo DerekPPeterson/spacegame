@@ -31,7 +31,7 @@ void GameClient::startGame()
 void GameClient::joinGame(string gameId)
 {
     auto path = serverAddr + "/game/" + gameId + "/join";
-    makeRequest(path, "");
+    this->gameId = makeRequest(path, "");
     LOG_INFO << "Joined game (id: " << gameId << ")";
 };
 

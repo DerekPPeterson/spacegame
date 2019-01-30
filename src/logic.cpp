@@ -259,7 +259,7 @@ vector<Action> GameState::getTargetActions()
     return actions;
 }
 
-vector<Action> GameState::getPossibleActions()
+vector<Action> GameState::getPossibleActions(int playerId)
 {
     vector<Action> actions;
 
@@ -294,7 +294,15 @@ vector<Action> GameState::getPossibleActions()
     actions.insert(actions.end(), moveActions.begin(), moveActions.end());
     actions.insert(actions.end(), targetActions.begin(), targetActions.end());
 
-    return actions;
+    if (playerId) {
+        vector<Action> actionsForPlayer;
+        copy_if(actions.begin(), actions.end(), back_inserter(actionsForPlayer),
+                [playerId](Action a) {return a.playerId == playerId;});
+
+        return actionsForPlayer;
+    } else {
+        return actions;
+    }
 }
 
 

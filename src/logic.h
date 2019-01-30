@@ -255,7 +255,7 @@ namespace logic {
     struct GameState
     {
         void startGame();
-        vector<Action> getPossibleActions();
+        vector<Action> getPossibleActions(int playerId = 0);
         void performAction(Action);
 
         void writeStateToFile(string filename);

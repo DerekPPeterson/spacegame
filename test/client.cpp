@@ -96,3 +96,18 @@ TEST_CASE("Basic Game Client Tests", "[GameClient]") {
     REQUIRE(changes.size() > 0);
 }
 
+TEST_CASE("Multiple Player Tests", "[GameClient]")
+{
+    LocalServerStarter server;
+
+    GameClientTester client1("localhost", 40000);
+    client1.login("player1");
+    client1.startGame();
+
+    GameClientTester client2("localhost", 40000);
+    client2.login("player2");
+    client2.joinGame(client1.getGameId());
+
+    REQUIRE(client1.getGameId() == client2.getGameId());
+}
+
