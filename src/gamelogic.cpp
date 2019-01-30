@@ -82,7 +82,7 @@ void GraphicsObjectHandler::initializePlayer(logic::Player player)
     playerId = player.id;
 }
 
-void GraphicsObjectHandler::startGame(logic::GameState initialState) 
+void GraphicsObjectHandler::startGame(logic::GameState initialState, int myPlayerId) 
 {
     auto spacegrid = make_shared<SpaceGrid>();
     addObject(spacegrid);
@@ -97,10 +97,18 @@ void GraphicsObjectHandler::startGame(logic::GameState initialState)
     }
 
     // TODO handle players better
-    auto me = initialState.players.front();
+    logic::Player me;
+    logic::Player opponent;
+    for (auto p : initialState.players) {
+        if (myPlayerId == p.id) {
+            me = p;
+        } else {
+            opponent = p;
+        }
+    }
     playerId = me.id;
     initializePlayer(me);
-    initializePlayer(initialState.players.back());
+    initializePlayer(opponent);
 
     stack = make_shared<Stack>();
     addObject(stack);
@@ -192,7 +200,15 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
                     turnIndicator->changeTurn(turnInfo);
                     break;
                 }
-
+            case logic::CHANGE_PLAY_CARD:
+                {
+                    auto cardId = get<int>(change.data);
+                    auto card = dynamic_pointer_cast<Card>(getObject(cardId));
+                    hand->removeCard(card);
+                    enemyHand->removeCard(card);
+                    stack->addCard(card);
+                    break;
+                }
             default:
                 LOG_ERROR << "Received unhandled change from server: " << change;
                 ;

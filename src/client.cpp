@@ -24,14 +24,32 @@ void GameClient::login(string username)
 void GameClient::startGame()
 {
     auto path = serverAddr + "/createGame";
-    gameId = makeRequest(path, "");
+    auto data = makeRequest(path, "");
+    stringstream ss;
+    ss << data;
+    pair<string, int> ret;
+    {
+        cereal::PortableBinaryInputArchive iarchive(ss);
+        iarchive(ret);
+    }
+    gameId = ret.first;
+    playerId = ret.second;
     LOG_INFO << "Created game (id: " << gameId << ")";
 }
 
 void GameClient::joinGame(string gameId)
 {
     auto path = serverAddr + "/game/" + gameId + "/join";
-    this->gameId = makeRequest(path, "");
+    auto data = makeRequest(path, "");
+    stringstream ss;
+    ss << data;
+    pair<string, int> ret;
+    {
+        cereal::PortableBinaryInputArchive iarchive(ss);
+        iarchive(ret);
+    }
+    this->gameId = ret.first;
+    playerId = ret.second;
     LOG_INFO << "Joined game (id: " << gameId << ")";
 };
 

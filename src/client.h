@@ -32,6 +32,7 @@ class GameClient
 
 
         void startGame();
+        int getMyPlayerId() {return playerId;};
         void joinGame(std::string gameId);
         logic::GameState getState();
 

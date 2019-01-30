@@ -112,6 +112,7 @@ int main(int argc, char **argv)
     Renderer renderer(options, camera);
 
     GameClient client("localhost", 40000);
+    client.login("player");
     if (result.count("joingame")) {
         client.joinGame(result["joingame"].as<string>());
     } else {
@@ -122,7 +123,7 @@ int main(int argc, char **argv)
     ObjectUpdater updater(1); // Using 1 other thread for updating objects
 
     GraphicsObjectHandler graphicsObjectHandler;
-    graphicsObjectHandler.startGame(client.getState());
+    graphicsObjectHandler.startGame(client.getState(), client.getMyPlayerId());
 
     // TODO create this somewhere else
     shared_ptr<Skybox> skybox(new Skybox("./res/textures/lightblue/"));

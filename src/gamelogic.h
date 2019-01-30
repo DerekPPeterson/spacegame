@@ -15,7 +15,7 @@ class GraphicsObjectHandler
     public:
         GraphicsObjectHandler() {};
 
-        void startGame(logic::GameState initialState);
+        void startGame(logic::GameState initialState, int myPlayerId);
 
         void setPossibleActions(std::vector<logic::Action> actions) 
         {

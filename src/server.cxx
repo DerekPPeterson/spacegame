@@ -92,9 +92,16 @@ class GameEndpoint
             user.playerId = newGame.state.players.front().id;
             newGame.players.push_back(user);
 
+            pair<string, int> ret = {gameId, user.playerId};
+            stringstream ss;
+            {
+                cereal::PortableBinaryOutputArchive oarchive(ss);
+                oarchive(ret);
+            }
+
             games[gameId] = newGame;
             LOG_INFO << "Create new game with id: " << gameId;
-            response.send(Http::Code::Ok, gameId);
+            response.send(Http::Code::Ok, ss.str());
          }
 
         void joinGame(const Rest::Request& request, Http::ResponseWriter response) {
@@ -106,8 +113,15 @@ class GameEndpoint
             user.playerId = game.state.players.back().id;
             game.players.push_back(user);
 
+            pair<string, int> ret = {gameId, user.playerId};
+            stringstream ss;
+            {
+                cereal::PortableBinaryOutputArchive oarchive(ss);
+                oarchive(ret);
+            }
+
             LOG_INFO << "Player " << user.username << " joined game with id: " << gameId;
-            response.send(Http::Code::Ok, gameId);
+            response.send(Http::Code::Ok, ss.str());
          }
 
          void getLoginToken(const Rest::Request& request, Http::ResponseWriter response) {
