@@ -403,10 +403,10 @@ void TurnIndicator::changeTurn(logic::TurnInfo newTurnInfo)
     turnInfo = newTurnInfo;
 
     if (newTurnInfo.whoseTurn == localPlayer) {
-        color = {0, 1, 1};
+        color = {0, 2, 2};
         turnText.setText("Your Turn");
     } else {
-        color = {1, 0, 0};
+        color = {2, 0, 0};
         turnText.setText("Enemy Turn");
     }
 

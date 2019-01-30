@@ -190,11 +190,11 @@ vector<Action> GameState::getValidCardActions()
 
     if (turnInfo.phase.back() == PHASE_MAIN 
             or turnInfo.phase.back() == PHASE_RESOLVE_STACK) {
-        auto player = getPlayerById(turnInfo.whoseTurn);
+        auto player = getPlayerById(turnInfo.activePlayer);
         for (auto& card : player->hand) {
             Action action = {
                 .type = ACTION_PLAY_CARD,
-                .playerId = turnInfo.whoseTurn,
+                .playerId = turnInfo.activePlayer,
                 .id = card.id,
                 .description = card.name,
             };
@@ -427,6 +427,8 @@ void GameState::endTurn()
     auto nextPlayerId = it->id;
     turnInfo.whoseTurn = nextPlayerId;
     turnInfo.activePlayer = nextPlayerId;
+
+    changes.push_back({.type = CHANGE_PHASE_CHANGE, .data = turnInfo});
 
     LOG_INFO << "It is now player id " << nextPlayerId << "'s turn" << endl;
     turnInfo.phase[0] = PHASE_UPKEEP;

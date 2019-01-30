@@ -78,8 +78,6 @@ void GraphicsObjectHandler::initializePlayer(logic::Player player)
         card->setVisible(false);
         addObject(card);
     }
-
-    playerId = player.id;
 }
 
 void GraphicsObjectHandler::startGame(logic::GameState initialState, int myPlayerId) 
