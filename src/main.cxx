@@ -82,6 +82,7 @@ int main(int argc, char **argv)
         ("h,screenheight", "Vertical display resolution", cxxopts::value<int>()->default_value("800"))
         ("f,fullscreen", "Enable fullscreen")
         ("l,logfile", "Log output location", cxxopts::value<string>()->default_value("spacegame.log"))
+        ("j,joingame", "join a game rather than starting one", cxxopts::value<string>()->default_value("spacegame.log"))
         ;
     auto result = opts.parse(argc, argv);
 
@@ -98,6 +99,8 @@ int main(int argc, char **argv)
         .fullscreen=(result.count("fullscreen") > 0)
     };
 
+
+
     Camera camera(glm::vec3(-100.0f, 100.0f, 0));
 
     GLFWwindow *window = setupOpenGlContext(options);
@@ -109,12 +112,16 @@ int main(int argc, char **argv)
     Renderer renderer(options, camera);
 
     GameClient client("localhost", 40000);
+    if (result.count("joingame")) {
+        client.joinGame(result["joingame"].as<string>());
+    } else {
+        client.startGame();
+    }
 
     // Animation updater
     ObjectUpdater updater(1); // Using 1 other thread for updating objects
 
     GraphicsObjectHandler graphicsObjectHandler;
-    client.startGame();
     graphicsObjectHandler.startGame(client.getState());
 
     // TODO create this somewhere else

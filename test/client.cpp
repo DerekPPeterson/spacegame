@@ -43,6 +43,8 @@ TEST_CASE("Basic Game Client Tests", "[GameClient]") {
     LocalServerStarter server;
     
     GameClientTester client("localhost", 40000);
+    client.login("AckbarsRevenge");
+    REQUIRE(client.isLoggedIn());
     client.startGame();
     string gameId = client.getGameId();
 
@@ -67,6 +69,7 @@ TEST_CASE("Basic Game Client Tests", "[GameClient]") {
     int p1Id = state.turnInfo.whoseTurn;
 
     // Test ending turn
+    cout << actions << endl;
     client.performAction(actions.front());
     usleep(2e5);
     state = client.getState();

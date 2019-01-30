@@ -1,6 +1,5 @@
 #include "client.h"
 
-#include <sstream>
 #include <plog/Log.h>
 
 #include "timer.h"
@@ -15,48 +14,67 @@ GameClient::GameClient(string serverAddr, int serverPort)
 { 
 }
 
+void GameClient::login(string username)
+{
+    this->username = username;
+    string path = serverAddr + "/player/" + username + "/login";
+    loginToken = makeRequest(path, username);
+}
+
 void GameClient::startGame()
 {
-    {
-        curlpp::Cleanup cleanup;
-
-        curlpp::Easy request;
-        request.setOpt(Url(serverAddr + "/createGame"));
-        request.setOpt(Port(serverPort));
-
-        stringstream ss;
-        ss << request;
-        gameId = ss.str();
-    }
+    auto path = serverAddr + "/createGame";
+    gameId = makeRequest(path, "");
     LOG_INFO << "Created game (id: " << gameId << ")";
 }
 
-template <class T> 
-T getObject(string path, int port)
+void GameClient::joinGame(string gameId)
 {
-    LOG_DEBUG << "Making server request to: " << path << " port: " << port;
+    auto path = serverAddr + "/game/" + gameId + "/join";
+    makeRequest(path, "");
+    LOG_INFO << "Joined game (id: " << gameId << ")";
+};
+
+string GameClient::makeRequest(string path, string data) const
+{
+    if (loginToken == "") {
+        LOG_ERROR << "Attempting to make request without logging in";
+    };
+    RequestData request = {
+        .loginToken = loginToken,
+        .serializedData = data,
+    };
     stringstream ss;
+    {
+        cereal::PortableBinaryOutputArchive oarchive(ss);
+        oarchive(request);
+    }
+
+    stringstream os;
     try {
         curlpp::Cleanup cleanup;
-
         curlpp::Easy request;
-        request.setOpt(Url(path));
-        request.setOpt(Port(port));
 
-        ss << request;
+        char buf[50];
+		std::list<std::string> headers;
+		headers.push_back("Content-Type: application/octet-stream"); 
+		sprintf(buf, "Content-Length: %d", (int) ss.str().size()); 
+		headers.push_back(buf);
+
+        request.setOpt(Url(path));
+        request.setOpt(Port(serverPort));
+        request.setOpt(PostFields(ss.str()));
+        request.setOpt(PostFieldSize(ss.str().size()));
+        request.setOpt(Timeout(1));
+        os << request;
     } catch (curlpp::LogicError & e) {
 		LOG_ERROR << e.what() << std::endl;
 	} catch (curlpp::RuntimeError & e) {
 		LOG_ERROR << e.what() << std::endl;
     }
 
-    T obj;
-    {
-        cereal::PortableBinaryInputArchive iarchive(ss);
-        iarchive(obj);
-    }
-    return obj;
-}
+    return os.str();
+};
 
 vector<Action> GameClient::getActions()
 {
@@ -82,14 +100,14 @@ vector<Action> GameClient::_getActions() const
     if (actionPending) {
         actionPending->wait();
     }
-    string path = serverAddr + "/game/" + gameId + "/action";
-    return getObject<vector<Action>>(path, serverPort);
+    string path = serverAddr + "/game/" + gameId + "/getactions";
+    return getObject<vector<Action>>(path);
 }
 
 GameState GameClient::getState()
 {
     string path = serverAddr + "/game/" + gameId + "/state";
-    return getObject<GameState>(path, serverPort);
+    return getObject<GameState>(path);
 }
 
 vector<logic::Change> GameClient::getChangesSince(int changeNo)
@@ -119,7 +137,7 @@ vector<logic::Change> GameClient::getChangesSince(int changeNo)
 vector<logic::Change> GameClient::_getChangesSince(int changeNo) const
 {
     string path = serverAddr + "/game/" + gameId + "/changes/" + to_string(changeNo);
-    return getObject<vector<Change>>(path, serverPort);
+    return getObject<vector<Change>>(path);
 }
 
 void GameClient::performAction(Action action)
@@ -138,24 +156,8 @@ void GameClient::_performAction(Action action) const
 
     stringstream os;
 
-    string path = serverAddr + "/game/" + gameId + "/action";
-    {
-        curlpp::Cleanup cleanup;
-        curlpp::Easy request;
-
-        char buf[50];
-		std::list<std::string> headers;
-		headers.push_back("Content-Type: application/octet-stream"); 
-		sprintf(buf, "Content-Length: %d", (int) ss.str().size()); 
-		headers.push_back(buf);
-
-        request.setOpt(Url(path));
-        request.setOpt(Port(serverPort));
-        request.setOpt(PostFields(ss.str()));
-        request.setOpt(PostFieldSize(ss.str().size()));
-        request.setOpt(Timeout(1));
-        os << request;
-    }
+    string path = serverAddr + "/game/" + gameId + "/performaction";
+    makeRequest(path, ss.str());
 }
 
 

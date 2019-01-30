@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <future>
+#include <sstream>
 #include <optional>
 
 #include <curlpp/cURLpp.hpp>
@@ -13,13 +14,25 @@
 #include "logic.h"
 #include "timer.h"
 
+struct RequestData
+{
+    std::string loginToken;
+    std::string serializedData;
+    SERIALIZE(loginToken, serializedData);
+};
+
 
 class GameClient
 {
     public:
         GameClient(std::string serverAddr, int port);
+
+        void login(std::string username);
+        bool isLoggedIn() { return loginToken.size() > 0;};
+
+
         void startGame();
-        void joinGame();
+        void joinGame(std::string gameId);
         logic::GameState getState();
 
         /* Get needed actions from the server. 
@@ -66,7 +79,28 @@ class GameClient
         std::vector<logic::Change> _getChangesSince(int changeNo) const;
         std::optional<std::future<std::vector<logic::Change>>> futureChanges;
 
+        std::string makeRequest(std::string path, std::string data) const;
+
         Timer timer;
+
+        std::string username;
+        std::string loginToken;
+
+        template <class T> 
+        T getObject(std::string path) const
+        {
+            LOG_DEBUG << "Making server request to: " << path << " port: " << serverPort;
+            auto data = makeRequest(path, "");
+            std::stringstream ss;
+            ss << data;
+
+            T obj;
+            {
+                cereal::PortableBinaryInputArchive iarchive(ss);
+                iarchive(obj);
+            }
+            return obj;
+        }
 };
 
 #endif
