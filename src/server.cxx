@@ -78,13 +78,13 @@ class GameEndpoint
                 iarchive(requestData);
             }
             // TODO handle incorrect token
-            auto user = users[requestData.loginToken];
+            auto& user = users[requestData.loginToken];
             return {user, requestData.serializedData};
         };
 
         void createGame(const Rest::Request& request, Http::ResponseWriter response) {
             auto r = getRequestData(request.body());
-            auto user = r.first;
+            auto& user = r.first;
 
             string gameId = randString(8);
             ActiveGame newGame;
@@ -99,7 +99,7 @@ class GameEndpoint
 
         void joinGame(const Rest::Request& request, Http::ResponseWriter response) {
             auto r = getRequestData(request.body());
-            auto user = r.first;
+            auto& user = r.first;
              auto gameId = request.param(":gameid").as<string>();
 
             auto& game = games[gameId];
@@ -138,7 +138,7 @@ class GameEndpoint
             auto r = getRequestData(request.body());
             auto user = r.first;
             auto gameId = request.param(":gameid").as<string>();
-            LOG_INFO << "Got request for actions for game id: " << gameId;
+            LOG_INFO << "Got request for actions for game id: " << gameId << " from user: " << user.username;
 
             vector<Action> actions = games[gameId].state.getPossibleActions(user.playerId);
             stringstream ss;

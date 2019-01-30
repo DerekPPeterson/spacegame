@@ -19,6 +19,7 @@ class GameClientTester : public GameClient
             : GameClient(serverAddr, port) {};
 
         string getGameId() {return gameId;};
+        string getLoginToken() {return loginToken;};
 };
 
 class LocalServerStarter
@@ -69,7 +70,6 @@ TEST_CASE("Basic Game Client Tests", "[GameClient]") {
     int p1Id = state.turnInfo.whoseTurn;
 
     // Test ending turn
-    cout << actions << endl;
     client.performAction(actions.front());
     usleep(2e5);
     state = client.getState();
@@ -108,6 +108,31 @@ TEST_CASE("Multiple Player Tests", "[GameClient]")
     client2.login("player2");
     client2.joinGame(client1.getGameId());
 
+    REQUIRE(client1.getLoginToken() != client2.getLoginToken());
+
     REQUIRE(client1.getGameId() == client2.getGameId());
+
+    auto state = client1.getState();
+    auto client1LogicId = state.players.front().id;
+    auto client2LogicId = state.players.back().id;
+
+    auto actions = client1.getActions();
+    while (not actions.size()) {
+        actions = client1.getActions();
+    }
+
+    cout << actions << endl;
+    REQUIRE(actions.size() > 0);
+    for (auto a : actions) {
+        REQUIRE(client1LogicId == a.playerId);
+    }
+
+    actions = client2.getActions();
+    usleep(1e6);
+    actions = client2.getActions();
+    cout << actions << endl;
+    for (auto a : actions) {
+        REQUIRE(client2LogicId == a.playerId);
+    }
 }
 
