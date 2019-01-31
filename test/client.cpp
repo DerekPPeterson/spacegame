@@ -4,6 +4,8 @@
 #include "client.h"
 #include "timer.h"
 
+#include "testutil.h"
+
 #include <subprocess.hpp>
 
 #include <string>
@@ -19,22 +21,7 @@ class GameClientTester : public GameClient
             : GameClient(serverAddr, port) {};
 
         string getGameId() {return gameId;};
-};
-
-class LocalServerStarter
-{
-    public:
-        LocalServerStarter() {
-            p = new Popen({"./server"});
-            usleep(1e5);
-        }
-        ~LocalServerStarter() {
-            p->kill();
-            delete p;
-        }
-    private:
-        Popen *p;
-
+        string getLoginToken() {return loginToken;};
 };
 
 TEST_CASE("Basic Game Client Tests", "[GameClient]") {
@@ -43,6 +30,8 @@ TEST_CASE("Basic Game Client Tests", "[GameClient]") {
     LocalServerStarter server;
     
     GameClientTester client("localhost", 40000);
+    client.login("AckbarsRevenge");
+    REQUIRE(client.isLoggedIn());
     client.startGame();
     string gameId = client.getGameId();
 
@@ -91,5 +80,63 @@ TEST_CASE("Basic Game Client Tests", "[GameClient]") {
         changes = client.getChangesSince(0);
     }
     REQUIRE(changes.size() > 0);
+}
+
+TEST_CASE("Multiple Player Tests", "[GameClient]")
+{
+    LocalServerStarter server;
+
+    GameClientTester client1("localhost", 40000);
+    client1.login("player1");
+    client1.startGame();
+
+    GameClientTester client2("localhost", 40000);
+    client2.login("player2");
+    client2.joinGame(client1.getGameId());
+
+    REQUIRE(client1.getLoginToken() != client2.getLoginToken());
+
+    REQUIRE(client1.getGameId() == client2.getGameId());
+
+    auto state = client1.getState();
+    auto client1LogicId = state.players.front().id;
+    auto client2LogicId = state.players.back().id;
+
+    auto actions = client1.getActions();
+    while (not actions.size()) {
+        actions = client1.getActions();
+    }
+
+    cout << actions << endl;
+    REQUIRE(actions.size() > 0);
+    for (auto a : actions) {
+        REQUIRE(client1LogicId == a.playerId);
+    }
+
+    actions = client2.getActions();
+    usleep(1e6);
+    actions = client2.getActions();
+    cout << actions << endl;
+    for (auto a : actions) {
+        REQUIRE(client2LogicId == a.playerId);
+    }
+}
+
+TEST_CASE("Join by username", "[GameClient]")
+{
+    LocalServerStarter server;
+
+    GameClientTester client1("localhost", 40000);
+    client1.login("player1");
+    client1.startGame();
+
+    GameClientTester client2("localhost", 40000);
+    client2.login("player2");
+    client2.joinUser("player1");
+
+    REQUIRE(client1.getGameId() == client2.getGameId());
+    REQUIRE(client1.getMyPlayerId() != 0);
+    REQUIRE(client2.getMyPlayerId() != 0);
+    REQUIRE(client1.getMyPlayerId() != client2.getMyPlayerId());
 }
 

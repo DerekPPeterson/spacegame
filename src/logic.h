@@ -50,6 +50,54 @@ enum ResourceType
 // A type used to keep track of all resource types
 typedef std::map<ResourceType, int> ResourceAmount;
 
+bool operator == (const ResourceAmount a, const ResourceAmount b)
+{
+    if (a.size() != b.size()) {
+        return false;
+    }
+    return std::equal(a.begin(), a.end(), b.begin());
+}
+
+ResourceAmount operator + (ResourceAmount a, const ResourceAmount& b)
+{
+    for (auto pair : b) {
+        if (a.find(pair.first) != a.end()) {
+            a[pair.first] += pair.second;
+        } else {
+            a[pair.first] = pair.second;
+        }
+    }
+    return a;
+}
+
+ResourceAmount operator - (ResourceAmount a, const ResourceAmount& b)
+{
+    for (auto pair : b) {
+        if (a.find(pair.first) != a.end()) {
+            a[pair.first] -= pair.second;
+        } else {
+            a[pair.first] = -pair.second;
+        }
+    }
+    return a;
+}
+
+bool operator >= (ResourceAmount& a, const ResourceAmount& b)
+{
+    auto difference = a - b;
+    for (auto pair : difference) {
+        if (pair.second < 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool operator < (ResourceAmount& a, const ResourceAmount& b)
+{
+    return not (a >= b);
+}
+
 // The size of the spacegrid to create
 #define SPACEGRID_SIZE 3
 
@@ -172,7 +220,8 @@ namespace logic {
     struct Player : public GameObject
     {
         string name;
-        map<ResourceType, Resource> resources;
+        ResourceAmount resources;
+        ResourceAmount resourcesPerTurn;
         list<Card> deck;
         list<Card> hand;
         list<Card> discard;
@@ -255,7 +304,7 @@ namespace logic {
     struct GameState
     {
         void startGame();
-        vector<Action> getPossibleActions();
+        vector<Action> getPossibleActions(int playerId = 0);
         void performAction(Action);
 
         void writeStateToFile(string filename);

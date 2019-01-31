@@ -62,6 +62,9 @@ void GraphicsObjectHandler::initializePlayer(logic::Player player)
 
     for (auto logicCard : player.hand) {
         auto card = Card::createFrom(logicCard);
+        if (player.id != playerId) {
+            card->enemyOwned = true;
+        }
         newHand->addCard(card);
         addObject(card);
 
@@ -75,11 +78,9 @@ void GraphicsObjectHandler::initializePlayer(logic::Player player)
         card->setVisible(false);
         addObject(card);
     }
-
-    playerId = player.id;
 }
 
-void GraphicsObjectHandler::startGame(logic::GameState initialState) 
+void GraphicsObjectHandler::startGame(logic::GameState initialState, int myPlayerId) 
 {
     auto spacegrid = make_shared<SpaceGrid>();
     addObject(spacegrid);
@@ -94,10 +95,18 @@ void GraphicsObjectHandler::startGame(logic::GameState initialState)
     }
 
     // TODO handle players better
-    auto me = initialState.players.front();
+    logic::Player me;
+    logic::Player opponent;
+    for (auto p : initialState.players) {
+        if (myPlayerId == p.id) {
+            me = p;
+        } else {
+            opponent = p;
+        }
+    }
     playerId = me.id;
     initializePlayer(me);
-    initializePlayer(initialState.players.back());
+    initializePlayer(opponent);
 
     stack = make_shared<Stack>();
     addObject(stack);
@@ -110,9 +119,35 @@ void GraphicsObjectHandler::startGame(logic::GameState initialState)
         addObject(ship);
     }
 
-    auto button = make_shared<Button>("Pass", glm::vec3(0.9, 0.7, -5), glm::vec3(0, 2, 2), 0.1);
-    addObject(button);
+    passButton = make_shared<Button>("Pass", glm::vec3(0.9, 0.7, -5), glm::vec3(0, 2, 2), 0.1);
+    addObject(passButton);
+
+    turnIndicator = make_shared<TurnIndicator>(glm::vec3(0.05, 0.05, -5), playerId, initialState.turnInfo);
+    addObject(turnIndicator);
+
+    debugInfo = make_shared<DebugInfo>();
+    addObject(debugInfo);
 }
+
+void GraphicsObjectHandler::setPossibleActions(std::vector<logic::Action> actions) 
+{
+    this->actions = actions;
+    if (actions.size() == 1) {
+        selectedAction = actions[0];
+    }
+
+    // TODO debug only
+    stringstream ss;
+    ss << actions;
+    debugInfo->addInfo(ss.str());
+    
+    passButton->setActive(false);
+    for (auto a : actions) {
+        if (a.type == logic::ACTION_NONE) {
+            passButton->setActive(true);
+        }
+    }
+};
 
 optional<logic::Action> GraphicsObjectHandler::getSelectedAction()
 {
@@ -178,8 +213,24 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
                         card->setFaceUp(false);
                         enemyHand->addCard(card);
                     }
+                    break;
                 }
-
+            case logic::CHANGE_PHASE_CHANGE:
+                {
+                    auto turnInfo = get<logic::TurnInfo>(change.data);
+                    turnIndicator->changeTurn(turnInfo);
+                    break;
+                }
+            case logic::CHANGE_PLAY_CARD:
+                {
+                    auto cardId = get<int>(change.data);
+                    auto card = dynamic_pointer_cast<Card>(getObject(cardId));
+                    card->setFaceUp(true);
+                    hand->removeCard(card);
+                    enemyHand->removeCard(card);
+                    stack->addCard(card);
+                    break;
+                }
             default:
                 LOG_ERROR << "Received unhandled change from server: " << change;
                 ;

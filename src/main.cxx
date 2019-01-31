@@ -47,10 +47,10 @@ GLFWwindow* setupOpenGlContext(RenderOptions options)
     GLFWwindow* window;
     if (options.fullscreen) {
         window = glfwCreateWindow(options.screenWidth, options.screenHeight, 
-                "LearnOpenGL", glfwGetPrimaryMonitor(), NULL);
+                "Spacegame", glfwGetPrimaryMonitor(), NULL);
     } else {
         window = glfwCreateWindow(options.screenWidth, options.screenHeight, 
-                "LearnOpenGL", NULL, NULL);
+                "Spacegame", NULL, NULL);
     }
     if (window == NULL) {
         glfwTerminate();
@@ -82,6 +82,9 @@ int main(int argc, char **argv)
         ("h,screenheight", "Vertical display resolution", cxxopts::value<int>()->default_value("800"))
         ("f,fullscreen", "Enable fullscreen")
         ("l,logfile", "Log output location", cxxopts::value<string>()->default_value("spacegame.log"))
+        ("u,username", "set username", cxxopts::value<string>()->default_value("AckbarsRevenge"))
+        ("j,joingame", "join a game rather than starting one", cxxopts::value<string>())
+        ("joinuser", "join a game by user rather than starting one", cxxopts::value<string>())
         ;
     auto result = opts.parse(argc, argv);
 
@@ -98,6 +101,8 @@ int main(int argc, char **argv)
         .fullscreen=(result.count("fullscreen") > 0)
     };
 
+
+
     Camera camera(glm::vec3(-100.0f, 100.0f, 0));
 
     GLFWwindow *window = setupOpenGlContext(options);
@@ -109,13 +114,20 @@ int main(int argc, char **argv)
     Renderer renderer(options, camera);
 
     GameClient client("localhost", 40000);
+    client.login(result["username"].as<string>());
+    if (result.count("joingame")) {
+        client.joinGame(result["joingame"].as<string>());
+    }else if (result.count("joinuser")) {
+        client.joinUser(result["joinuser"].as<string>());
+    } else {
+        client.startGame();
+    }
 
     // Animation updater
     ObjectUpdater updater(1); // Using 1 other thread for updating objects
 
     GraphicsObjectHandler graphicsObjectHandler;
-    client.startGame();
-    graphicsObjectHandler.startGame(client.getState());
+    graphicsObjectHandler.startGame(client.getState(), client.getMyPlayerId());
 
     // TODO create this somewhere else
     shared_ptr<Skybox> skybox(new Skybox("./res/textures/lightblue/"));
@@ -149,6 +161,7 @@ int main(int argc, char **argv)
             // If there are no current actions get pending ones from the 
             // server This might return an empty list, in which case we will
             // ask again
+            graphicsObjectHandler.setPossibleActions(actions);
             actions = client.getActions();
         }
 

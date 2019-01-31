@@ -15,15 +15,10 @@ class GraphicsObjectHandler
     public:
         GraphicsObjectHandler() {};
 
-        void startGame(logic::GameState initialState);
+        void startGame(logic::GameState initialState, int myPlayerId);
 
-        void setPossibleActions(std::vector<logic::Action> actions) 
-        {
-            this->actions = actions;
-            if (actions.size() == 1) {
-                selectedAction = actions[0];
-            }
-        };
+        void setPossibleActions(std::vector<logic::Action> actions);
+
         std::optional<logic::Action> getSelectedAction();
 
         void updateState(std::vector<logic::Change>);
@@ -60,6 +55,12 @@ class GraphicsObjectHandler
 
         std::shared_ptr<Discard> enemyDiscard;
         std::shared_ptr<Hand> enemyHand;
+
+        std::shared_ptr<TurnIndicator> turnIndicator;
+
+        std::shared_ptr<Button> passButton;
+
+        std::shared_ptr<DebugInfo> debugInfo;
 };
 
 #endif

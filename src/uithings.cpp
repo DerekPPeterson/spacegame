@@ -378,13 +378,14 @@ Button::Button(std::string label, glm::vec3 position, glm::vec3 color, float siz
 void Button::queueDraw() 
 {
     Renderable::queueDraw();
+    text.setColor(color * (active ? 1.0f : 0.5f));
     text.queueDraw();
 }
 
 void Button::draw(Shader& shader) 
 {
     shader.setCommon(UNIFORM_MODEL, model);
-    shader.setCommon(UNIFORM_COLOR, color);
+    shader.setCommon(UNIFORM_COLOR, color * (active ? 1.0f : 0.5f));
     lineMesh->draw(shader);
 }
 
@@ -395,5 +396,80 @@ void Button::update(UpdateInfo& info)
 
 void Button::onClick()
 {
-    Event::triggerEvent<string>(EVENT_BUTTON_PRESS, label);
+    if (active) {
+        Event::triggerEvent<string>(EVENT_BUTTON_PRESS, label);
+    }
+}
+
+void TurnIndicator::changeTurn(logic::TurnInfo newTurnInfo)
+{
+    turnInfo = newTurnInfo;
+
+    if (newTurnInfo.whoseTurn == localPlayer) {
+        color = {0, 2, 2};
+        turnText.setText("Your Turn");
+    } else {
+        color = {2, 0, 0};
+        turnText.setText("Enemy Turn");
+    }
+
+    switch (turnInfo.phase.front()) {
+        case logic::PHASE_UPKEEP:
+            phaseText.setText("Upkeep Phase"); break;
+        case logic::PHASE_MAIN:
+            phaseText.setText("Main Phase"); break;
+        case logic::PHASE_MOVE:
+            phaseText.setText("Movement Phase"); break;
+        case logic::PHASE_END:
+            phaseText.setText("End Phase"); break;
+        default:
+            LOG_ERROR << "Incorrect phase given";
+    }
+
+    turnText.setColor(color);
+    phaseText.setColor(color);
+}
+
+TurnIndicator::TurnIndicator(glm::vec3 screenPos, int localPlayer, logic::TurnInfo turnInfo)
+    : Renderable(SHADER_CARD), turnText(Fonts::title), phaseText(Fonts::title), localPlayer(localPlayer)
+{
+    setPos(calcWorldSpaceCoords({screenPos.x * screenWidth, screenPos.y * screenHeight}, -screenPos.z));
+    setModel(glm::translate(model, getPos()));
+    setModel(glm::scale(model, glm::vec3(size)));
+    changeTurn(turnInfo);
+    setVisible(true);
+    turnText.setModel(glm::translate(getModel(), {0, 0, 0}));
+    phaseText.setModel(glm::translate(getModel(), {0, -1, 0}));
+}
+
+void TurnIndicator::queueDraw()
+{
+    Renderable::queueDraw();
+    turnText.queueDraw();
+    phaseText.queueDraw();
+}
+
+DebugInfo::DebugInfo() : Renderable(SHADER_NONE), text(Fonts::regular, "", {1, 1, 1}, 0, 0.05)
+{
+    setPos(calcWorldSpaceCoords({0, 0}, 3));
+    text.setModel(glm::translate(glm::mat4(1.0f), getPos()));
+    setVisible(true);
+};
+
+void DebugInfo::queueDraw()
+{
+    text.queueDraw();
+}
+
+void DebugInfo::addInfo(string info)
+{
+    lines.push_back(info);
+    if (lines.size() >= 15) {
+        lines.pop_front();
+    }
+    stringstream display;
+    for (auto& line : lines) {
+        display << line << endl;
+    }
+    text.setText(display.str());
 }

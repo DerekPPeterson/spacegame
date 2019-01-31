@@ -139,12 +139,44 @@ class Button : public Object, public Renderable, public UIObject,
         virtual void draw(Shader& shader) override;
         virtual void update(UpdateInfo& info) override;
         virtual void onClick() override;
+        void setActive(bool active) {this->active = active;};
     protected:
         glm::vec3 color;
         std::unique_ptr<LineMesh> lineMesh;
         std::string label;
         Text text;
         float size;
+        bool active = false;
+};
+
+class TurnIndicator : public Object, public Renderable, public UIObject,
+    public has_model_mat
+{
+    public:
+        TurnIndicator(glm::vec3 screenPos, int localPlayer, logic::TurnInfo turnInfo);
+        void changeTurn(logic::TurnInfo newTurnInfo);
+
+        virtual void queueDraw() override;
+        //virtual void draw(Shader& shader) override;
+    private:
+        logic::TurnInfo turnInfo;
+        Text turnText;
+        Text phaseText;
+        glm::vec3 color;
+        int localPlayer;
+        float size = 0.1;
+};
+
+class DebugInfo : public Object, public Renderable, public UIObject
+{
+    public:
+        DebugInfo();
+        void addInfo(std::string info);
+        virtual void queueDraw() override;
+    private:
+        std::list<std::string> lines;
+        Text text;
+
 };
 
 #endif

@@ -11,10 +11,27 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include <iterator>
+
+#include "client.h"
 
 using namespace std;
 using namespace Pistache;
 using namespace logic;
+
+struct User
+{
+    string username;
+    string loginToken;
+    int playerId;
+    string currentGame;
+};
+
+struct ActiveGame
+{
+    GameState state;
+    vector<User> players;
+};
 
 class GameEndpoint
 {
@@ -43,20 +60,123 @@ class GameEndpoint
 		void setupRoutes() {
 			using namespace Rest;
 
-			Routes::Get(router, "/createGame", Routes::bind(&GameEndpoint::createGame, this));
-			Routes::Get(router, "/game/:gameid/state", Routes::bind(&GameEndpoint::getState, this));
-			Routes::Get(router, "/game/:gameid/action", Routes::bind(&GameEndpoint::getActions, this));
-			Routes::Post(router, "/game/:gameid/action", Routes::bind(&GameEndpoint::performAction, this));
-			Routes::Get(router, "/game/:gameid/changes/:changeNo", Routes::bind(&GameEndpoint::getChangesSince, this));
+			Routes::Post(router, "/createGame", Routes::bind(&GameEndpoint::createGame, this));
+			Routes::Post(router, "/player/:username/login", Routes::bind(&GameEndpoint::getLoginToken, this));
+			Routes::Post(router, "/player/:username/join", Routes::bind(&GameEndpoint::joinGameByPlayer, this));
+			Routes::Post(router, "/game/:gameid/join", Routes::bind(&GameEndpoint::joinGame, this));
+			Routes::Post(router, "/game/:gameid/state", Routes::bind(&GameEndpoint::getState, this));
+			Routes::Post(router, "/game/:gameid/getactions", Routes::bind(&GameEndpoint::getActions, this));
+			Routes::Post(router, "/game/:gameid/performaction", Routes::bind(&GameEndpoint::performAction, this));
+			Routes::Post(router, "/game/:gameid/changes/:changeNo", Routes::bind(&GameEndpoint::getChangesSince, this));
 		}
 
-         void createGame(const Rest::Request& request, Http::ResponseWriter response) {
-             string gameId = randString(8);
-             GameState newGameState;
-             newGameState.startGame();
-             gamestates[gameId] = newGameState;
-             LOG_INFO << "Create new game with id: " << gameId;
-             response.send(Http::Code::Ok, gameId);
+        pair<User&, string> getRequestData(string requestBody)
+        {
+            stringstream ss;
+            ss << requestBody;
+
+            RequestData requestData;
+            {
+                cereal::PortableBinaryInputArchive iarchive(ss);
+                iarchive(requestData);
+            }
+            // TODO handle incorrect token
+            auto& user = users[requestData.loginToken];
+            return {user, requestData.serializedData};
+        };
+
+        void createGame(const Rest::Request& request, Http::ResponseWriter response) {
+            auto r = getRequestData(request.body());
+            auto& user = r.first;
+
+            string gameId = randString(8);
+            ActiveGame newGame;
+            newGame.state.startGame();
+            games[gameId] = newGame;
+
+            addPlayerToGame(user, gameId);
+
+            pair<string, int> ret = {gameId, user.playerId};
+            stringstream ss;
+            {
+                cereal::PortableBinaryOutputArchive oarchive(ss);
+                oarchive(ret);
+            }
+
+            LOG_INFO << "Create new game with id: " << gameId;
+            response.send(Http::Code::Ok, ss.str());
+         }
+
+        void addPlayerToGame(User& user, string gameId) {
+            auto& game = games[gameId];
+            user.playerId = next(game.state.players.begin(), game.players.size())->id;
+            user.currentGame = gameId;
+            game.players.push_back(user);
+        }
+
+        void joinGame(const Rest::Request& request, Http::ResponseWriter response) {
+            auto r = getRequestData(request.body());
+            auto& user = r.first;
+             auto gameId = request.param(":gameid").as<string>();
+
+             addPlayerToGame(user, gameId);
+
+            pair<string, int> ret = {gameId, user.playerId};
+            stringstream ss;
+            {
+                cereal::PortableBinaryOutputArchive oarchive(ss);
+                oarchive(ret);
+            }
+
+            LOG_INFO << "Player " << user.username << " joined game with id: " << gameId;
+            response.send(Http::Code::Ok, ss.str());
+         }
+
+        void joinGameByPlayer(const Rest::Request& request, Http::ResponseWriter response) {
+            auto r = getRequestData(request.body());
+            auto& user = r.first;
+             auto usernameToJoin = request.param(":username").as<string>();
+
+             string gameId;
+             for (auto pair : users) {
+                 auto userToken = pair.first;
+                 auto otherUser = pair.second;
+                 if (otherUser.username == usernameToJoin) {
+                     gameId = otherUser.currentGame;
+                     addPlayerToGame(user, gameId);
+                     break;
+                 }
+             }
+             if (not gameId.size()) {
+                LOG_ERROR << "Player " << user.username << " tried to join " 
+                    << usernameToJoin 
+                    << " but that user was not in a game or is not logged in";
+                response.send(Http::Code::Failed_Dependency, "");
+                return;
+             }
+
+            pair<string, int> ret = {gameId, user.playerId};
+            stringstream ss;
+            {
+                cereal::PortableBinaryOutputArchive oarchive(ss);
+                oarchive(ret);
+            }
+
+            LOG_INFO << "Player " << user.username << " joined game with id: " << gameId;
+            response.send(Http::Code::Ok, ss.str());
+         }
+
+         void getLoginToken(const Rest::Request& request, Http::ResponseWriter response) {
+             // TODO some kind of auth check not currently logged in
+             auto username = request.param(":username").as<string>();
+             string playerToken = randString(8);
+             LOG_INFO << "Player " << username << " logged in";
+             User user = {
+                 .username = username,
+                 .loginToken = playerToken,
+             };
+             users[playerToken] = user;
+             response.send(Http::Code::Ok, playerToken);
          }
 
          void getState(const Rest::Request& request, Http::ResponseWriter response) {
@@ -65,16 +185,18 @@ class GameEndpoint
             stringstream ss;
             {
                 cereal::PortableBinaryOutputArchive oarchive(ss);
-                oarchive(gamestates[gameId]);
+                oarchive(games[gameId].state);
             }
             response.send(Http::Code::Ok, ss.str());
          }
 
          void getActions(const Rest::Request& request, Http::ResponseWriter response) {
+            auto r = getRequestData(request.body());
+            auto user = r.first;
             auto gameId = request.param(":gameid").as<string>();
-            LOG_INFO << "Got request for actions for game id: " << gameId;
+            LOG_INFO << "Got request for actions for game id: " << gameId << " from user: " << user.username;
 
-            vector<Action> actions = gamestates[gameId].getPossibleActions();
+            vector<Action> actions = games[gameId].state.getPossibleActions(user.playerId);
             stringstream ss;
             {
                 cereal::PortableBinaryOutputArchive oarchive(ss);
@@ -84,16 +206,19 @@ class GameEndpoint
          }
 
          void performAction(const Rest::Request& request, Http::ResponseWriter response) {
+            auto r = getRequestData(request.body());
+            auto user = r.first;
+            string serializedData = r.second;
             auto gameId = request.param(":gameid").as<string>();
              LOG_INFO << "Got request to perform action for game id: " << gameId;
             stringstream ss;
-            ss << request.body();
+            ss << serializedData;
             Action action;
             {
                 cereal::PortableBinaryInputArchive iarchive(ss);
                 iarchive(action);
             }
-            gamestates[gameId].performAction(action);
+            games[gameId].state.performAction(action);
             response.send(Http::Code::Ok, "");
          }
 
@@ -107,7 +232,7 @@ class GameEndpoint
             stringstream ss;
             {
                 cereal::PortableBinaryOutputArchive oarchive(ss);
-                oarchive(gamestates[gameId].getChangesAfter(changeNo));
+                oarchive(games[gameId].state.getChangesAfter(changeNo));
             }
             response.send(Http::Code::Ok, ss.str());
          }
@@ -115,12 +240,14 @@ class GameEndpoint
 	    std::shared_ptr<Http::Endpoint> httpEndpoint;
 		Rest::Router router;
 
-        map<string, GameState> gamestates;
+        map<string, ActiveGame> games;
+        map<string, User> users;
 };
 
 int main() {
     remove("server.log");
     plog::init(plog::verbose, "server.log");
+    LOG_INFO << "Starting server";
 
     Port port(40000);
 

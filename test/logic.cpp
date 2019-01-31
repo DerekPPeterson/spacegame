@@ -31,7 +31,8 @@ TEST_CASE("Basic Game Logic Tests", "[GameState]") {
 
     SECTION("Changes array tests") {
         // Play a card
-        auto actions = state.getPossibleActions();
+        auto currentPlayer = state.turnInfo.whoseTurn;
+        auto actions = state.getPossibleActions(currentPlayer);
         auto playCard = findActionType(actions, ACTION_PLAY_CARD);
         REQUIRE(playCard); 
         state.performAction(*playCard);
@@ -40,7 +41,7 @@ TEST_CASE("Basic Game Logic Tests", "[GameState]") {
         REQUIRE(get<int>(changes[0].data) == playCard->id);
 
         // Select targets for card
-        actions = state.getPossibleActions();
+        actions = state.getPossibleActions(currentPlayer);
         auto selectSystem = findActionType(actions, ACTION_SELECT_SYSTEM);
         REQUIRE(selectSystem);
         state.performAction(*selectSystem);
@@ -49,7 +50,7 @@ TEST_CASE("Basic Game Logic Tests", "[GameState]") {
         REQUIRE(state.turnInfo.phase.back() == PHASE_RESOLVE_STACK);
 
         // Let the card Resolve
-        actions = state.getPossibleActions();
+        actions = state.getPossibleActions(currentPlayer);
         auto doNothing = findActionType(actions, ACTION_NONE);
         REQUIRE(doNothing);
         state.performAction(*doNothing);

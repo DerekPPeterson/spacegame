@@ -190,11 +190,11 @@ vector<Action> GameState::getValidCardActions()
 
     if (turnInfo.phase.back() == PHASE_MAIN 
             or turnInfo.phase.back() == PHASE_RESOLVE_STACK) {
-        auto player = getPlayerById(turnInfo.whoseTurn);
+        auto player = getPlayerById(turnInfo.activePlayer);
         for (auto& card : player->hand) {
             Action action = {
                 .type = ACTION_PLAY_CARD,
-                .playerId = turnInfo.whoseTurn,
+                .playerId = turnInfo.activePlayer,
                 .id = card.id,
                 .description = card.name,
             };
@@ -259,7 +259,7 @@ vector<Action> GameState::getTargetActions()
     return actions;
 }
 
-vector<Action> GameState::getPossibleActions()
+vector<Action> GameState::getPossibleActions(int playerId)
 {
     vector<Action> actions;
 
@@ -294,7 +294,15 @@ vector<Action> GameState::getPossibleActions()
     actions.insert(actions.end(), moveActions.begin(), moveActions.end());
     actions.insert(actions.end(), targetActions.begin(), targetActions.end());
 
-    return actions;
+    if (playerId) {
+        vector<Action> actionsForPlayer;
+        copy_if(actions.begin(), actions.end(), back_inserter(actionsForPlayer),
+                [playerId](Action a) {return a.playerId == playerId;});
+
+        return actionsForPlayer;
+    } else {
+        return actions;
+    }
 }
 
 
@@ -419,6 +427,8 @@ void GameState::endTurn()
     auto nextPlayerId = it->id;
     turnInfo.whoseTurn = nextPlayerId;
     turnInfo.activePlayer = nextPlayerId;
+
+    changes.push_back({.type = CHANGE_PHASE_CHANGE, .data = turnInfo});
 
     LOG_INFO << "It is now player id " << nextPlayerId << "'s turn" << endl;
     turnInfo.phase[0] = PHASE_UPKEEP;
