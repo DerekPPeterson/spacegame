@@ -53,6 +53,22 @@ void GameClient::joinGame(string gameId)
     LOG_INFO << "Joined game (id: " << gameId << ")";
 };
 
+void GameClient::joinUser(string username)
+{
+    auto path = serverAddr + "/player/" + username + "/join";
+    auto data = makeRequest(path, "");
+    stringstream ss;
+    ss << data;
+    pair<string, int> ret;
+    {
+        cereal::PortableBinaryInputArchive iarchive(ss);
+        iarchive(ret);
+    }
+    this->gameId = ret.first;
+    playerId = ret.second;
+    LOG_INFO << "Joined game (id: " << gameId << ")";
+};
+
 string GameClient::makeRequest(string path, string data) const
 {
     if (loginToken == "") {

@@ -136,3 +136,21 @@ TEST_CASE("Multiple Player Tests", "[GameClient]")
     }
 }
 
+TEST_CASE("Join by username", "[GameClient]")
+{
+    LocalServerStarter server;
+
+    GameClientTester client1("localhost", 40000);
+    client1.login("player1");
+    client1.startGame();
+
+    GameClientTester client2("localhost", 40000);
+    client2.login("player2");
+    client2.joinUser("player1");
+
+    REQUIRE(client1.getGameId() == client2.getGameId());
+    REQUIRE(client1.getMyPlayerId() != 0);
+    REQUIRE(client2.getMyPlayerId() != 0);
+    REQUIRE(client1.getMyPlayerId() != client2.getMyPlayerId());
+}
+

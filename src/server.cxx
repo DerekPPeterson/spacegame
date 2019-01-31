@@ -11,6 +11,7 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include <iterator>
 
 #include "client.h"
 
@@ -23,6 +24,7 @@ struct User
     string username;
     string loginToken;
     int playerId;
+    string currentGame;
 };
 
 struct ActiveGame
@@ -60,6 +62,7 @@ class GameEndpoint
 
 			Routes::Post(router, "/createGame", Routes::bind(&GameEndpoint::createGame, this));
 			Routes::Post(router, "/player/:username/login", Routes::bind(&GameEndpoint::getLoginToken, this));
+			Routes::Post(router, "/player/:username/join", Routes::bind(&GameEndpoint::joinGameByPlayer, this));
 			Routes::Post(router, "/game/:gameid/join", Routes::bind(&GameEndpoint::joinGame, this));
 			Routes::Post(router, "/game/:gameid/state", Routes::bind(&GameEndpoint::getState, this));
 			Routes::Post(router, "/game/:gameid/getactions", Routes::bind(&GameEndpoint::getActions, this));
@@ -89,8 +92,9 @@ class GameEndpoint
             string gameId = randString(8);
             ActiveGame newGame;
             newGame.state.startGame();
-            user.playerId = newGame.state.players.front().id;
-            newGame.players.push_back(user);
+            games[gameId] = newGame;
+
+            addPlayerToGame(user, gameId);
 
             pair<string, int> ret = {gameId, user.playerId};
             stringstream ss;
@@ -99,19 +103,50 @@ class GameEndpoint
                 oarchive(ret);
             }
 
-            games[gameId] = newGame;
             LOG_INFO << "Create new game with id: " << gameId;
             response.send(Http::Code::Ok, ss.str());
          }
+
+        void addPlayerToGame(User& user, string gameId) {
+            auto& game = games[gameId];
+            user.playerId = next(game.state.players.begin(), game.players.size())->id;
+            user.currentGame = gameId;
+            game.players.push_back(user);
+        }
 
         void joinGame(const Rest::Request& request, Http::ResponseWriter response) {
             auto r = getRequestData(request.body());
             auto& user = r.first;
              auto gameId = request.param(":gameid").as<string>();
 
-            auto& game = games[gameId];
-            user.playerId = game.state.players.back().id;
-            game.players.push_back(user);
+             addPlayerToGame(user, gameId);
+
+            pair<string, int> ret = {gameId, user.playerId};
+            stringstream ss;
+            {
+                cereal::PortableBinaryOutputArchive oarchive(ss);
+                oarchive(ret);
+            }
+
+            LOG_INFO << "Player " << user.username << " joined game with id: " << gameId;
+            response.send(Http::Code::Ok, ss.str());
+         }
+
+        void joinGameByPlayer(const Rest::Request& request, Http::ResponseWriter response) {
+            auto r = getRequestData(request.body());
+            auto& user = r.first;
+             auto usernameToJoin = request.param(":username").as<string>();
+
+             string gameId;
+             for (auto pair : users) {
+                 auto userToken = pair.first;
+                 auto otherUser = pair.second;
+                 if (otherUser.username == usernameToJoin) {
+                     gameId = otherUser.currentGame;
+                     addPlayerToGame(user, gameId);
+                     break;
+                 }
+             }
 
             pair<string, int> ret = {gameId, user.playerId};
             stringstream ss;
