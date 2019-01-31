@@ -52,7 +52,7 @@ void GraphicsObjectHandler::initializePlayer(logic::Player player)
         newHand = make_shared<Hand>(glm::vec2(0.9, 0.9));
         newDeck = make_shared<Deck>();
         hand = newHand;
-        myResources = make_shared<ResourceDisplay>(glm::vec3(0, 0.95, -5));
+        myResources = make_shared<ResourceDisplay>(glm::vec3(0, 0.90, -5));
         myResources->set(player.resources);
         addObject(myResources);
     } else {
@@ -140,9 +140,9 @@ void GraphicsObjectHandler::setPossibleActions(std::vector<logic::Action> action
     }
 
     // TODO debug only
-    stringstream ss;
-    ss << actions;
-    debugInfo->addInfo(ss.str());
+    //stringstream ss;
+    //ss << actions;
+    //debugInfo->addInfo(ss.str());
     
     passButton->setActive(false);
     for (auto a : actions) {

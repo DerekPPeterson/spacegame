@@ -122,12 +122,10 @@ class ResourceDisplay : public Renderable, public Object,
         ResourceDisplay(glm::vec3 position, float iconSize = 0.1);
         virtual void update(UpdateInfo& info) override;
         void queueDraw() override;
-        void set(ResourceAmount);
-        void set(ResourceType type, int val);
-        int get(ResourceType type);
+        void set(ResourceAmount amount); 
     protected:
         float iconSize = 0.1;
-        std::vector<std::shared_ptr<IconNum>> displays;
+        Text text;
 };
 
 class Button : public Object, public Renderable, public UIObject,

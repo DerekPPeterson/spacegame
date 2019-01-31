@@ -195,6 +195,8 @@ void GameState::startGame()
         .activePlayer = players.front().id,
         .phase = {PHASE_MAIN},
     };
+
+    upkeep();
 };
 
 template <typename T>
@@ -386,13 +388,12 @@ void GameState::upkeep()
 {
     auto drawInfo = getPlayerById(turnInfo.whoseTurn)->draw();
     changes.push_back({.type = CHANGE_DRAW_CARD, .data = drawInfo});
-    for (auto& player : players) {
-        player.resources = player.resources + player.resourcesPerTurn;
-        changes.push_back({
-                .type = CHANGE_PLAYER_RESOURCES, 
-                .data=pair<int, ResourceAmount>(player.id, player.resources)
-                });
-    }
+    auto player = getPlayerById(turnInfo.whoseTurn);
+    player->resources = player->resources + player->resourcesPerTurn;
+    changes.push_back({
+            .type = CHANGE_PLAYER_RESOURCES, 
+            .data=pair<int, ResourceAmount>(player->id, player->resources)
+            });
     drawInfo = {};
 }
 

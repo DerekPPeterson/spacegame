@@ -14,6 +14,7 @@ std::map<std::string, ResourceType> resourceStrings = {
     {"ai", RESOURCE_AI},
     {"am", RESOURCE_ANTIMATTER},
     {"inf", RESOURCE_INFLUENCE},
+    {"any", RESOURCE_ANY},
 };
 
 std::shared_ptr<Renderable> createIcon(ResourceType type)
@@ -272,62 +273,37 @@ ResourceDisplay::ResourceDisplay(glm::vec3 position, float iconSize)
 {
     setVisible(true);
     setPos(calcWorldSpaceCoords({position.x * screenWidth, position.y * screenHeight}, -position.z));
-    shared_ptr<WarpBeacon> beacon(new WarpBeacon());
-    auto warpCounter = shared_ptr<IconNum>(new IconNum(beacon));
-    displays.push_back(warpCounter);
-
-    shared_ptr<ResourceSphere> resourceSphere(new ResourceSphere());
-    auto resCounter = shared_ptr<IconNum>(new IconNum(resourceSphere));
-    displays.push_back(resCounter);
-
-    shared_ptr<AiIcon> aiIcon(new AiIcon());
-    auto aiCounter = shared_ptr<IconNum>(new IconNum(aiIcon));
-    displays.push_back(aiCounter);
-
-    shared_ptr<AntiMatterIcon> antimatterIcon(new AntiMatterIcon());
-    auto antimatterCounter = shared_ptr<IconNum>(new IconNum(antimatterIcon));
-    displays.push_back(antimatterCounter);
-
-    shared_ptr<InfluenceIcon> influenceIcon(new InfluenceIcon());
-    auto influenceCounter = shared_ptr<IconNum>(new IconNum(influenceIcon));
-    displays.push_back(influenceCounter);
 }
 
 void ResourceDisplay::update(UpdateInfo& info)
 {
-    for (auto d : displays) {
-        d->update(info);
+    text.update(info);
+}
+
+void ResourceDisplay::set(ResourceAmount amount)
+{
+    stringstream ss;
+    for (auto pair : resourceStrings) {
+        auto str = pair.first;
+        auto type = pair.second;
+
+        if (amount.find(type) != amount.end())
+        {
+            ss << "{" << str << "}: " << amount[type] << endl;
+        }
     }
+
+    text.setText(ss.str());
 }
 
 void ResourceDisplay::queueDraw()
 {
     glm::mat4 curModel = glm::translate(getModel(), getPos());
     curModel = glm::scale(curModel, glm::vec3(iconSize));
-
-    for (auto d : displays) {
-        d->setModel(curModel);
-        d->queueDraw();
-        curModel = glm::translate(curModel, {4, 0, 0});
-    }
+    text.setModel(curModel);
+    text.queueDraw();
 }
 
-void ResourceDisplay::set(ResourceAmount amount)
-{
-    for (auto p : amount) {
-        displays[p.first]->setVal(p.second);
-    }
-}
-
-void ResourceDisplay::set(ResourceType type, int val)
-{
-    displays[type]->setVal(val);
-}
-
-int ResourceDisplay::get(ResourceType type)
-{
-    return displays[type]->getVal();
-}
 
 Button::Button(std::string label, glm::vec3 position, glm::vec3 color, float size)
     : Renderable(SHADER_CARD), color(color), label(label), 
