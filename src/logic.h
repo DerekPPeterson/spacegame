@@ -50,53 +50,11 @@ enum ResourceType
 // A type used to keep track of all resource types
 typedef std::map<ResourceType, int> ResourceAmount;
 
-bool operator == (const ResourceAmount a, const ResourceAmount b)
-{
-    if (a.size() != b.size()) {
-        return false;
-    }
-    return std::equal(a.begin(), a.end(), b.begin());
-}
-
-ResourceAmount operator + (ResourceAmount a, const ResourceAmount& b)
-{
-    for (auto pair : b) {
-        if (a.find(pair.first) != a.end()) {
-            a[pair.first] += pair.second;
-        } else {
-            a[pair.first] = pair.second;
-        }
-    }
-    return a;
-}
-
-ResourceAmount operator - (ResourceAmount a, const ResourceAmount& b)
-{
-    for (auto pair : b) {
-        if (a.find(pair.first) != a.end()) {
-            a[pair.first] -= pair.second;
-        } else {
-            a[pair.first] = -pair.second;
-        }
-    }
-    return a;
-}
-
-bool operator >= (ResourceAmount& a, const ResourceAmount& b)
-{
-    auto difference = a - b;
-    for (auto pair : difference) {
-        if (pair.second < 0) {
-            return false;
-        }
-    }
-    return true;
-}
-
-bool operator < (ResourceAmount& a, const ResourceAmount& b)
-{
-    return not (a >= b);
-}
+bool operator == (const ResourceAmount a, const ResourceAmount b);
+ResourceAmount operator + (ResourceAmount a, const ResourceAmount& b);
+ResourceAmount operator - (ResourceAmount a, const ResourceAmount& b);
+bool operator >= (ResourceAmount& a, const ResourceAmount& b);
+bool operator < (ResourceAmount& a, const ResourceAmount& b);
 
 // The size of the spacegrid to create
 #define SPACEGRID_SIZE 3

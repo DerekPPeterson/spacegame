@@ -10,6 +10,82 @@ using namespace std;
 
 int GameObject::curId = 1;
 
+bool operator == (ResourceAmount a, ResourceAmount b)
+{
+    for (auto it = a.begin(); it != a.end(); it++) {
+        if (not it->second) {
+            a.erase(it);
+        }
+    }
+    for (auto it = b.begin(); it != b.end(); it++) {
+        if (not it->second) {
+            b.erase(it);
+        }
+    }
+    if (a.size() != b.size()) {
+        return false;
+    }
+    return std::equal(a.begin(), a.end(), b.begin());
+}
+
+ResourceAmount operator + (ResourceAmount a, const ResourceAmount& b)
+{
+    for (auto pair : b) {
+        if (a.find(pair.first) != a.end()) {
+            a[pair.first] += pair.second;
+        } else {
+            a[pair.first] = pair.second;
+        }
+    }
+    return a;
+}
+
+ResourceAmount operator - (ResourceAmount a, const ResourceAmount& b)
+{
+    if (b.find(RESOURCE_ANY) != b.end()) {
+        if (b.at(RESOURCE_ANY) > 0) {
+            throw logic_error("Cannot subtract RESOURCE_ANY from anything");
+        }
+    }
+    for (auto pair : b) {
+        if (a.find(pair.first) != a.end()) {
+            a[pair.first] -= pair.second;
+        } else {
+            a[pair.first] = -pair.second;
+        }
+        if (a[pair.first] < 0) {
+            if (a.find(RESOURCE_ANY) != a.end()) {
+                int needed = - a[pair.first];
+                int have = a[RESOURCE_ANY];
+                if (have >= needed) {
+                    a[pair.first] = 0;
+                    a[RESOURCE_ANY] -= needed;
+                } else {
+                    a[pair.first] += have;
+                    a[RESOURCE_ANY] = 0;
+                }
+            }
+        }
+    }
+
+    return a;
+}
+
+bool operator >= (ResourceAmount& a, const ResourceAmount& b)
+{
+    auto difference = a - b;
+    for (auto pair : difference) {
+        if (pair.second < 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool operator < (ResourceAmount& a, const ResourceAmount& b)
+{
+    return not (a >= b);
+}
 
 // TODO dynamically load deck from somewhere
 void GameState::writeStateToFile(string filename)
@@ -71,7 +147,8 @@ void GameState::startGame()
 
         Player p = {
             .name = "Player" + to_string(i),
-            .resources = {{RESOURCE_WARP_BEACONS, {.amount = 0, .max=1, .perTurn=1}}},
+            .resources = {},
+            .resourcesPerTurn = {{RESOURCE_MATERIALS, 1}, {RESOURCE_WARP_BEACONS, 1}},
         };
 
         // TODO load deck dynamically

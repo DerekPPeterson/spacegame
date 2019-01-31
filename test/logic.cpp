@@ -61,3 +61,59 @@ TEST_CASE("Basic Game Logic Tests", "[GameState]") {
         REQUIRE(changes[1].type == CHANGE_ADD_SHIP);
     }
 }
+
+TEST_CASE("ResourceAmount arithmatic", "[ResourceAmount]")
+{
+    SECTION("Simple tests") {
+        ResourceAmount a = {
+            {RESOURCE_MATERIALS, 2},
+            {RESOURCE_INFLUENCE, 1}
+        };
+
+        ResourceAmount b = {
+            {RESOURCE_MATERIALS, 1},
+            {RESOURCE_INFLUENCE, 1}
+        };
+        
+        REQUIRE(a == a);
+        REQUIRE(a != b);
+        REQUIRE(b < a);
+
+        ResourceAmount aPlusB = {
+            {RESOURCE_MATERIALS, 3},
+            {RESOURCE_INFLUENCE, 2}
+        };
+        REQUIRE(a + b == aPlusB);
+    }
+
+    SECTION("RESOURCE_ANY tests") {
+        ResourceAmount a = {
+            {RESOURCE_ANY, 5}
+        };
+
+        ResourceAmount b = {
+            {RESOURCE_MATERIALS, 1},
+            {RESOURCE_INFLUENCE, 1}
+        };
+
+        ResourceAmount c = {
+            {RESOURCE_MATERIALS, 9},
+            {RESOURCE_INFLUENCE, 1}
+        };
+
+        ResourceAmount d = {
+            {RESOURCE_MATERIALS, 4},
+            {RESOURCE_INFLUENCE, 2}
+        };
+
+        ResourceAmount aMinusB = {
+            {RESOURCE_ANY, 3}
+        };
+
+        REQUIRE(a - b == aMinusB);
+        REQUIRE((a < c));
+        REQUIRE((a >= b));
+        REQUIRE((a < d));
+
+    }
+}
