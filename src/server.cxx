@@ -147,6 +147,13 @@ class GameEndpoint
                      break;
                  }
              }
+             if (not gameId.size()) {
+                LOG_ERROR << "Player " << user.username << " tried to join " 
+                    << usernameToJoin 
+                    << " but that user was not in a game or is not logged in";
+                response.send(Http::Code::Failed_Dependency, "");
+                return;
+             }
 
             pair<string, int> ret = {gameId, user.playerId};
             stringstream ss;

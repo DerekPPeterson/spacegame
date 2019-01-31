@@ -4,6 +4,8 @@
 #include "client.h"
 #include "timer.h"
 
+#include "testutil.h"
+
 #include <subprocess.hpp>
 
 #include <string>
@@ -20,22 +22,6 @@ class GameClientTester : public GameClient
 
         string getGameId() {return gameId;};
         string getLoginToken() {return loginToken;};
-};
-
-class LocalServerStarter
-{
-    public:
-        LocalServerStarter() {
-            p = new Popen({"./server"});
-            usleep(1e5);
-        }
-        ~LocalServerStarter() {
-            p->kill();
-            delete p;
-        }
-    private:
-        Popen *p;
-
 };
 
 TEST_CASE("Basic Game Client Tests", "[GameClient]") {

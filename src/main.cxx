@@ -82,7 +82,9 @@ int main(int argc, char **argv)
         ("h,screenheight", "Vertical display resolution", cxxopts::value<int>()->default_value("800"))
         ("f,fullscreen", "Enable fullscreen")
         ("l,logfile", "Log output location", cxxopts::value<string>()->default_value("spacegame.log"))
-        ("j,joingame", "join a game rather than starting one", cxxopts::value<string>()->default_value("spacegame.log"))
+        ("u,username", "set username", cxxopts::value<string>()->default_value("AckbarsRevenge"))
+        ("j,joingame", "join a game rather than starting one", cxxopts::value<string>())
+        ("joinuser", "join a game by user rather than starting one", cxxopts::value<string>())
         ;
     auto result = opts.parse(argc, argv);
 
@@ -112,9 +114,11 @@ int main(int argc, char **argv)
     Renderer renderer(options, camera);
 
     GameClient client("localhost", 40000);
-    client.login("player");
+    client.login(result["username"].as<string>());
     if (result.count("joingame")) {
         client.joinGame(result["joingame"].as<string>());
+    }else if (result.count("joinuser")) {
+        client.joinUser(result["joinuser"].as<string>());
     } else {
         client.startGame();
     }
