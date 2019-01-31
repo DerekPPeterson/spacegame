@@ -225,6 +225,7 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
                 {
                     auto cardId = get<int>(change.data);
                     auto card = dynamic_pointer_cast<Card>(getObject(cardId));
+                    card->setFaceUp(true);
                     hand->removeCard(card);
                     enemyHand->removeCard(card);
                     stack->addCard(card);
