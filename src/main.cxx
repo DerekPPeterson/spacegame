@@ -47,10 +47,10 @@ GLFWwindow* setupOpenGlContext(RenderOptions options)
     GLFWwindow* window;
     if (options.fullscreen) {
         window = glfwCreateWindow(options.screenWidth, options.screenHeight, 
-                "LearnOpenGL", glfwGetPrimaryMonitor(), NULL);
+                "Spacegame", glfwGetPrimaryMonitor(), NULL);
     } else {
         window = glfwCreateWindow(options.screenWidth, options.screenHeight, 
-                "LearnOpenGL", NULL, NULL);
+                "Spacegame", NULL, NULL);
     }
     if (window == NULL) {
         glfwTerminate();
@@ -161,6 +161,7 @@ int main(int argc, char **argv)
             // If there are no current actions get pending ones from the 
             // server This might return an empty list, in which case we will
             // ask again
+            graphicsObjectHandler.setPossibleActions(actions);
             actions = client.getActions();
         }
 

@@ -8,6 +8,7 @@ int main()
     LocalServerStarter server;
 
     auto app1 = Popen({"./app", "-u", "player1"});
+    usleep(4e6);
     auto app2 = Popen({"./app", "-u", "player2", "--joinuser", "player1"});
 
     app1.wait();

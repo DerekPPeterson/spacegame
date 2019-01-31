@@ -124,6 +124,9 @@ void GraphicsObjectHandler::startGame(logic::GameState initialState, int myPlaye
 
     turnIndicator = make_shared<TurnIndicator>(glm::vec3(0.05, 0.05, -5), playerId, initialState.turnInfo);
     addObject(turnIndicator);
+
+    debugInfo = make_shared<DebugInfo>();
+    addObject(debugInfo);
 }
 
 void GraphicsObjectHandler::setPossibleActions(std::vector<logic::Action> actions) 
@@ -132,6 +135,11 @@ void GraphicsObjectHandler::setPossibleActions(std::vector<logic::Action> action
     if (actions.size() == 1) {
         selectedAction = actions[0];
     }
+
+    // TODO debug only
+    stringstream ss;
+    ss << actions;
+    debugInfo->addInfo(ss.str());
     
     passButton->setActive(false);
     for (auto a : actions) {

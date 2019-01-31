@@ -167,5 +167,17 @@ class TurnIndicator : public Object, public Renderable, public UIObject,
         float size = 0.1;
 };
 
+class DebugInfo : public Object, public Renderable, public UIObject
+{
+    public:
+        DebugInfo();
+        void addInfo(std::string info);
+        virtual void queueDraw() override;
+    private:
+        std::list<std::string> lines;
+        Text text;
+
+};
+
 #endif
 

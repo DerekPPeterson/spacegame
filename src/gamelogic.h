@@ -59,6 +59,8 @@ class GraphicsObjectHandler
         std::shared_ptr<TurnIndicator> turnIndicator;
 
         std::shared_ptr<Button> passButton;
+
+        std::shared_ptr<DebugInfo> debugInfo;
 };
 
 #endif

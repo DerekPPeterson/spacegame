@@ -448,3 +448,28 @@ void TurnIndicator::queueDraw()
     turnText.queueDraw();
     phaseText.queueDraw();
 }
+
+DebugInfo::DebugInfo() : Renderable(SHADER_NONE), text(Fonts::regular, "", {1, 1, 1}, 0, 0.05)
+{
+    setPos(calcWorldSpaceCoords({0, 0}, 3));
+    text.setModel(glm::translate(glm::mat4(1.0f), getPos()));
+    setVisible(true);
+};
+
+void DebugInfo::queueDraw()
+{
+    text.queueDraw();
+}
+
+void DebugInfo::addInfo(string info)
+{
+    lines.push_back(info);
+    if (lines.size() >= 15) {
+        lines.pop_front();
+    }
+    stringstream display;
+    for (auto& line : lines) {
+        display << line << endl;
+    }
+    text.setText(display.str());
+}
