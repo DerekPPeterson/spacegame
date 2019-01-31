@@ -52,6 +52,9 @@ void GraphicsObjectHandler::initializePlayer(logic::Player player)
         newHand = make_shared<Hand>(glm::vec2(0.9, 0.9));
         newDeck = make_shared<Deck>();
         hand = newHand;
+        myResources = make_shared<ResourceDisplay>(glm::vec3(0, 0.95, -5));
+        myResources->set(player.resources);
+        addObject(myResources);
     } else {
         newHand = make_shared<Hand>(glm::vec2(0.9, 0.05));
         newDeck = make_shared<Deck>();
@@ -230,6 +233,18 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
                     enemyHand->removeCard(card);
                     stack->addCard(card);
                     break;
+                }
+            case logic::CHANGE_PLAYER_RESOURCES:
+                {
+                    auto data = get<pair<int, ResourceAmount>>(change.data);
+                    auto changedPlayer = data.first;
+                    auto newAmount = data.second;
+                    if (changedPlayer == playerId) {
+                        myResources->set(newAmount);
+                    } 
+                    // TODO add enemy counter
+                    break;
+
                 }
             default:
                 LOG_ERROR << "Received unhandled change from server: " << change;

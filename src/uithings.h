@@ -119,7 +119,7 @@ class ResourceDisplay : public Renderable, public Object,
     public UIObject, public has_model_mat
 {
     public:
-        ResourceDisplay(float iconSize = 0.1);
+        ResourceDisplay(glm::vec3 position, float iconSize = 0.1);
         virtual void update(UpdateInfo& info) override;
         void queueDraw() override;
         void set(ResourceAmount);

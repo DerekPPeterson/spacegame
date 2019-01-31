@@ -245,13 +245,23 @@ namespace logic {
         CHANGE_DRAW_CARD,   // data will be pair of playerid, Card
         CHANGE_PHASE_CHANGE, // data will be turnInfo
         CHANGE_PLACE_BEACON, // data will be WarpBeacon object
+        CHANGE_PLAYER_RESOURCES // data will be pair of playerId, ResourceAmount
     };
 
     struct Change
     {
         int changeNo = 0;
         ChangeType type;
-        variant<Ship, int, Card, Player, TurnInfo, pair<int, Card>, WarpBeacon> data;
+        variant<
+            Ship,
+            int,
+            Card,
+            Player,
+            TurnInfo,
+            pair<int, Card>,
+            WarpBeacon,
+            pair<int, ResourceAmount>
+            > data;
         SERIALIZE(changeNo, type, data);
         friend ostream & operator << (ostream &out, const Change &c) {
             out << "(Change: no " << c.changeNo << " type: " << c.type << ")";
@@ -296,6 +306,7 @@ namespace logic {
             void resolveStackTop();
             void placeBeacon(int systemId, int ownerId);
             void endTurn();
+            void upkeep();
 
             vector<Action> getValidCardActions();
             vector<Action> getValidBeaconActions();

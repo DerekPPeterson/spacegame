@@ -61,6 +61,9 @@ class GraphicsObjectHandler
         std::shared_ptr<Button> passButton;
 
         std::shared_ptr<DebugInfo> debugInfo;
+
+        std::shared_ptr<ResourceDisplay> myResources;
+        std::shared_ptr<ResourceDisplay> enemyResources;
 };
 
 #endif

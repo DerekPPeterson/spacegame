@@ -267,11 +267,11 @@ void IconNum::queueDraw()
     icon->queueDraw();
 }
 
-ResourceDisplay::ResourceDisplay(float iconSize)
+ResourceDisplay::ResourceDisplay(glm::vec3 position, float iconSize)
     : Renderable(SHADER_NONE), iconSize(iconSize)
 {
-    //setPosScreenspace({screenWidth * 0.05, screenHeight * 0.05});
-    position = {0, 0, 0};
+    setVisible(true);
+    setPos(calcWorldSpaceCoords({position.x * screenWidth, position.y * screenHeight}, -position.z));
     shared_ptr<WarpBeacon> beacon(new WarpBeacon());
     auto warpCounter = shared_ptr<IconNum>(new IconNum(beacon));
     displays.push_back(warpCounter);

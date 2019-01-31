@@ -382,6 +382,19 @@ vector<Action> GameState::getPossibleActions(int playerId)
     }
 }
 
+void GameState::upkeep()
+{
+    auto drawInfo = getPlayerById(turnInfo.whoseTurn)->draw();
+    changes.push_back({.type = CHANGE_DRAW_CARD, .data = drawInfo});
+    for (auto& player : players) {
+        player.resources = player.resources + player.resourcesPerTurn;
+        changes.push_back({
+                .type = CHANGE_PLAYER_RESOURCES, 
+                .data=pair<int, ResourceAmount>(player.id, player.resources)
+                });
+    }
+    drawInfo = {};
+}
 
 void GameState::performAction(Action action)
 {
@@ -389,9 +402,6 @@ void GameState::performAction(Action action)
         case PHASE_UPKEEP: {
             // TODO handle fast actions
             LOG_INFO << "End upkeep, start main phase";
-            auto drawInfo = getPlayerById(turnInfo.whoseTurn)->draw();
-            changes.push_back({.type = CHANGE_DRAW_CARD, .data = drawInfo});
-            drawInfo = {};
             turnInfo.phase[0] = PHASE_MAIN;
             changes.push_back({.type = CHANGE_PHASE_CHANGE, .data = turnInfo});
             break;
@@ -421,6 +431,7 @@ void GameState::performAction(Action action)
         case PHASE_END:
             // TODO handle other player issues
             endTurn();
+            upkeep();
             break;
         case PHASE_RESOLVE_STACK:
             switch(action.type) {
