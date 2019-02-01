@@ -53,8 +53,8 @@ typedef std::map<ResourceType, int> ResourceAmount;
 bool operator == (const ResourceAmount a, const ResourceAmount b);
 ResourceAmount operator + (ResourceAmount a, const ResourceAmount& b);
 ResourceAmount operator - (ResourceAmount a, const ResourceAmount& b);
-bool operator >= (ResourceAmount& a, const ResourceAmount& b);
-bool operator < (ResourceAmount& a, const ResourceAmount& b);
+bool operator >= (const ResourceAmount& a, const ResourceAmount& b);
+bool operator <= (const ResourceAmount& a, const ResourceAmount& b);
 
 // The size of the spacegrid to create
 #define SPACEGRID_SIZE 3

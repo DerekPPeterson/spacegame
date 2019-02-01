@@ -71,7 +71,7 @@ ResourceAmount operator - (ResourceAmount a, const ResourceAmount& b)
     return a;
 }
 
-bool operator >= (ResourceAmount& a, const ResourceAmount& b)
+bool operator >= (const ResourceAmount& a, const ResourceAmount& b)
 {
     auto difference = a - b;
     for (auto pair : difference) {
@@ -82,9 +82,15 @@ bool operator >= (ResourceAmount& a, const ResourceAmount& b)
     return true;
 }
 
-bool operator < (ResourceAmount& a, const ResourceAmount& b)
+bool operator <= (const ResourceAmount& a, const ResourceAmount& b)
 {
-    return not (a >= b);
+    auto difference = b - a;
+    for (auto pair : difference) {
+        if (pair.second < 0) {
+            return false;
+        }
+    }
+    return true;
 }
 
 // TODO dynamically load deck from somewhere
@@ -271,13 +277,15 @@ vector<Action> GameState::getValidCardActions()
             or turnInfo.phase.back() == PHASE_RESOLVE_STACK) {
         auto player = getPlayerById(turnInfo.activePlayer);
         for (auto& card : player->hand) {
-            Action action = {
-                .type = ACTION_PLAY_CARD,
-                .playerId = turnInfo.activePlayer,
-                .id = card.id,
-                .description = card.name,
-            };
-            actions.push_back(action);
+            if (card.cost <= player->resources) {
+                Action action = {
+                    .type = ACTION_PLAY_CARD,
+                    .playerId = turnInfo.activePlayer,
+                    .id = card.id,
+                    .description = card.name,
+                };
+                actions.push_back(action);
+            }
         }
     }
 
@@ -461,6 +469,13 @@ void GameState::playCard(int cardId, int playerId)
     auto card = find_if(player->hand.begin(), player->hand.end(), 
             [cardId] (Card& c) {return c.id == cardId;});
     card->playedBy = playerId;
+
+    player->resources = player->resources - card->cost;
+    changes.push_back({
+            .type = CHANGE_PLAYER_RESOURCES, 
+            .data=pair<int, ResourceAmount>(player->id, player->resources)
+            });
+
 
     if (turnInfo.phase.back() != PHASE_RESOLVE_STACK) {
         turnInfo.phase.push_back(PHASE_RESOLVE_STACK);
