@@ -176,7 +176,7 @@ void GraphicsObjectHandler::checkEvents()
      auto buttonString = Event::getNextEvent(EVENT_BUTTON_PRESS);
      if (buttonString and get<string>(*buttonString) == "Pass") {
          for (auto action : actions) {
-             if (action.type == logic::ACTION_NONE or action.type == logic::ACTION_END_TURN) {
+             if (action.type == logic::ACTION_NONE) {
                  selectedAction = action;
              }
          }

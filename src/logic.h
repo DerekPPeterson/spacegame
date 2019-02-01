@@ -219,7 +219,6 @@ namespace logic {
         ACTION_NONE,
         ACTION_PLACE_BEACON,
         ACTION_PLAY_CARD,
-        ACTION_END_TURN,
         ACTION_SELECT_SHIPS,
         ACTION_SELECT_SYSTEM,
     };

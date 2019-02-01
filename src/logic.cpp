@@ -356,21 +356,11 @@ vector<Action> GameState::getPossibleActions(int playerId)
         .playerId = turnInfo.activePlayer,
     };
 
-    Action endTurn =
-    {
-        .type = ACTION_END_TURN,
-        .playerId = turnInfo.activePlayer,
-    };
 
     // Cannot do nothing if a target selection is needed
     if (turnInfo.phase.back() != PHASE_SELECT_CARD_TARGETS 
             and turnInfo.phase.back() != PHASE_SELECT_BEACON_TARGETS) {
         actions.push_back(pass);
-    }
-
-    // Can only end the turn if it is the main phase
-    if (turnInfo.phase.back() == PHASE_MAIN and turnInfo.activePlayer == turnInfo.whoseTurn) {
-        actions.push_back(endTurn);
     }
 
     auto cardActions = getValidCardActions();
@@ -425,7 +415,6 @@ void GameState::performAction(Action action)
                     placeBeacon(action.id, turnInfo.activePlayer);
                     break;
                 case ACTION_NONE: 
-                case ACTION_END_TURN:
                     turnInfo.phase[0] = PHASE_END;
                     changes.push_back({.type = CHANGE_PHASE_CHANGE, .data = turnInfo});
                     break;
@@ -563,8 +552,6 @@ ostream & logic::operator<< (ostream &out, const Action &c)
             out << "place beacon"; break;
         case ACTION_PLAY_CARD:
             out << "play card"; break;
-        case ACTION_END_TURN:
-            out << "end turn"; break;
         case ACTION_SELECT_SHIPS:
             out << "select ships"; break;
         case ACTION_SELECT_SYSTEM:
