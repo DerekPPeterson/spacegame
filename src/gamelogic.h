@@ -44,6 +44,9 @@ class GraphicsObjectHandler
         std::shared_ptr<Object> getObject(int logicId);
         std::vector<std::shared_ptr<Object>> objects;
         std::map<int, int> index;
+        
+        void updateSysInfo(int systemId, logic::Ship toAdd);
+        void updateSysInfo(int systemId, int toAdd);
 
         std::vector<logic::Action> actions;
         std::optional<logic::Action> selectedAction;
@@ -64,6 +67,8 @@ class GraphicsObjectHandler
 
         std::shared_ptr<ResourceDisplay> myResources;
         std::shared_ptr<ResourceDisplay> enemyResources;
+
+        std::map<int, std::shared_ptr<SystemInfo>> sysInfos;
 };
 
 #endif

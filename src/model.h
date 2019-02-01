@@ -51,6 +51,7 @@ class LineMesh : virtual public MeshRenderable
 
         LineMesh(std::vector<glm::vec3> vertices, 
                 std::vector<unsigned int> indices);
+        ~LineMesh();
         void draw(Shader& shader) override;
 
     private:

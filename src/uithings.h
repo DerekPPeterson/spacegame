@@ -7,6 +7,7 @@
 #include "text.h"
 #include "logic.h"
 #include "util.h"
+#include "spaceThings.h"
 #include <memory>
 
 // Class to handle screen space info and transformations
@@ -177,5 +178,27 @@ class DebugInfo : public Object, public Renderable, public UIObject
 
 };
 
-#endif
 
+class SystemInfo : public Object, public Renderable, public UIObject,
+    public has_model_mat
+{
+    public:
+        SystemInfo(std::shared_ptr<System> sys, int localPlayer);
+        void addShip(logic::Ship ship);
+        void removeShip(int id);
+
+        void draw(Shader& shader) override;
+        void queueDraw() override;
+        void update(UpdateInfo& info) override;
+
+    private:
+        float size = 0.1;
+        int localPlayer = 0;
+        std::shared_ptr<System> sys;
+
+        std::map<int, std::shared_ptr<Text>> names;
+        std::map<int, std::shared_ptr<Text>> stats;
+        std::map<int, std::unique_ptr<LineMesh>> lineMeshes;
+};
+
+#endif

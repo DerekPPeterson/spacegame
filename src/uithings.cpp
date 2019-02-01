@@ -304,6 +304,27 @@ void ResourceDisplay::queueDraw()
     text.queueDraw();
 }
 
+unique_ptr<LineMesh> create2DBox(glm::vec2 ul, glm::vec2 lr, float depth = 0.2)
+{
+     vector<glm::vec3> vertices = {
+         {ul.x, ul.y, 0},
+         {ul.x, lr.y, 0},
+         {lr.x, lr.y, 0},
+         {lr.x, ul.y, 0},
+
+         {ul.x, ul.y, -depth},
+         {ul.x, lr.y, -depth},
+         {lr.x, lr.y, -depth},
+         {lr.x, ul.y, -depth},
+     };
+     vector<unsigned int> indices = {
+        0, 1, 1, 2, 2, 3, 3, 0,
+        4, 5, 5, 6, 6, 7, 7, 4,
+        0, 4, 1, 5, 2, 6, 3, 7,
+     };
+     return make_unique<LineMesh>(vertices, indices);
+}
+
 
 Button::Button(std::string label, glm::vec3 position, glm::vec3 color, float size)
     : Renderable(SHADER_CARD), color(color), label(label), 
@@ -321,34 +342,10 @@ Button::Button(std::string label, glm::vec3 position, glm::vec3 color, float siz
 
     float textwidth = text.calcWidth();
 
-    /* Create the LineMesh like so:
-     *(0, 0)
-     *     +-------------------+
-     *     |                   |
-     *     |Text (with padding)|
-     *     |                   |
-     *     +-------------------+
-     *                     (textwidth + padding * 2, -1 - padding * 2)
-     */
-     vector<glm::vec3> vertices = {
-         {0, 0, 0},
-         {textwidth + 2 * padding, 0, 0},
-         {textwidth + 2 * padding, -1 - padding * 2, 0},
-         {0, -1 - padding * 2, 0},
-         {0, 0, -0.2},
-         {textwidth + 2 * padding, 0, -0.2},
-         {textwidth + 2 * padding, -1 - padding * 2, -0.2},
-         {0, -1 - padding * 2, -0.2},
-     };
-     vector<unsigned int> indices = {
-        0, 1, 1, 2, 2, 3, 3, 0,
-        4, 5, 5, 6, 6, 7, 7, 4,
-        0, 4, 1, 5, 2, 6, 3, 7,
-     };
-     lineMesh = make_unique<LineMesh>(vertices, indices);
-
+     lineMesh = create2DBox({0, 0}, {textwidth + padding * 2, -1 - padding * 2});
      // create clickbox vertices
-     quadVertices.insert(quadVertices.begin(), vertices.begin(), vertices.begin() + 4);
+     quadVertices.insert(quadVertices.begin(), lineMesh->vertices.begin(), 
+             lineMesh->vertices.begin() + 4);
 }
 
 void Button::queueDraw() 
@@ -448,4 +445,72 @@ void DebugInfo::addInfo(string info)
         display << line << endl;
     }
     text.setText(display.str());
+}
+
+SystemInfo::SystemInfo(shared_ptr<System> sys, int localPlayer)
+    : Renderable(SHADER_CARD), localPlayer(localPlayer), sys(sys)
+{
+    setVisible(true);
+}
+
+void SystemInfo::addShip(logic::Ship ship)
+{
+    auto name = make_shared<Text>(Fonts::regular, ship.type);
+    stringstream ss;
+    ss << ship.attack << "  " << ship.shield << "  " << ship.armour;
+    auto stat = make_shared<Text>(Fonts::regular, ss.str());
+    if (ship.controller == localPlayer) {
+        name->setColor({0, 2, 2});
+        stat->setColor({0, 2, 2});
+    } else {
+        name->setColor({4, 0, 0});
+        stat->setColor({4, 0, 0});
+    }
+    names[ship.id] = name;
+    stats[ship.id] = stat;
+}
+
+void SystemInfo::removeShip(int id)
+{
+    names.erase(id);
+    stats.erase(id);
+    lineMeshes.erase(id);
+}
+
+void SystemInfo::draw(Shader& shader)
+{
+    // TODO finish this
+    for (auto& p : lineMeshes) {
+        p.second->draw(shader);
+    }
+}
+
+void SystemInfo::queueDraw()
+{
+    for (auto& text : names) {
+        text.second->queueDraw();
+    }
+    for (auto& text : stats) {
+        text.second->queueDraw();
+    }
+}
+
+void SystemInfo::update(UpdateInfo& info) 
+{
+    auto sysScreenPos = calcScreenSpaceCoords(sys->getPos());
+    auto worldPos = calcWorldSpaceCoords({sysScreenPos.x, sysScreenPos.y}, 8);
+    setPos(worldPos);
+    setModel(glm::translate(glm::mat4(1.0f), getPos()));
+    setModel(glm::scale(getModel(), glm::vec3(size)));
+
+    int curLine = 0;
+    for (auto& text : names) {
+        text.second->setModel(glm::translate(getModel(), {0, -1 * curLine, 0}));
+        curLine++;
+    }
+    curLine = 0;
+    for (auto& text : stats) {
+        text.second->setModel(glm::translate(getModel(), {5, -1 * curLine, 0}));
+        curLine++;
+    }
 }

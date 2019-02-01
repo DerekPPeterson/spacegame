@@ -79,7 +79,8 @@ Renderer::Renderer(RenderOptions options, Camera& camera) :
     glEnable(GL_LINE_SMOOTH);
     glLineWidth(1);
 
-    UIObject::setViewInfo(options.screenWidth, options.screenHeight, projection);
+    UIObject::setViewInfo(options.screenWidth, options.screenHeight, 
+            projection, camera.GetViewMatrix());
 }
 
 void Renderer::renderMainScene()
@@ -290,7 +291,8 @@ void Renderer::mergeEffects(int bloomOutputTextureNo)
 
 void Renderer::renderFrame() 
 {
-    UIObject::setViewInfo(options.screenWidth, options.screenHeight, projection);
+    UIObject::setViewInfo(options.screenWidth, options.screenHeight, 
+            projection, camera.GetViewMatrix());
 
     toRenderMutex.lock();
     for (auto r : toRender) {

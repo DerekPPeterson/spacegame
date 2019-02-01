@@ -95,6 +95,11 @@ LineMesh::LineMesh(vector<glm::vec3> vertices, vector<unsigned int> indices) :
     setupMesh();
 }
 
+LineMesh::~LineMesh()
+{
+    glDeleteVertexArrays(1, &VAO);
+}
+
 void LineMesh::setupMesh()
 {
     glGenVertexArrays(1, &VAO);

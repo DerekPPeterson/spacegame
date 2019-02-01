@@ -83,6 +83,8 @@ void GraphicsObjectHandler::initializePlayer(logic::Player player)
     }
 }
 
+
+
 void GraphicsObjectHandler::startGame(logic::GameState initialState, int myPlayerId) 
 {
     auto spacegrid = make_shared<SpaceGrid>();
@@ -120,6 +122,17 @@ void GraphicsObjectHandler::startGame(logic::GameState initialState, int myPlaye
         auto ship = SpaceShip::createFrom(logicShip, 
                 dynamic_cast<System*>(getObject(logicShip.curSystemId).get()));
         addObject(ship);
+    }
+
+    for (auto logicSys : initialState.systems) {
+        auto sys = dynamic_pointer_cast<System>(getObject(logicSys.id));
+        sysInfos[logicSys.id] = make_shared<SystemInfo>(sys, playerId);
+        for (auto ship : initialState.ships) {
+            if (ship.curSystemId == logicSys.id) {
+                sysInfos[logicSys.id]->addShip(ship);
+            }
+        }
+        addObject(sysInfos[logicSys.id]);
     }
 
     passButton = make_shared<Button>("Pass", glm::vec3(0.9, 0.7, -5), glm::vec3(0, 2, 2), 0.1);
@@ -200,6 +213,7 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
                     auto logicShip = get<logic::Ship>(change.data);
                     auto system = dynamic_pointer_cast<System>(getObject(logicShip.curSystemId));
                     auto ship = SpaceShip::createFrom(logicShip, system.get());
+                    sysInfos[logicShip.curSystemId]->addShip(logicShip);
                     addObject(ship);
                     break;
                 }
@@ -248,7 +262,6 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
                 }
             default:
                 LOG_ERROR << "Received unhandled change from server: " << change;
-                ;
         }
     }
 }

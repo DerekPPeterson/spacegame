@@ -38,6 +38,7 @@ void runAllSetups()
 int UIObject::screenWidth;
 int UIObject::screenHeight;
 glm::mat4 UIObject::projection;
+glm::mat4 UIObject::view;
 
 glm::vec3 UIObject::calcWorldSpaceCoords(glm::vec2 screenCoords, float depth)
 {
@@ -50,6 +51,11 @@ glm::vec3 UIObject::calcWorldSpaceCoords(glm::vec2 screenCoords, float depth)
     glm::vec4 worldCoords = glm::inverse(projection ) * clipCoords;
     worldCoords /= worldCoords.w;
     return worldCoords;
+}
+
+glm::vec2 UIObject::calcScreenSpaceCoords(glm::vec3 position)
+{
+    return ::calcScreenSpaceCoords(position, projection, view, screenWidth, screenHeight);
 }
 
 void UIObject::setPosScreenspace(glm::vec2 screenCoords, float depth)

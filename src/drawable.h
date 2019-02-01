@@ -72,18 +72,21 @@ class has_model_mat
 class UIObject : public virtual has_position
 {
     public:
-        static void setViewInfo(int width, int height, glm::mat4 proj)
+        static void setViewInfo(int width, int height, glm::mat4 proj, glm::mat4 view)
         {
-            screenWidth = width;
-            screenHeight = height;
-            projection = proj;
+            UIObject::screenWidth = width;
+            UIObject::screenHeight = height;
+            UIObject::projection = proj;
+            UIObject::view = view;
         };
         glm::vec3 calcWorldSpaceCoords(glm::vec2 screenCoords, float depth);
+        glm::vec2 calcScreenSpaceCoords(glm::vec3 position);
         void setPosScreenspace(glm::vec2 screenSpaceCoords, float depth = 5);
     protected:
         static int screenWidth;
         static int screenHeight;
         static glm::mat4 projection;
+        static glm::mat4 view;
 };
 
 struct UpdateInfo
