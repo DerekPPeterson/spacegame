@@ -111,7 +111,7 @@ glm::vec3 System::getPosition()
 void System::onClick()
 {
     LOG_INFO << "System [" << gridx << ", " << gridy << "] clicked";
-    Event::triggerEvent(EVENT_SYSTEM_CLICK, std::pair(gridx, gridy));
+    Event::triggerEvent(EVENT_SYSTEM_CLICK, logicId);
 }
 
 #define GRID_X SPACEGRID_SIZE
@@ -172,6 +172,7 @@ std::shared_ptr<SpaceShip> SpaceShip::createFrom(logic::Ship logicShip, System* 
 {
     auto ship = shared_ptr<SpaceShip>(new SpaceShip(logicShip.type, s));
     ship->logicId = logicShip.id;
+    ship->logicShipInfo = logicShip;
     return ship;
 }
 

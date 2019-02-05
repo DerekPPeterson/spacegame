@@ -335,7 +335,6 @@ vector<Action> GameState::getValidBeaconActions()
 
     ResourceAmount needed = {{RESOURCE_WARP_BEACONS, 1}};
     if (turnInfo.phase.back() == PHASE_MAIN and (player->resources > needed)) {
-        player->resources = player->resources - needed;
 
         set<int> possibleSystems;
         for (auto s : ships) {
@@ -598,6 +597,14 @@ void GameState::placeBeacon(int systemId, int ownerId)
     beacons.push_back(beacon);
     turnInfo.phase.push_back(PHASE_SELECT_BEACON_TARGETS);
     changes.push_back({.type = CHANGE_PLACE_BEACON, .data = beacon});
+
+    ResourceAmount needed = {{RESOURCE_WARP_BEACONS, 1}};
+    auto player = getPlayerById(ownerId);
+    player->resources = player->resources - needed;
+    changes.push_back({
+            .type = CHANGE_PLAYER_RESOURCES, 
+            .data = pair<int, ResourceAmount>(ownerId, player->resources)
+            });
 }
 
 void GameState::moveShipsToBeacon(int beaconId, vector<int> ships)
@@ -607,10 +614,11 @@ void GameState::moveShipsToBeacon(int beaconId, vector<int> ships)
         auto ship = getShipById(shipId);
         ship->curSystemId = beacon->systemId;
         changes.push_back({
-                .type = CHANGE_MOVE_SYSTEM, 
+                .type = CHANGE_MOVE_SHIP, 
                 .data=pair<int, int>(shipId, beacon->systemId)
                 });
     };
+    LOG_INFO << "Moving ship ids: " << ships << " to system id: " << beacon->systemId;
 }
 
 void GameState::endTurn()

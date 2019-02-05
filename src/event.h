@@ -15,8 +15,7 @@
 
 enum EventType
 {
-    EVENT_SYSTEM_CLICK, // data will be a std::pair representing i,j coords of 
-                        // clicked system
+    EVENT_SYSTEM_CLICK, // data will be logicId of the system
     EVENT_DRAW,         // data will be a pair representing playernum/number of cards
     EVENT_PLAY_CARD,    // data will be the logicId of the card
     EVENT_BUTTON_PRESS, // data will be the string of the pressed button

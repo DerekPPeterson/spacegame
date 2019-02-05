@@ -153,9 +153,9 @@ void GraphicsObjectHandler::setPossibleActions(std::vector<logic::Action> action
     }
 
     // TODO debug only
-    //stringstream ss;
-    //ss << actions;
-    //debugInfo->addInfo(ss.str());
+    stringstream ss;
+    ss << actions;
+    debugInfo->addInfo(ss.str());
     
     passButton->setActive(false);
     for (auto a : actions) {
@@ -190,6 +190,16 @@ void GraphicsObjectHandler::checkEvents()
      if (buttonString and get<string>(*buttonString) == "Pass") {
          for (auto action : actions) {
              if (action.type == logic::ACTION_NONE) {
+                 selectedAction = action;
+             }
+         }
+     }
+
+     auto logicSysId = Event::getNextEvent(EVENT_SYSTEM_CLICK);
+     if (logicSysId) {
+         for (auto action : actions) {
+             if (action.type == logic::ACTION_PLACE_BEACON 
+                     and action.id == get<int>(*logicSysId)) {
                  selectedAction = action;
              }
          }
@@ -258,7 +268,19 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
                     } 
                     // TODO add enemy counter
                     break;
-
+                }
+            case logic::CHANGE_MOVE_SHIP:
+                {
+                    auto data = get<pair<int, int>>(change.data);
+                    auto shipId = data.first;
+                    auto newSysId = data.second;
+                    auto ship = dynamic_pointer_cast<SpaceShip>(getObject(shipId));
+                    auto oldSysId = ship->getCurSystemId();
+                    auto sys = dynamic_pointer_cast<System>(getObject(newSysId));
+                    ship->gotoSystem(sys.get());
+                    sysInfos[oldSysId]->removeShip(shipId);
+                    sysInfos[newSysId]->addShip(ship->logicShipInfo);
+                    break;
                 }
             default:
                 LOG_ERROR << "Received unhandled change from server: " << change;

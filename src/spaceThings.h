@@ -69,6 +69,8 @@ class SpaceShip : public Object, public Renderable
         void gotoSystem(System *system);
         virtual void update(UpdateInfo& info) override;
         static std::shared_ptr<SpaceShip> createFrom(logic::Ship logicShip, System *s);
+        int getCurSystemId() {return curSystem->logicId;};
+        logic::Ship logicShipInfo;
     
     protected:
         std::string type;
