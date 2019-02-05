@@ -207,7 +207,7 @@ void GameState::startGame()
 
     updateSystemControllers();
 
-    upkeep();
+    upkeep(true);
 };
 
 template <typename T>
@@ -476,17 +476,18 @@ vector<Action> GameState::getPossibleActions(int playerId)
     }
 }
 
-void GameState::upkeep()
+void GameState::upkeep(bool firstTurn)
 {
-    auto drawInfo = getPlayerById(turnInfo.whoseTurn)->draw();
-    changes.push_back({.type = CHANGE_DRAW_CARD, .data = drawInfo});
+    if (not firstTurn) {
+        auto drawInfo = getPlayerById(turnInfo.whoseTurn)->draw();
+        changes.push_back({.type = CHANGE_DRAW_CARD, .data = drawInfo});
+    }
     auto player = getPlayerById(turnInfo.whoseTurn);
     player->resources = player->resources + player->resourcesPerTurn;
     changes.push_back({
             .type = CHANGE_PLAYER_RESOURCES, 
             .data=pair<int, ResourceAmount>(player->id, player->resources)
             });
-    drawInfo = {};
 }
 
 void GameState::updateSystemControllers()

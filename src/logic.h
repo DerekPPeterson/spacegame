@@ -308,7 +308,7 @@ namespace logic {
             void placeBeacon(int systemId, int ownerId);
             void moveShipsToBeacon(int beaconId, vector<int> ships);
             void endTurn();
-            void upkeep();
+            void upkeep(bool firstTurn=false);
             void updateSystemControllers();
 
             vector<Action> getValidCardActions();

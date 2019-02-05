@@ -20,6 +20,17 @@ optional<Action> findActionType(vector<Action> actions, ActionType type)
     return found;
 }
 
+optional<Change> getChangeOfType(ChangeType type, vector<Change> changes)
+{
+    auto it = find_if(changes.begin(), changes.end(), 
+            [type](Change c) {return c.type == type;});
+    if (it == changes.end()) {
+        return {};
+    } else {
+        return *it;
+    }
+}
+
 TEST_CASE("Basic Game Logic Tests", "[GameState]") {
     GameState state;
     state.startGame();
@@ -37,16 +48,15 @@ TEST_CASE("Basic Game Logic Tests", "[GameState]") {
         REQUIRE(playCard); 
         state.performAction(*playCard);
         auto changes = state.getChangesAfter();
-        REQUIRE(changes[0].type == CHANGE_PLAY_CARD);
-        REQUIRE(get<int>(changes[0].data) == playCard->id);
+        auto playCardChange = getChangeOfType(CHANGE_PLAY_CARD, changes);
+        REQUIRE(playCardChange);
+        REQUIRE(get<int>(playCardChange->data) == playCard->id);
 
         // Select targets for card
         actions = state.getPossibleActions(currentPlayer);
         auto selectSystem = findActionType(actions, ACTION_SELECT_SYSTEM);
         REQUIRE(selectSystem);
         state.performAction(*selectSystem);
-        changes = state.getChangesAfter(changes[0].changeNo);
-        REQUIRE(changes.size() == 0);
         REQUIRE(state.turnInfo.phase.back() == PHASE_RESOLVE_STACK);
 
         // Let the card Resolve
@@ -55,10 +65,12 @@ TEST_CASE("Basic Game Logic Tests", "[GameState]") {
         REQUIRE(doNothing);
         state.performAction(*doNothing);
         changes = state.getChangesAfter(1);
-        REQUIRE(changes.size() == 2);
-        REQUIRE(changes[0].type == CHANGE_RESOLVE_CARD);
-        REQUIRE(get<int>(changes[0].data) == playCard->id);
-        REQUIRE(changes[1].type == CHANGE_ADD_SHIP);
+
+        auto resolveCardChange = getChangeOfType(CHANGE_RESOLVE_CARD, changes);
+        REQUIRE(resolveCardChange);
+        REQUIRE(get<int>(resolveCardChange->data) == playCard->id);
+        auto addShipChange = getChangeOfType(CHANGE_ADD_SHIP, changes);
+        REQUIRE(addShipChange);
     }
 }
 
