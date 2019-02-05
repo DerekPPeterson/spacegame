@@ -192,6 +192,8 @@ void GameState::startGame()
                 break;
             }
         }
+
+
         p.flagshipId = sampleFlagship.id;
         ships.push_back(sampleFlagship);
         players.push_back(p);
@@ -202,6 +204,8 @@ void GameState::startGame()
         .activePlayer = players.front().id,
         .phase = {PHASE_MAIN},
     };
+
+    updateSystemControllers();
 
     upkeep();
 };
@@ -485,6 +489,17 @@ void GameState::upkeep()
     drawInfo = {};
 }
 
+void GameState::updateSystemControllers()
+{
+    for (auto& sys : systems) {
+        sys.controllerId = 0;
+    }
+    for (auto ship : ships) {
+        auto sys = getSystemById(ship.curSystemId);
+        sys->controllerId = ship.controller;
+    }
+}
+
 void GameState::performAction(Action action)
 {
     switch (turnInfo.phase.back()) {
@@ -618,6 +633,7 @@ void GameState::moveShipsToBeacon(int beaconId, vector<int> ships)
                 .data=pair<int, int>(shipId, beacon->systemId)
                 });
     };
+    updateSystemControllers();
     LOG_INFO << "Moving ship ids: " << ships << " to system id: " << beacon->systemId;
 }
 
