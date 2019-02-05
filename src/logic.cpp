@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <algorithm>
+#include <queue>
 
 using namespace logic;
 using namespace std;
@@ -226,6 +227,11 @@ Ship* GameState::getShipById(int id)
     return getById<Ship>(id, ships);
 }
 
+WarpBeacon* GameState::getBeaconById(int id) 
+{
+    return getById<WarpBeacon>(id, beacons);
+}
+
 System* GameState::getSystemById(int id) 
 {
     return getById<System>(id, systems);
@@ -292,11 +298,94 @@ vector<Action> GameState::getValidCardActions()
     return actions;
 }
 
+set<int> GameState::shipCanReach(int shipId)
+{
+    set<int> canReach;
+    auto ship = getShipById(shipId);
+
+    // pairs of systemId / movement left
+    queue<pair<int, int>> toVisit;
+    toVisit.push({ship->curSystemId, ship->movement});
+    while (toVisit.size()) {
+        auto sysId = toVisit.front().first;
+        auto movementLeft = toVisit.front().second;
+        toVisit.pop();
+
+        if (not movementLeft) {
+            continue;
+        }
+
+        for (auto nextSysId : getSystemById(sysId)->adjacent) {
+            if (nextSysId != ship->curSystemId 
+                    and canReach.find(nextSysId) == canReach.end()) {
+                toVisit.push({nextSysId, movementLeft - 1});
+                canReach.insert(nextSysId);
+            }
+        }
+    }
+    return canReach;
+}
+
+
 vector<Action> GameState::getValidBeaconActions()
 {
     // TODO more complicated logic
     vector<Action> actions;
+    auto player = getPlayerById(turnInfo.whoseTurn);
+
+    ResourceAmount needed = {{RESOURCE_WARP_BEACONS, 1}};
+    if (turnInfo.phase.back() == PHASE_MAIN and (player->resources > needed)) {
+        player->resources = player->resources - needed;
+
+        set<int> possibleSystems;
+        for (auto s : ships) {
+            if (s.controller == turnInfo.whoseTurn) {
+                auto systems = shipCanReach(s.id);
+                possibleSystems.insert(systems.begin(), systems.end());
+            }
+        }
+        for (auto sys : possibleSystems) {
+            actions.push_back({
+                .type = ACTION_PLACE_BEACON,
+                .playerId = turnInfo.whoseTurn,
+                .id = sys,
+                .nTargets = 1,
+                .description = "Place beacon in system " + to_string(sys),
+            });
+        }
+    }
+    
     return actions;
+}
+
+vector<Action> GameState::getValidShipsForBeacon(int beaconId)
+{
+    auto beacon = getBeaconById(beaconId);
+    if (turnInfo.phase.back() == PHASE_SELECT_BEACON_TARGETS) {
+        set<int> possibleShips;
+
+        for (auto s : ships) {
+            if (s.controller == turnInfo.whoseTurn) {
+                auto systems = shipCanReach(s.id);
+                if (systems.find(beacon->systemId) != systems.end()) {
+                    possibleShips.insert(s.id);
+                }
+            }
+        }
+        vector<int> targets;
+        targets.insert(targets.begin(), possibleShips.begin(), possibleShips.end());
+        stringstream ss;
+        ss << targets;
+        Action action = {
+            .type = ACTION_SELECT_SHIPS,
+            .playerId = turnInfo.whoseTurn,
+            .targets = targets,
+            .nTargets = (int) targets.size(),
+            .description = "Select any number of the given ships: " + ss.str(),
+        };
+        return {action};
+    }
+    return {};
 }
 
 vector<Action> GameState::getTargetActions()
@@ -366,10 +455,12 @@ vector<Action> GameState::getPossibleActions(int playerId)
     auto cardActions = getValidCardActions();
     auto moveActions = getValidBeaconActions();
     auto targetActions = getTargetActions();
+    auto beaconTargetActions = getValidShipsForBeacon(beacons.back().id);
 
     actions.insert(actions.end(), cardActions.begin(), cardActions.end());
     actions.insert(actions.end(), moveActions.begin(), moveActions.end());
     actions.insert(actions.end(), targetActions.begin(), targetActions.end());
+    actions.insert(actions.end(), beaconTargetActions.begin(), beaconTargetActions.end());
 
     if (playerId) {
         vector<Action> actionsForPlayer;
@@ -448,6 +539,9 @@ void GameState::performAction(Action action)
             turnInfo.phase.pop_back();
             break;
         case PHASE_SELECT_BEACON_TARGETS:
+            turnInfo.phase.pop_back();
+            moveShipsToBeacon(beacons.back().id, action.targets);
+            beacons.pop_back();
             break;
     }
 }
@@ -502,9 +596,21 @@ void GameState::placeBeacon(int systemId, int ownerId)
         .systemId = systemId,
     };
     beacons.push_back(beacon);
-    turnInfo.phase[0] = PHASE_MOVE;
-    turnInfo.phase.push_back(PHASE_SELECT_CARD_TARGETS);
+    turnInfo.phase.push_back(PHASE_SELECT_BEACON_TARGETS);
     changes.push_back({.type = CHANGE_PLACE_BEACON, .data = beacon});
+}
+
+void GameState::moveShipsToBeacon(int beaconId, vector<int> ships)
+{
+    auto beacon = getBeaconById(beaconId);
+    for (auto shipId : ships) {
+        auto ship = getShipById(shipId);
+        ship->curSystemId = beacon->systemId;
+        changes.push_back({
+                .type = CHANGE_MOVE_SYSTEM, 
+                .data=pair<int, int>(shipId, beacon->systemId)
+                });
+    };
 }
 
 void GameState::endTurn()

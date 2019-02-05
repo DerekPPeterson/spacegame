@@ -17,8 +17,8 @@ target_link_libraries(spacegamelib ${LIBS} )
 add_executable(app src/main.cxx src/backward.cpp)
 target_link_libraries(app bfd dl pthread spacegamelib ${LIBS} )
 
-add_executable(textgame src/textgame.cxx )
-target_link_libraries(textgame spacegamelib ${LIBS})
+add_executable(textgame src/textgame.cxx src/backward.cpp)
+target_link_libraries(textgame bfd dl pthread spacegamelib ${LIBS})
 
 add_executable(server src/server.cxx )
 target_link_libraries(server spacegamelib ${LIBS})
