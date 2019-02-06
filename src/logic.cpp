@@ -231,6 +231,16 @@ Ship* GameState::getShipById(int id)
     return getById<Ship>(id, ships);
 }
 
+void GameState::deleteShipById(int id) 
+{
+    for (auto it = ships.begin(); it != ships.end(); it++) {
+        if (it->id == id) {
+            ships.erase(it);
+            break;
+        }
+    }
+}
+
 WarpBeacon* GameState::getBeaconById(int id) 
 {
     return getById<WarpBeacon>(id, beacons);
@@ -634,6 +644,7 @@ void GameState::moveShipsToBeacon(int beaconId, vector<int> ships)
                 .data=pair<int, int>(shipId, beacon->systemId)
                 });
     };
+    resolveCombats();
     updateSystemControllers();
     LOG_INFO << "Moving ship ids: " << ships << " to system id: " << beacon->systemId;
 }
@@ -657,6 +668,101 @@ void GameState::endTurn()
     LOG_INFO << "It is now player id " << nextPlayerId << "'s turn" << endl;
     turnInfo.phase[0] = PHASE_UPKEEP;
 };
+
+vector<Ship*> GameState::getShipsBySystem(int sysId)
+{
+    vector<Ship*> ret;
+    for (auto it = ships.begin(); it != ships.end(); it++) {
+        if (it->curSystemId == sysId) {
+            ret.push_back(&(*it));
+        }
+    }
+    return ret;
+}
+
+void Ship::applyDamage(int damage)
+{
+    shield -= damage;
+    if (shield < 0) {
+        armour += shield;
+        shield = 0;
+    }
+}
+
+void GameState::resolveCombats()
+{
+    for (auto sys : systems) {
+        // Get all the ships sorted by player
+        auto ships = getShipsBySystem(sys.id);
+        map<int, vector<Ship*>> playerShips;
+        for (auto player : players) {
+            playerShips[player.id] = {};
+        }
+        for (auto ship : ships) {
+            playerShips[ship->controller].push_back(ship);
+        }
+        
+        // Go to next system if there will be no combat here
+        bool noWinner = true;
+        for (auto player : players) {
+            if (playerShips[player.id].size() == 0) {
+                goto next_system;
+            }
+        }
+        changes.push_back({.type = CHANGE_COMBAT_START, .data = sys.id});
+        LOG_INFO << "Combat starting in system: " << sys.id;
+
+        // Sort ships by "impressiveness"
+        for (auto player : players) {
+            sort(playerShips[player.id].begin(), playerShips[player.id].end(),
+                    [](Ship* a, Ship* b) {
+                        return a->attack + a->armour + a->shield 
+                            < b->attack + b->armour + b->shield;
+                    });
+        }
+
+        
+        // Continue until there are no ships left
+        while (noWinner) {
+            // Each players ships deal damage to each other players ships
+            for (auto player : players) {
+                auto myShips = playerShips[player.id];
+                int otherPlayer = find_if(players.begin(), players.end(), 
+                        [player](Player p) {return player.id != p.id;})->id;
+                auto enemyShips = playerShips[otherPlayer];
+
+                auto enemyShipIt = enemyShips.begin();
+                for (auto myShip : myShips) {
+                    (*enemyShipIt)->applyDamage(myShip->attack);
+                    enemyShipIt++;
+                    if (enemyShipIt == enemyShips.end()) {
+                        enemyShipIt = enemyShips.begin();
+                    }
+                }
+            }
+
+            // Remove destroyed ships
+            for (auto player : players) {
+                vector<Ship*> newShipList;
+                for (auto ship : playerShips[player.id]) {
+                    if (ship->isDestroyed()) {
+                        changes.push_back({.type = CHANGE_REMOVE_SHIP, .data = ship->id});
+                        deleteShipById(ship->id);
+                        LOG_INFO << "Ship id: " << ship->id << " destroyed";
+                    } else {
+                        changes.push_back({.type = CHANGE_SHIP_CHANGE, .data = *ship});
+                        newShipList.push_back(ship);
+                    }
+                }
+                playerShips[player.id] = newShipList;
+                if (newShipList.size() == 0) {
+                    noWinner = false;
+                }
+            }
+        }
+        next_system:;
+    }
+}
 
 pair<int, Card> Player::draw()
 {

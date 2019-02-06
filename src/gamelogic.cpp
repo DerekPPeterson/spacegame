@@ -34,6 +34,16 @@ void GraphicsObjectHandler::addObject(shared_ptr<Object> object)
     objects.push_back(object);
 }
 
+void GraphicsObjectHandler::removeObjects()
+{
+    for (auto& o : objects) {
+        if (o->removeThis) {
+            index.erase(o->logicId);
+            o.reset();
+        }
+    }
+}
+
 shared_ptr<Object> GraphicsObjectHandler::getObject(int logicId)
 {
     if (index.find(logicId) != index.end()) {
@@ -341,6 +351,14 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
                     ship->gotoSystem(sys.get());
                     sysInfos[oldSysId]->removeShip(shipId);
                     sysInfos[newSysId]->addShip(ship->logicShipInfo);
+                    break;
+                }
+            case logic::CHANGE_REMOVE_SHIP:
+                {
+                    auto shipId = get<int>(change.data);
+                    auto ship = dynamic_pointer_cast<SpaceShip>(getObject(shipId));
+                    sysInfos[ship->getCurSystemId()]->removeShip(shipId);
+                    ship->destroy();
                     break;
                 }
             default:

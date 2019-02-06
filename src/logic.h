@@ -109,6 +109,9 @@ namespace logic {
 
         int curSystemId; // Current location
 
+        void applyDamage(int damage);
+        bool isDestroyed() {return armour <= 0;};
+
         friend ostream & operator << (ostream &out, const Ship &c)
         {
             out << "(Ship: " << c.type << " in system " << c.curSystemId
@@ -244,6 +247,7 @@ namespace logic {
     enum ChangeType
     {
         CHANGE_ADD_SHIP,    // data will be ship that was added
+        CHANGE_SHIP_CHANGE, // data will be ship changed (id of ship already exists)
         CHANGE_REMOVE_SHIP, // data will be ship that was removed
         CHANGE_PLAY_CARD,   // data will be cardId of card that was played
         CHANGE_RESOLVE_CARD,   // data will be cardId of card that was resolved
@@ -251,7 +255,8 @@ namespace logic {
         CHANGE_PHASE_CHANGE, // data will be turnInfo
         CHANGE_PLACE_BEACON, // data will be WarpBeacon object
         CHANGE_PLAYER_RESOURCES, // data will be pair of playerId, ResourceAmount
-        CHANGE_MOVE_SHIP  // data will be pair of shipId, new systemId
+        CHANGE_MOVE_SHIP,  // data will be pair of shipId, new systemId
+        CHANGE_COMBAT_START,  // data will be systemId of system that started combat
     };
 
     struct Change
@@ -292,6 +297,8 @@ namespace logic {
 
         Player* getPlayerById(int id);
         Ship* getShipById(int id);
+        void deleteShipById(int id);
+        vector<Ship*> getShipsBySystem(int id);
         System* getSystemById(int id);
         System* getSystemByPos(int i, int j);
         Card* getCardById(int id);
@@ -316,6 +323,7 @@ namespace logic {
             void endTurn();
             void upkeep(bool firstTurn=false);
             void updateSystemControllers();
+            void resolveCombats();
 
             vector<Action> getValidCardActions();
             vector<Action> getValidBeaconActions();

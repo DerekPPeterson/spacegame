@@ -68,8 +68,10 @@ class SpaceShip : public Object, public Renderable
         virtual void drawWarp(Shader& shader) override;
         void gotoSystem(System *system);
         virtual void update(UpdateInfo& info) override;
+
         static std::shared_ptr<SpaceShip> createFrom(logic::Ship logicShip, System *s);
         int getCurSystemId() {return curSystem->logicId;};
+        void destroy() {removeThis = true;};
         logic::Ship logicShipInfo;
     
     protected:

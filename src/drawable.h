@@ -137,6 +137,7 @@ class Object : public non_copyable
         virtual void update(UpdateInfo& info) {};
         virtual bool isVisible() {return visible;}
         bool visible = false;
+        bool removeThis = false;
         int logicId = 0;
     private:
         static void setup();

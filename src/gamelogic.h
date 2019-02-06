@@ -40,6 +40,7 @@ class GraphicsObjectHandler
 
         void initializePlayer(logic::Player);
         void addObject(std::shared_ptr<Object> object);
+        void removeObjects();
 
         std::shared_ptr<Object> getObject(int logicId);
         std::vector<std::shared_ptr<Object>> objects;
