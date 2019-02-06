@@ -361,6 +361,13 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
                     ship->destroy();
                     break;
                 }
+            case logic::CHANGE_SHIP_CHANGE:
+                {
+                    auto logicShip = get<logic::Ship>(change.data);
+                    sysInfos[logicShip.curSystemId]->removeShip(logicShip.id);
+                    sysInfos[logicShip.curSystemId]->addShip(logicShip);
+                    break;
+                }
             default:
                 LOG_ERROR << "Received unhandled change from server: " << change;
         }
