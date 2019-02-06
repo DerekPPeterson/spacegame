@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 
     Renderer renderer(options, camera);
 
-    GameClient client("localhost", 40000);
+    GameClient client("localhost", 40001);
     client.login(result["username"].as<string>());
     if (result.count("joingame")) {
         client.joinGame(result["joingame"].as<string>());

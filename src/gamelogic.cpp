@@ -16,6 +16,7 @@ vector<shared_ptr<Object>> GraphicsObjectHandler::getObjects()
 
 vector<shared_ptr<Renderable>> GraphicsObjectHandler::getRenderables()
 {
+    removeObjects();
     vector<shared_ptr<Renderable>> renderables;
     for (auto o : objects) {
         auto r = dynamic_pointer_cast<Renderable>(o);
@@ -37,7 +38,7 @@ void GraphicsObjectHandler::addObject(shared_ptr<Object> object)
 void GraphicsObjectHandler::removeObjects()
 {
     for (auto& o : objects) {
-        if (o->removeThis) {
+        if (o and o->removeThis) {
             index.erase(o->logicId);
             o.reset();
         }

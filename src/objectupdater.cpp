@@ -27,7 +27,9 @@ void ObjectUpdater::updateFunc(int tid)
         LOG_VERBOSE << "Update thread " << tid << " processing elements " << 
             start << " -> " << end;
         for (int i = start; i < end; i++) {
-            objects[i]->update(info);
+            if (objects[i]) {
+                objects[i]->update(info);
+            }
         }
 
         {

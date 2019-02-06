@@ -136,7 +136,8 @@ list<logic::System> createSystems(int n)
     }
 
     systems[0].home = true;
-    systems[n * n - 1].home = true;
+    //systems[n * n - 1].home = true;
+    systems[1].home = true;
 
     return list<System> {begin(systems), end(systems)};
 }
@@ -178,7 +179,7 @@ void GameState::startGame()
         logic::Ship sampleFlagship = {
             .type = "SS1",
             .attack = 1,
-            .shield = 10,
+            .shield = 5,
             .armour = 10,
             .movement = 1,
             .owner = p.id,
