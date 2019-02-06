@@ -119,11 +119,13 @@ shared_ptr<InstanceMeshRenderable> Font::createTextQuad()
 std::shared_ptr<Font> Fonts::title;
 std::shared_ptr<Font> Fonts::regular;
 std::shared_ptr<Font> Fonts::console;
+std::shared_ptr<Font> Fonts::mono;
 void Fonts::setup() {
     LOG_INFO << "Loading all fonts";
     title = shared_ptr<Font>(new Font("./res/fonts/conthrax.fnt"));
     regular = shared_ptr<Font>(new Font("./res/fonts/gravity.fnt"));
     console = shared_ptr<Font>(new Font("./res/fonts/console.fnt"));
+    mono = shared_ptr<Font>(new Font("./res/fonts/notosansmono.fnt"));
 }
 volatile Fonts fonts; // need to instantiate fonts so setup gets run
 

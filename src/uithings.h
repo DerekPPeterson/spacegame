@@ -133,7 +133,9 @@ class Button : public Object, public Renderable, public UIObject,
     public Selectable
 {
     public:
-        Button(std::string text, glm::vec3 position, glm::vec3 color, float size, std::string clickEventLabel = "");
+        Button(std::string text, glm::vec3 position, glm::vec3 color, 
+                float size, std::string clickEventLabel = "", 
+                std::shared_ptr<Font> font = Fonts::title);
         virtual void queueDraw() override;
         virtual void draw(Shader& shader) override;
         virtual void update(UpdateInfo& info) override;
@@ -204,7 +206,7 @@ class SystemInfo : public Object, public Renderable, public UIObject,
         void setShipButtonSelected(int shipId, bool selected);
 
     private:
-        float size = 0.1;
+        float size = 0.15;
         int localPlayer = 0;
         std::shared_ptr<System> sys;
 

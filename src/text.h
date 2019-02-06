@@ -59,6 +59,7 @@ class Fonts : public needs_setup<Fonts>
         static std::shared_ptr<Font> title;
         static std::shared_ptr<Font> regular;
         static std::shared_ptr<Font> console;
+        static std::shared_ptr<Font> mono;
 };
 
 class Text : public Renderable , public has_model_mat, public Object

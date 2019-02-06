@@ -327,9 +327,9 @@ unique_ptr<LineMesh> create2DBox(glm::vec2 ul, glm::vec2 lr, float depth = 0.2)
 
 
 Button::Button(std::string label, glm::vec3 position, glm::vec3 color, 
-        float size, string clickEventLabel)
+        float size, string clickEventLabel, std::shared_ptr<Font> font)
     : Renderable(SHADER_CARD), color(color), selectedColor(color), label(label), 
-      text(Fonts::title, label, color, 0, 5.0/8), size(size), 
+      text(font, label, color, 0, 5.0/8), size(size), 
       clickEventLabel(clickEventLabel)
 {
     setPos(calcWorldSpaceCoords({position.x * screenWidth, position.y * screenHeight}, -position.z));
@@ -465,8 +465,9 @@ SystemInfo::SystemInfo(shared_ptr<System> sys, int localPlayer)
 
 void SystemInfo::addShip(logic::Ship ship)
 {
-    stringstream ss;
-    ss << ship.type << " " << ship.attack << "  " << ship.shield << "  " << ship.armour;
+    char label[80];
+    sprintf(label, "%-10s %2d %2d %2d", ship.type.c_str(), 
+            ship.attack, ship.shield, ship.armour);
     glm::vec3 color, selectedColor;
     if (ship.controller == localPlayer) {
         color = {0, 2, 2};
@@ -475,8 +476,8 @@ void SystemInfo::addShip(logic::Ship ship)
         color = {4, 0, 0};
         selectedColor = {4, 1, 1};
     }
-    auto button = make_shared<Button>(ss.str(), glm::vec3(0, 0, 0), color, 1, 
-            "shipid" + to_string(ship.id));
+    auto button = make_shared<Button>(label, glm::vec3(0, 0, 0), color, 1, 
+            "shipid" + to_string(ship.id), Fonts::mono);
     button->setColors(color, selectedColor);
 
     buttons[ship.id] = button;
@@ -506,7 +507,7 @@ void SystemInfo::queueDraw()
 
     int curLine = 0;
     for (auto& [id, button] : buttons) {
-        button->setModel(glm::translate(getModel(), {0, -1 * curLine, 0}));
+        button->setModel(glm::translate(getModel(), {0, -1.2 * curLine, 0}));
         button->queueDraw();
         curLine++;
     }
