@@ -45,11 +45,10 @@ class GraphicsObjectHandler
         std::vector<std::shared_ptr<Object>> objects;
         std::map<int, int> index;
         
-        void updateSysInfo(int systemId, logic::Ship toAdd);
-        void updateSysInfo(int systemId, int toAdd);
-
         std::vector<logic::Action> actions;
         std::optional<logic::Action> selectedAction;
+
+        void updateSysInfoActiveButtons();
     
         // common objects that need to be referred to:
         std::shared_ptr<Stack> stack;

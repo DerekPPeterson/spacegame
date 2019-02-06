@@ -139,14 +139,21 @@ class Button : public Object, public Renderable, public UIObject,
         virtual void update(UpdateInfo& info) override;
         virtual void onClick() override;
         void setActive(bool active) {this->active = active;};
+        void setSelected(bool selected) {this->selected = selected;};
+        void setColors(glm::vec3 normal, glm::vec3 selected) {
+            color = normal;
+            selectedColor = selected;
+        }
     protected:
         glm::vec3 color;
+        glm::vec3 selectedColor;
         std::unique_ptr<LineMesh> lineMesh;
         std::string label;
         Text text;
         float size;
         float padding = 0.1;
         bool active = false;
+        bool selected = false;
         std::string clickEventLabel;
 
 };
@@ -193,6 +200,8 @@ class SystemInfo : public Object, public Renderable, public UIObject,
         void draw(Shader& shader) override;
         void queueDraw() override;
         void update(UpdateInfo& info) override;
+        void setShipButtonActive(int shipId, bool active);
+        void setShipButtonSelected(int shipId, bool selected);
 
     private:
         float size = 0.1;

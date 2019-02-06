@@ -148,6 +148,33 @@ void GraphicsObjectHandler::startGame(logic::GameState initialState, int myPlaye
     addObject(debugInfo);
 }
 
+void GraphicsObjectHandler::updateSysInfoActiveButtons()
+{
+    optional<logic::Action> selectShipAction;
+    for (auto action : actions) {
+        if (action.type == logic::ACTION_SELECT_SHIPS) {
+            selectShipAction = action;
+            break;
+        }
+    }
+
+    if (selectShipAction) {
+        for (auto [sysId, sysInfo] : sysInfos) {
+            for (auto shipId : selectShipAction->targets) {
+                sysInfo->setShipButtonActive(shipId, true);
+            }
+            sysInfo->setShipButtonSelected(0, false);
+            for (auto shipId : shipIdsSelected) {
+                sysInfo->setShipButtonSelected(shipId, true);
+            }
+        }
+    } else {
+        for (auto [sysId, sysInfo] : sysInfos) {
+            sysInfo->setShipButtonActive(0, false);
+        }
+    }
+}
+
 void GraphicsObjectHandler::setPossibleActions(std::vector<logic::Action> actions) 
 {
     this->actions = actions;
@@ -158,9 +185,9 @@ void GraphicsObjectHandler::setPossibleActions(std::vector<logic::Action> action
     }
 
     // TODO debug only
-    stringstream ss;
-    ss << actions;
-    debugInfo->addInfo(ss.str());
+    //stringstream ss;
+    //ss << actions;
+    //debugInfo->addInfo(ss.str());
     
     passButton->setActive(false);
     confirmButton->setActive(false);
@@ -169,6 +196,7 @@ void GraphicsObjectHandler::setPossibleActions(std::vector<logic::Action> action
             passButton->setActive(true);
         } else if (a.type == logic::ACTION_SELECT_SHIPS) {
             confirmButton->setActive(true);
+            updateSysInfoActiveButtons();
         }
     }
 };
@@ -225,7 +253,6 @@ void GraphicsObjectHandler::checkEvents()
              }
          }
      }
-
 
      auto logicSysId = Event::getNextEvent(EVENT_SYSTEM_CLICK);
      if (logicSysId) {

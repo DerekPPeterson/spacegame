@@ -328,7 +328,7 @@ unique_ptr<LineMesh> create2DBox(glm::vec2 ul, glm::vec2 lr, float depth = 0.2)
 
 Button::Button(std::string label, glm::vec3 position, glm::vec3 color, 
         float size, string clickEventLabel)
-    : Renderable(SHADER_CARD), color(color), label(label), 
+    : Renderable(SHADER_CARD), color(color), selectedColor(color), label(label), 
       text(Fonts::title, label, color, 0, 5.0/8), size(size), 
       clickEventLabel(clickEventLabel)
 {
@@ -350,7 +350,8 @@ Button::Button(std::string label, glm::vec3 position, glm::vec3 color,
 void Button::queueDraw() 
 {
     Renderable::queueDraw();
-    text.setColor(color * (active ? 1.0f : 0.5f));
+    auto drawColor = selected ? selectedColor : color;
+    text.setColor(drawColor * (active ? 1.0f : 0.5f));
     float padding = 0.1;
     text.setModel(glm::translate(getModel(), {padding, -padding, 0}));
 
@@ -360,7 +361,8 @@ void Button::queueDraw()
 void Button::draw(Shader& shader) 
 {
     shader.setCommon(UNIFORM_MODEL, model);
-    shader.setCommon(UNIFORM_COLOR, color * (active ? 1.0f : 0.5f));
+    auto drawColor = selected ? selectedColor : color;
+    shader.setCommon(UNIFORM_COLOR, drawColor * (active ? 1.0f : 0.5f));
     lineMesh->draw(shader);
 }
 
@@ -465,15 +467,17 @@ void SystemInfo::addShip(logic::Ship ship)
 {
     stringstream ss;
     ss << ship.type << " " << ship.attack << "  " << ship.shield << "  " << ship.armour;
-    glm::vec3 color;
+    glm::vec3 color, selectedColor;
     if (ship.controller == localPlayer) {
         color = {0, 2, 2};
+        selectedColor = {1, 2, 2};
     } else {
         color = {4, 0, 0};
+        selectedColor = {4, 1, 1};
     }
     auto button = make_shared<Button>(ss.str(), glm::vec3(0, 0, 0), color, 1, 
             "shipid" + to_string(ship.id));
-    button->setActive(true);
+    button->setColors(color, selectedColor);
 
     buttons[ship.id] = button;
 
@@ -512,5 +516,27 @@ void SystemInfo::update(UpdateInfo& info)
 {
     for (auto& [id, button] : buttons) {
         button->update(info);
+    }
+}
+
+void SystemInfo::setShipButtonActive(int shipId, bool active)
+{
+    if (shipId == 0) {
+        for (auto& [id, button] : buttons) {
+            button->setActive(active);
+        }
+    } else if (buttons.count(shipId)) {
+        buttons[shipId]->setActive(active);
+    }
+}
+
+void SystemInfo::setShipButtonSelected(int shipId, bool selected)
+{
+    if (shipId == 0) {
+        for (auto& [id, button] : buttons) {
+            button->setSelected(selected);
+        }
+    } else if (buttons.count(shipId)) {
+        buttons[shipId]->setSelected(selected);
     }
 }
