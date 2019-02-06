@@ -62,6 +62,7 @@ class GraphicsObjectHandler
         std::shared_ptr<TurnIndicator> turnIndicator;
 
         std::shared_ptr<Button> passButton;
+        std::shared_ptr<Button> confirmButton;
 
         std::shared_ptr<DebugInfo> debugInfo;
 
@@ -69,6 +70,8 @@ class GraphicsObjectHandler
         std::shared_ptr<ResourceDisplay> enemyResources;
 
         std::map<int, std::shared_ptr<SystemInfo>> sysInfos;
+
+        std::set<int> shipIdsSelected;
 };
 
 #endif

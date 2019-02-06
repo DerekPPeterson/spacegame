@@ -38,9 +38,9 @@ namespace CardDefinitions {
         .name = "Sample Ship",
         .cardText = "Construct a sample ship in a system you control",
         .cost = {{RESOURCE_MATERIALS, 1}},
-        .getValidTargets = [] (GameState& state) -> pair<int, vector<Target>> 
+        .getValidTargets = [] (GameState& state) -> tuple<int, int, vector<Target>> 
         {
-            return {1, getSystemsControlledByActivePlayer(state)};
+            return {1, 1, getSystemsControlledByActivePlayer(state)};
         },
         .resolve = createSampleShip,
     };

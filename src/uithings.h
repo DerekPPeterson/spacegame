@@ -133,7 +133,7 @@ class Button : public Object, public Renderable, public UIObject,
     public Selectable
 {
     public:
-        Button(std::string text, glm::vec3 position, glm::vec3 color, float size);
+        Button(std::string text, glm::vec3 position, glm::vec3 color, float size, std::string clickEventLabel = "");
         virtual void queueDraw() override;
         virtual void draw(Shader& shader) override;
         virtual void update(UpdateInfo& info) override;
@@ -145,7 +145,10 @@ class Button : public Object, public Renderable, public UIObject,
         std::string label;
         Text text;
         float size;
+        float padding = 0.1;
         bool active = false;
+        std::string clickEventLabel;
+
 };
 
 class TurnIndicator : public Object, public Renderable, public UIObject,
@@ -196,9 +199,7 @@ class SystemInfo : public Object, public Renderable, public UIObject,
         int localPlayer = 0;
         std::shared_ptr<System> sys;
 
-        std::map<int, std::shared_ptr<Text>> names;
-        std::map<int, std::shared_ptr<Text>> stats;
-        std::map<int, std::unique_ptr<LineMesh>> lineMeshes;
+        std::map<int, std::shared_ptr<Button>> buttons;
 };
 
 #endif

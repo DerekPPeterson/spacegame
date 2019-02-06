@@ -352,7 +352,6 @@ vector<Action> GameState::getValidBeaconActions()
                 .type = ACTION_PLACE_BEACON,
                 .playerId = turnInfo.whoseTurn,
                 .id = sys,
-                .nTargets = 1,
                 .description = "Place beacon in system " + to_string(sys),
             });
         }
@@ -383,7 +382,8 @@ vector<Action> GameState::getValidShipsForBeacon(int beaconId)
             .type = ACTION_SELECT_SHIPS,
             .playerId = turnInfo.whoseTurn,
             .targets = targets,
-            .nTargets = (int) targets.size(),
+            .minTargets = 0,
+            .maxTargets = (int) targets.size(),
             .description = "Select any number of the given ships: " + ss.str(),
         };
         return {action};
@@ -398,15 +398,14 @@ vector<Action> GameState::getTargetActions()
     vector<Action> actions;
     if (turnInfo.phase.back() == PHASE_SELECT_CARD_TARGETS) {
         auto card = stack.back();
-        auto p = card.getValidTargets(*this);
-        auto nTargets = p.first;
-        auto possibleTargets = p.second;
+        auto [minTargets, maxTargets, targets] = card.getValidTargets(*this);
 
         Action selectShipsAction = {
             .type = ACTION_SELECT_SHIPS,
             .playerId = card.playedBy,
             .id = card.id,
-            .nTargets = nTargets,
+            .minTargets = minTargets,
+            .maxTargets = maxTargets,
             .description = "Select targets from list for card: " + card.name,
         };
 
@@ -414,11 +413,12 @@ vector<Action> GameState::getTargetActions()
             .type = ACTION_SELECT_SYSTEM,
             .playerId = card.playedBy,
             .id = card.id,
-            .nTargets = nTargets,
+            .minTargets = minTargets,
+            .maxTargets = maxTargets,
             .description = "Select targets from list for card: " + card.name,
         };
 
-        for (auto t : possibleTargets) {
+        for (auto t : targets) {
             switch (t.type) {
                 case TARGET_SHIP:
                     selectShipsAction.targets.push_back(t.id);
@@ -692,7 +692,7 @@ ostream & logic::operator<< (ostream &out, const Action &c)
         out << " " << c.description;
     }
     if (c.targets.size()) {
-        out << " pick " << c.nTargets << " targets: " << c.targets;
+        out << " pick " << c.minTargets << "-" << c.maxTargets << " targets: " << c.targets;
     }
     out << ")";
 

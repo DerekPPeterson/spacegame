@@ -138,6 +138,9 @@ void GraphicsObjectHandler::startGame(logic::GameState initialState, int myPlaye
     passButton = make_shared<Button>("Pass", glm::vec3(0.9, 0.7, -5), glm::vec3(0, 2, 2), 0.1);
     addObject(passButton);
 
+    confirmButton = make_shared<Button>("Confirm", glm::vec3(0.9, 0.78, -5), glm::vec3(0, 2, 0), 0.1);
+    addObject(confirmButton);
+
     turnIndicator = make_shared<TurnIndicator>(glm::vec3(0.05, 0.05, -5), playerId, initialState.turnInfo);
     addObject(turnIndicator);
 
@@ -149,7 +152,9 @@ void GraphicsObjectHandler::setPossibleActions(std::vector<logic::Action> action
 {
     this->actions = actions;
     if (actions.size() == 1) {
-        selectedAction = actions[0];
+        if (actions[0].minTargets == actions[0].maxTargets) {
+            selectedAction = actions[0];
+        }
     }
 
     // TODO debug only
@@ -158,9 +163,12 @@ void GraphicsObjectHandler::setPossibleActions(std::vector<logic::Action> action
     debugInfo->addInfo(ss.str());
     
     passButton->setActive(false);
+    confirmButton->setActive(false);
     for (auto a : actions) {
         if (a.type == logic::ACTION_NONE) {
             passButton->setActive(true);
+        } else if (a.type == logic::ACTION_SELECT_SHIPS) {
+            confirmButton->setActive(true);
         }
     }
 };
@@ -182,18 +190,42 @@ void GraphicsObjectHandler::checkEvents()
                 auto card = dynamic_pointer_cast<Card>(getObject(action.id));
                 hand->removeCard(card);
                 stack->addCard(card);
+                break;
              }
          }
      }
 
      auto buttonString = Event::getNextEvent(EVENT_BUTTON_PRESS);
-     if (buttonString and get<string>(*buttonString) == "Pass") {
-         for (auto action : actions) {
-             if (action.type == logic::ACTION_NONE) {
-                 selectedAction = action;
+     if (buttonString) {
+         string label = get<string>(*buttonString);
+         if (label == "Pass") {
+             for (auto action : actions) {
+                 if (action.type == logic::ACTION_NONE) {
+                     selectedAction = action;
+                     break;
+                 }
+             }
+         } else if (label.substr(0, 6) == "shipid") {
+             int shipId = stoi(label.substr(6));
+             if (shipIdsSelected.count(shipId)) {
+                 shipIdsSelected.erase(shipId);
+             } else {
+                 shipIdsSelected.insert(shipId);
+             }
+         } else if (label == "Confirm") {
+             for (auto action : actions) {
+                 if (action.type == logic::ACTION_SELECT_SHIPS) {
+                     action.targets = {};
+                     for (auto shipId : shipIdsSelected) {
+                         action.targets.push_back(shipId);
+                     }
+                     shipIdsSelected = {};
+                     selectedAction = action;
+                 }
              }
          }
      }
+
 
      auto logicSysId = Event::getNextEvent(EVENT_SYSTEM_CLICK);
      if (logicSysId) {
@@ -201,9 +233,11 @@ void GraphicsObjectHandler::checkEvents()
              if (action.type == logic::ACTION_PLACE_BEACON 
                      and action.id == get<int>(*logicSysId)) {
                  selectedAction = action;
+                 break;
              }
          }
      }
+
 }
 
 void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)

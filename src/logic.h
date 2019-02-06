@@ -8,6 +8,7 @@
 #include <memory>
 #include <functional>
 #include <variant>
+#include <tuple>
 
 #include <cereal/archives/json.hpp>
 #include <cereal/archives/portable_binary.hpp>
@@ -167,7 +168,7 @@ namespace logic {
         vector<int> targets;
 
         function<void(GameState&)> resolve = DEFAULT_CARD_RESOLVE;
-        function<pair<int, vector<Target>>(GameState&)> getValidTargets;
+        function<tuple<int, int, vector<Target>>(GameState&)> getValidTargets;
         friend ostream & operator << (ostream &out, const Card &c) {
             out << "(Card: " << c.name << " id " << c.id << ")";
             return out;
@@ -227,12 +228,17 @@ namespace logic {
     {
         ActionType type;
         int playerId;
-        int id;
+
+        int id; // used if there is a single relevant id
+
+        // Used if there are multiple possible targets
         vector<int> targets;
-        int nTargets;
+        int minTargets;
+        int maxTargets;
+
         string description;
         friend ostream & operator << (ostream &out, const Action &c);
-        SERIALIZE(type, playerId, id, targets, nTargets, description);
+        SERIALIZE(type, playerId, id, targets, minTargets, maxTargets, description);
     };
 
     enum ChangeType

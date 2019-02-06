@@ -326,9 +326,11 @@ unique_ptr<LineMesh> create2DBox(glm::vec2 ul, glm::vec2 lr, float depth = 0.2)
 }
 
 
-Button::Button(std::string label, glm::vec3 position, glm::vec3 color, float size)
+Button::Button(std::string label, glm::vec3 position, glm::vec3 color, 
+        float size, string clickEventLabel)
     : Renderable(SHADER_CARD), color(color), label(label), 
-      text(Fonts::title, label, color, 0, 5.0/8), size(size)
+      text(Fonts::title, label, color, 0, 5.0/8), size(size), 
+      clickEventLabel(clickEventLabel)
 {
     setPos(calcWorldSpaceCoords({position.x * screenWidth, position.y * screenHeight}, -position.z));
 
@@ -336,9 +338,6 @@ Button::Button(std::string label, glm::vec3 position, glm::vec3 color, float siz
     model = glm::scale(model, glm::vec3(size));
 
     setVisible(true);
-
-    float padding = 0.1;
-    text.setModel(glm::translate(model, {padding, -padding, 0}));
 
     float textwidth = text.calcWidth();
 
@@ -352,6 +351,9 @@ void Button::queueDraw()
 {
     Renderable::queueDraw();
     text.setColor(color * (active ? 1.0f : 0.5f));
+    float padding = 0.1;
+    text.setModel(glm::translate(getModel(), {padding, -padding, 0}));
+
     text.queueDraw();
 }
 
@@ -370,7 +372,13 @@ void Button::update(UpdateInfo& info)
 void Button::onClick()
 {
     if (active) {
-        Event::triggerEvent<string>(EVENT_BUTTON_PRESS, label);
+        if (clickEventLabel.size()) {
+            Event::triggerEvent<string>(EVENT_BUTTON_PRESS, clickEventLabel);
+            LOG_INFO << "Clicked button: " << clickEventLabel;
+        } else {
+            Event::triggerEvent<string>(EVENT_BUTTON_PRESS, label);
+            LOG_INFO << "Clicked button: " << label;
+        }
     }
 }
 
@@ -455,62 +463,54 @@ SystemInfo::SystemInfo(shared_ptr<System> sys, int localPlayer)
 
 void SystemInfo::addShip(logic::Ship ship)
 {
-    auto name = make_shared<Text>(Fonts::regular, ship.type);
     stringstream ss;
-    ss << ship.attack << "  " << ship.shield << "  " << ship.armour;
-    auto stat = make_shared<Text>(Fonts::regular, ss.str());
+    ss << ship.type << " " << ship.attack << "  " << ship.shield << "  " << ship.armour;
+    glm::vec3 color;
     if (ship.controller == localPlayer) {
-        name->setColor({0, 2, 2});
-        stat->setColor({0, 2, 2});
+        color = {0, 2, 2};
     } else {
-        name->setColor({4, 0, 0});
-        stat->setColor({4, 0, 0});
+        color = {4, 0, 0};
     }
-    names[ship.id] = name;
-    stats[ship.id] = stat;
+    auto button = make_shared<Button>(ss.str(), glm::vec3(0, 0, 0), color, 1, 
+            "shipid" + to_string(ship.id));
+    button->setActive(true);
+
+    buttons[ship.id] = button;
+
 }
 
 void SystemInfo::removeShip(int id)
 {
-    names.erase(id);
-    stats.erase(id);
-    lineMeshes.erase(id);
+    buttons.erase(id);
 }
 
 void SystemInfo::draw(Shader& shader)
 {
     // TODO finish this
-    for (auto& p : lineMeshes) {
-        p.second->draw(shader);
-    }
+    //for (auto& p : lineMeshes) {
+    //    p.second->draw(shader);
+    //}
 }
 
 void SystemInfo::queueDraw()
 {
-    for (auto& text : names) {
-        text.second->queueDraw();
-    }
-    for (auto& text : stats) {
-        text.second->queueDraw();
+    auto sysScreenPos = calcScreenSpaceCoords(sys->getPos());
+    auto worldPos = calcWorldSpaceCoords({sysScreenPos.x, sysScreenPos.y}, 8);
+    setPos(worldPos);
+    setModel(glm::translate(glm::mat4(1.0f), getPos() + glm::vec3(1, -1, 0) * size));
+    setModel(glm::scale(getModel(), glm::vec3(size)));
+
+    int curLine = 0;
+    for (auto& [id, button] : buttons) {
+        button->setModel(glm::translate(getModel(), {0, -1 * curLine, 0}));
+        button->queueDraw();
+        curLine++;
     }
 }
 
 void SystemInfo::update(UpdateInfo& info) 
 {
-    auto sysScreenPos = calcScreenSpaceCoords(sys->getPos());
-    auto worldPos = calcWorldSpaceCoords({sysScreenPos.x, sysScreenPos.y}, 8);
-    setPos(worldPos);
-    setModel(glm::translate(glm::mat4(1.0f), getPos()));
-    setModel(glm::scale(getModel(), glm::vec3(size)));
-
-    int curLine = 0;
-    for (auto& text : names) {
-        text.second->setModel(glm::translate(getModel(), {0, -1 * curLine, 0}));
-        curLine++;
-    }
-    curLine = 0;
-    for (auto& text : stats) {
-        text.second->setModel(glm::translate(getModel(), {5, -1 * curLine, 0}));
-        curLine++;
+    for (auto& [id, button] : buttons) {
+        button->update(info);
     }
 }
