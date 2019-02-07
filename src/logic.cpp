@@ -162,7 +162,12 @@ void GameState::startGame()
         // TODO load deck dynamically
         list<logic::Card> deck;
         for (int i = 0; i < 40; i++) {
-            auto card = CardDefinitions::sample_ship;
+            Card card;
+            if (i % 2) {
+                card = CardDefinitions::sample_ship;
+            } else {
+                card = CardDefinitions::resource_ship;
+            }
             card.newId();
             card.ownerId = p.id;
             deck.push_back(card);
@@ -499,6 +504,12 @@ void GameState::upkeep(bool firstTurn)
             .type = CHANGE_PLAYER_RESOURCES, 
             .data=pair<int, ResourceAmount>(player->id, player->resources)
             });
+
+    for (auto& ship : ships) {
+        if (ship.controller == turnInfo.whoseTurn) {
+            ship.upkeep(*this, ship);
+        }
+    }
 }
 
 void GameState::updateSystemControllers()

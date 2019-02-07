@@ -145,7 +145,11 @@ Card::Card(CardInfo info) : Renderable(SHADER_CARD),
         Card::info.color += CARD_COLORS[p.first] * (float) p.second;
         totalCost += p.second;
     }
-    Card::info.color /= totalCost;
+    if (totalCost) {
+        Card::info.color /= totalCost;
+    } else {
+        Card::info.color = {0.5, 0.5, 0.5};
+    }
 
     titleText.setColor(Card::info.color);
     cardText.setColor(Card::info.color);

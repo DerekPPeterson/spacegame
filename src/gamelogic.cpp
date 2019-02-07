@@ -281,6 +281,7 @@ void GraphicsObjectHandler::checkEvents()
 void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
 {
     for (auto change : changes) {
+        LOG_INFO << "Received: " << change;
         switch (change.type) {
             case logic::CHANGE_RESOLVE_CARD: 
                 {

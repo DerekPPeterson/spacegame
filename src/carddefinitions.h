@@ -32,10 +32,14 @@ void createShipIn(GameState& state, logic::Ship ship)
     state.changes.push_back({.type = CHANGE_ADD_SHIP, .data = ship});
 }
 
-void resourcesOnUpkeep(GameState& state, ResourceAmount amount)
+void resourcesToController(GameState& state, Ship& ship, ResourceAmount amount)
 {
-    auto player = state.getPlayerById(state.turnInfo.whoseTurn);
+    auto player = state.getPlayerById(ship.controller);
     player->resources = player->resources + amount;
+    state.changes.push_back({
+            .type = CHANGE_PLAYER_RESOURCES, 
+            .data=pair<int, ResourceAmount>(player->id, player->resources)
+            });
 }
 
 namespace ShipDefinitions {
@@ -53,6 +57,9 @@ namespace ShipDefinitions {
         .shield = 0,
         .armour = 1,
         .movement = 0,
+        .upkeep = [](GameState& state, Ship& ship) {
+            resourcesToController(state, ship, {{RESOURCE_MATERIALS, 1}});
+        },
     };
 };
 
@@ -62,14 +69,18 @@ namespace CardDefinitions {
         .cardText = "Construct a sample ship in a system you control",
         .cost = {{RESOURCE_MATERIALS, 1}},
         .getValidTargets = singleSystemControlledByActivePlayer,
-        .resolve = [](GameState& state) {createShipIn(state, ShipDefinitions::sampleShip);}
+        .resolve = [](GameState& state) {
+            createShipIn(state, ShipDefinitions::sampleShip);
+        },
     };
 
     Card resource_ship = {
         .name = "Mining Station",
-        .cardText = "Construct in system you control.\nProvides 1 {res} per turn",
+        .cardText = "Construct in system you control.\nProvides 1 {mat} per turn",
         .cost = {},
         .getValidTargets = singleSystemControlledByActivePlayer,
-        .resolve = [](GameState& state) {createShipIn(state, ShipDefinitions::miningShip);}
+        .resolve = [](GameState& state) {
+            createShipIn(state, ShipDefinitions::miningShip);
+        },
     };
 }

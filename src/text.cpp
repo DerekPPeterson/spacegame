@@ -174,9 +174,12 @@ void Text::calcCharPositions()
             for (j = i + 1; j < text.size() and text[j] != '}'; j++) {
                 key.push_back(text[j]);
             }
-            i = j;
-            charInfo = iconInfo;
-            icons.push_back(createIcon(resourceStrings[key]));
+            if (resourceStrings.count(key)) {
+                icons.push_back(createIcon(resourceStrings[key]));
+                i = j;
+                charInfo = iconInfo;
+                c = '~';
+            }
         } else {
             charInfo = font->info.characters[c];
         }
@@ -244,7 +247,7 @@ void Text::queueDraw()
 
         CharInfo charInfo;
         // Identify icon strings
-        if (c == '{') {
+        if (c == '~') {
             charInfo = iconInfo;
             icon = icons[curIcon];
             curIcon++;

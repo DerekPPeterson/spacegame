@@ -94,7 +94,8 @@ namespace logic {
         SERIALIZE(id, controllerId, adjacent, home, i, j);
     };
 
-    inline void DEFAULT_CARD_UPKEEP(GameState& state) {};
+    struct Ship;
+    inline void DEFAULT_SHIP_NOTHING(GameState& state, Ship& ship) {};
 
     /* Ship object, representing a unit that can move and attack other ship
      * units */
@@ -114,7 +115,7 @@ namespace logic {
         void applyDamage(int damage);
         bool isDestroyed() {return armour <= 0;};
 
-        function<void(GameState&)> upkeep = DEFAULT_CARD_UPKEEP;
+        function<void(GameState&, Ship&)> upkeep = DEFAULT_SHIP_NOTHING;
 
         friend ostream & operator << (ostream &out, const Ship &c)
         {

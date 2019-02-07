@@ -106,7 +106,7 @@ class Selectable : public virtual has_position, public virtual has_model_mat
         virtual void onClick();
         bool checkSetHoverCircle(UpdateInfo info, bool screenSpace = false);
         bool checkSetHoverQuad(UpdateInfo info, bool screenSpace = false);
-        void updateClickState(UpdateInfo info);
+        virtual void updateClickState(UpdateInfo info);
         bool isHovered = false;
         bool isSelected = false;
         bool wasClickedOn = false;
@@ -121,6 +121,7 @@ class Dragable : public Selectable, virtual public UIObject
         bool dragEnabled = false;
     protected:
         void checkSetDrag(UpdateInfo info, bool screenSpace = false);
+        void updateClickState(UpdateInfo info) override;
         virtual void onRelease() {};
         bool dragging = false;
         glm::vec3 dragDisplacement;

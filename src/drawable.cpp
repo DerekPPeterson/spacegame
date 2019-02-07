@@ -158,6 +158,16 @@ void Selectable::onClick()
 
 Dragable* Dragable::beingDragged = NULL;
 
+void Dragable::updateClickState(UpdateInfo info)
+{
+    // This solves other objects becoming hovered when another object is 
+    // being dragged
+    if (dragging) {
+        isHovered = true;
+    }
+    Selectable::updateClickState(info);
+}
+
 void Dragable::checkSetDrag(UpdateInfo info, bool screenSpace)
 {
     if (not dragEnabled) {
