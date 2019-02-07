@@ -218,6 +218,7 @@ class GameEndpoint
                 cereal::PortableBinaryInputArchive iarchive(ss);
                 iarchive(action);
             }
+             LOG_DEBUG << "Performing: " << action;
             games[gameId].state.performAction(action);
             response.send(Http::Code::Ok, "");
          }
@@ -228,11 +229,16 @@ class GameEndpoint
             LOG_INFO << "Got request for changes for game id: " << gameId 
                 << " since changeNo: " << changeNo;
 
+            auto changes = games[gameId].state.getChangesAfter(changeNo);
+            for (auto change : changes) {
+                LOG_DEBUG << "Sending: " << change;
+            }
+
             // TODO actually implement this
             stringstream ss;
             {
                 cereal::PortableBinaryOutputArchive oarchive(ss);
-                oarchive(games[gameId].state.getChangesAfter(changeNo));
+                oarchive(changes);
             }
             response.send(Http::Code::Ok, ss.str());
          }

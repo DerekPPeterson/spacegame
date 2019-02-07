@@ -24,6 +24,7 @@ tuple<int, int, vector<Target>> singleSystemControlledByActivePlayer(GameState& 
 void createShipIn(GameState& state, logic::Ship ship)
 {
     auto card = state.stack.back();
+    ship.newId();
     ship.owner = card.playedBy;
     ship.owner = card.playedBy;
     ship.controller = card.playedBy;
