@@ -24,17 +24,24 @@ template <class T>
 class Interpolated
 {
     public:
-        Interpolated(T initial, T min, T max, T speed) 
-            : curVal(initial), min(min), max(max), speed(speed) {};
+        Interpolated(T min, T max, T speed) 
+            : curVal(min), min(min), max(max), speed(speed) {};
+        void gotoMax() {goToMax = true;};
+        void gotoMin() {goToMax = false;};
         void update(float deltaTime)
         {
-            curVal += speed * deltaTime;
+            if (goToMax) {
+                curVal += speed * deltaTime;
+            } else {
+                curVal -= speed * deltaTime;
+            }
             if (curVal > max) {
                 curVal = max;
             } else if (curVal < min) {
                 curVal = min;
             }
         }
+        bool goToMax = true;
         T curVal;
     protected:
         T min;

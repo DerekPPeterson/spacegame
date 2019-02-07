@@ -303,6 +303,9 @@ void Hand::update(UpdateInfo& info)
 
         // Create a fixed position to attach the card to
         auto fixedPos = position - glm::vec3(i * cardSpacing, 0, 0);
+        if (card->isHovered) {
+            fixedPos += glm::normalize( -card->getPos()) * 0.5f + glm::vec3(0, 0.5, 0);
+        }
         auto fixed = shared_ptr<SpringObject>(new SpringObject(fixedPos));
         fixed->fixed = true;
 
