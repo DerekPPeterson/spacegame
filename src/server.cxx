@@ -249,7 +249,7 @@ int main() {
     plog::init(plog::verbose, "server.log");
     LOG_INFO << "Starting server";
 
-    Port port(40001);
+    Port port(40000);
 
     int thr = 2;
 
