@@ -112,6 +112,8 @@ namespace logic {
 
         int curSystemId; // Current location
 
+        bool isResourceShip = false;
+
         void applyDamage(int damage);
         bool isDestroyed() {return armour <= 0;};
 
@@ -172,6 +174,7 @@ namespace logic {
         string name;
         string cardText;
         ResourceAmount cost;
+        ResourceAmount provides; // Used to determine color of card if cost is not present
         int playedBy = 0;
         int ownerId = 0;
         vector<int> targets;
@@ -182,7 +185,7 @@ namespace logic {
             out << "(Card: " << c.name << " id " << c.id << ")";
             return out;
         }
-        SERIALIZE(id, name, cardText, cost, playedBy, targets, ownerId);
+        SERIALIZE(id, name, cardText, cost, provides, playedBy, targets, ownerId);
     };
 
     struct Player : public GameObject

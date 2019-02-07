@@ -141,9 +141,16 @@ Card::Card(CardInfo info) : Renderable(SHADER_CARD),
 
     Card::info.color = {0, 0, 0};
     int totalCost = 0;
-    for (auto p : info.cost) {
-        Card::info.color += CARD_COLORS[p.first] * (float) p.second;
-        totalCost += p.second;
+    ResourceAmount nothing = {};
+    ResourceAmount resourceAmountForColors;
+    if (info.cost == nothing) {
+        resourceAmountForColors = info.provides;
+    } else {
+        resourceAmountForColors = info.cost;
+    }
+    for (auto [resourceType, amount] : resourceAmountForColors) {
+        Card::info.color += CARD_COLORS[resourceType] * (float) amount;
+        totalCost += amount;
     }
     if (totalCost) {
         Card::info.color /= totalCost;
@@ -162,6 +169,7 @@ std::shared_ptr<Card> Card::createFrom(logic::Card logicCard)
         .name = logicCard.name,
         .text = logicCard.cardText,
         .cost = logicCard.cost,
+        .provides = logicCard.provides,
         .ownerId = logicCard.ownerId,
     };
     auto card = shared_ptr<Card>(new Card(info));

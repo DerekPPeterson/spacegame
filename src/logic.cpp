@@ -161,13 +161,15 @@ void GameState::startGame()
 
         // TODO load deck dynamically
         list<logic::Card> deck;
+        vector<Card> toUse = {
+            CardDefinitions::sample_ship,
+            CardDefinitions::ai_coreship,
+            CardDefinitions::am_gatherer,
+            CardDefinitions::resource_ship,
+            CardDefinitions::diplomaticVessal,
+        };
         for (int i = 0; i < 40; i++) {
-            Card card;
-            if (i % 2) {
-                card = CardDefinitions::sample_ship;
-            } else {
-                card = CardDefinitions::resource_ship;
-            }
+            Card card = toUse[i % toUse.size()];
             card.newId();
             card.ownerId = p.id;
             deck.push_back(card);

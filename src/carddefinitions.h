@@ -53,15 +53,53 @@ namespace ShipDefinitions {
     };
 
     Ship miningShip = {
-        .type = "Mining base",
+        .type = "Mining Platform",
         .attack = 0,
         .shield = 0,
         .armour = 1,
-        .movement = 0,
+        .movement = 1,
+        .isResourceShip = true,
         .upkeep = [](GameState& state, Ship& ship) {
             resourcesToController(state, ship, {{RESOURCE_MATERIALS, 1}});
         },
     };
+
+    Ship aiCore = {
+        .type = "AI coreship",
+        .attack = 0,
+        .shield = 0,
+        .armour = 1,
+        .movement = 1,
+        .isResourceShip = true,
+        .upkeep = [](GameState& state, Ship& ship) {
+            resourcesToController(state, ship, {{RESOURCE_AI, 1}});
+        },
+    };
+
+    Ship amGatherer = {
+        .type = "AM gatherer",
+        .attack = 0,
+        .shield = 0,
+        .armour = 1,
+        .movement = 0,
+        .isResourceShip = true,
+        .upkeep = [](GameState& state, Ship& ship) {
+            resourcesToController(state, ship, {{RESOURCE_ANTIMATTER, 1}});
+        },
+    };
+
+    Ship diplomaticVessal = {
+        .type = "Diplomatic Vessel",
+        .attack = 0,
+        .shield = 0,
+        .armour = 1,
+        .movement = 0,
+        .isResourceShip = true,
+        .upkeep = [](GameState& state, Ship& ship) {
+            resourcesToController(state, ship, {{RESOURCE_INFLUENCE, 1}});
+        },
+    };
+
 };
 
 namespace CardDefinitions {
@@ -76,12 +114,46 @@ namespace CardDefinitions {
     };
 
     Card resource_ship = {
-        .name = "Mining Station",
+        .name = "Mining Platform",
         .cardText = "Construct in system you control.\nProvides 1 {mat} per turn",
         .cost = {},
+        .provides = {{RESOURCE_MATERIALS, 1}},
         .getValidTargets = singleSystemControlledByActivePlayer,
         .resolve = [](GameState& state) {
             createShipIn(state, ShipDefinitions::miningShip);
+        },
+    };
+
+    Card ai_coreship = {
+        .name = "AI Coreship",
+        .cardText = "Construct in system you control.\nProvides 1 {ai} per turn",
+        .cost = {},
+        .provides = {{RESOURCE_AI, 1}},
+        .getValidTargets = singleSystemControlledByActivePlayer,
+        .resolve = [](GameState& state) {
+            createShipIn(state, ShipDefinitions::aiCore);
+        },
+    };
+
+    Card am_gatherer = {
+        .name = "Antimatter Collector",
+        .cardText = "Construct in system you control.\nProvides 1 {am} per turn",
+        .cost = {},
+        .provides = {{RESOURCE_ANTIMATTER, 1}},
+        .getValidTargets = singleSystemControlledByActivePlayer,
+        .resolve = [](GameState& state) {
+            createShipIn(state, ShipDefinitions::amGatherer);
+        },
+    };
+
+    Card diplomaticVessal = {
+        .name = "Diplomatic Vessel",
+        .cardText = "Construct in system you control.\nProvides 1 {inf} per turn",
+        .cost = {},
+        .provides = {{RESOURCE_INFLUENCE, 1}},
+        .getValidTargets = singleSystemControlledByActivePlayer,
+        .resolve = [](GameState& state) {
+            createShipIn(state, ShipDefinitions::diplomaticVessal);
         },
     };
 }

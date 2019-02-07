@@ -24,6 +24,7 @@ struct CardInfo
         {RESOURCE_WARP_BEACONS, 1}, 
         {RESOURCE_INFLUENCE, 1}
     };
+    ResourceAmount provides = {};
     int ownerId = 0;
 };
 
