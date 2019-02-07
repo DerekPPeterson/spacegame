@@ -94,6 +94,8 @@ namespace logic {
         SERIALIZE(id, controllerId, adjacent, home, i, j);
     };
 
+    inline void DEFAULT_CARD_UPKEEP(GameState& state) {};
+
     /* Ship object, representing a unit that can move and attack other ship
      * units */
     struct Ship : public GameObject
@@ -111,6 +113,8 @@ namespace logic {
 
         void applyDamage(int damage);
         bool isDestroyed() {return armour <= 0;};
+
+        function<void(GameState&)> upkeep = DEFAULT_CARD_UPKEEP;
 
         friend ostream & operator << (ostream &out, const Ship &c)
         {
@@ -149,6 +153,7 @@ namespace logic {
     inline void DEFAULT_CARD_RESOLVE(GameState& state) {
         LOG_ERROR << "Resolving a card with a default resolve function";
     }
+
 
     enum TargetType {
         TARGET_SYSTEM,
