@@ -7,15 +7,20 @@ int main()
 {
     LocalServerStarter server;
 
+    char width[] = "1600";
+    char height[] = "900";
+
     auto app1 = Popen({"./app", 
             "-u", "player1", 
-            "-l", "spacegame1.log"
+            "-l", "spacegame1.log",
+            "-w", width, "-h", height,
             });
     usleep(4e6);
     auto app2 = Popen({"./app", 
             "-u", "player2", 
             "--joinuser", "player1",
-            "-l", "spacegame2.log"
+            "-l", "spacegame2.log",
+            "-w", width, "-h", height,
             });
 
     app1.wait();
