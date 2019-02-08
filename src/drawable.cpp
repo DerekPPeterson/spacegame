@@ -1,6 +1,7 @@
 #include "drawable.h"
 
 #include "event.h"
+#include "camera2.h"
 
 #include <glad/glad.h>
 
@@ -123,7 +124,7 @@ bool Selectable::checkSetHoverQuad(UpdateInfo info, bool screenSpace)
             screenQuadCoords.push_back(calcScreenSpaceCoords(
                     getModel() * glm::vec4(quadVertex, 1),
                     info.projection, 
-                    screenSpace ? glm::mat4(1.0f): info.camera->GetViewMatrix(), 
+                    screenSpace ? glm::mat4(1.0f): info.camera->getViewMatrix(), 
                     info.screenWidth, info.screenHeight));
         }
         isHovered = pointInsideQuad(info.mouse.position, screenQuadCoords);
@@ -141,7 +142,7 @@ bool Selectable::checkSetHoverCircle(UpdateInfo info, bool screenSpace)
     if (isHovered or (beingHovered == this or not beingHovered)) {
         glm::vec2 screenCoords = calcScreenSpaceCoords(position,
                 info.projection, 
-                screenSpace ? glm::mat4(1.0f): info.camera->GetViewMatrix(), 
+                screenSpace ? glm::mat4(1.0f): info.camera->getViewMatrix(), 
                 info.screenWidth, info.screenHeight);
         
         isHovered = glm::length(screenCoords - info.mouse.position) <= targetRadius;

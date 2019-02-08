@@ -4,6 +4,7 @@
 
 // TODO change drawable name
 #include "drawable.h"
+#include "camera2.h"
 
 
 using namespace std;
@@ -80,7 +81,7 @@ Renderer::Renderer(RenderOptions options, Camera& camera) :
     glLineWidth(1);
 
     UIObject::setViewInfo(options.screenWidth, options.screenHeight, 
-            projection, camera.GetViewMatrix());
+            projection, camera.getViewMatrix());
 }
 
 void Renderer::renderMainScene()
@@ -103,7 +104,7 @@ void Renderer::renderMainScene()
 
     // TODO improve uniform setting
     shaders[SHADER_LAMP].use();
-    shaders[SHADER_LAMP].setMat4("view", camera.GetViewMatrix());
+    shaders[SHADER_LAMP].setMat4("view", camera.getViewMatrix());
     shaders[SHADER_LAMP].setMat4("projection", projection);
     Renderable::drawStage(SHADER_LAMP, shaders[SHADER_LAMP]);
 
@@ -112,17 +113,17 @@ void Renderer::renderMainScene()
     for (int i = 0; i < lights.size(); i++) {
         lights[i]->setUniforms(shaders[SHADER_SIMPLE_DIFFUSE], i);
     }
-    shaders[SHADER_SIMPLE_DIFFUSE].setMat4("view", camera.GetViewMatrix());
+    shaders[SHADER_SIMPLE_DIFFUSE].setMat4("view", camera.getViewMatrix());
     shaders[SHADER_SIMPLE_DIFFUSE].setMat4("projection", projection);
-    shaders[SHADER_SIMPLE_DIFFUSE].setVec3("viewPos", camera.Position);
+    shaders[SHADER_SIMPLE_DIFFUSE].setVec3("viewPos", camera.getPos());
     shaders[SHADER_SIMPLE_DIFFUSE].setInt("numPointLights", lights.size());
     shaders[SHADER_SIMPLE_DIFFUSE].setFloat("ambientStrength", 0.0);
     Renderable::drawStage(SHADER_SIMPLE_DIFFUSE, shaders[SHADER_SIMPLE_DIFFUSE]);
     
     shaders[SHADER_LIGHTING].use();
-    shaders[SHADER_LIGHTING].setMat4("view", camera.GetViewMatrix());
+    shaders[SHADER_LIGHTING].setMat4("view", camera.getViewMatrix());
     shaders[SHADER_LIGHTING].setMat4("projection", projection);
-    shaders[SHADER_LIGHTING].setVec3("viewPos", camera.Position);
+    shaders[SHADER_LIGHTING].setVec3("viewPos", camera.getPos());
     shaders[SHADER_LIGHTING].setInt("numPointLights", lights.size());
     shaders[SHADER_LIGHTING].setFloat("ambientStrength", 0.00);
     for (int i = 0; i < lights.size(); i++) {
@@ -140,7 +141,7 @@ void Renderer::renderMainScene()
     Renderable::drawStage(SHADER_UI_LIGHTING, shaders[SHADER_UI_LIGHTING]);
 
     shaders[SHADER_SKYBOX].use();
-    glm::mat4 skyboxView = glm::mat4(glm::mat3(camera.GetViewMatrix()));  
+    glm::mat4 skyboxView = glm::mat4(glm::mat3(camera.getViewMatrix()));  
     shaders[SHADER_SKYBOX].setMat4("view", skyboxView);
     shaders[SHADER_SKYBOX].setMat4("projection", projection);
     Renderable::drawStage(SHADER_SKYBOX, shaders[SHADER_SKYBOX]);
@@ -148,7 +149,7 @@ void Renderer::renderMainScene()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
     shaders[SHADER_TEXT].use();
-    shaders[SHADER_TEXT].setMat4("view", camera.GetViewMatrix());
+    shaders[SHADER_TEXT].setMat4("view", camera.getViewMatrix());
     shaders[SHADER_TEXT].setMat4("projection", projection);
     Renderable::drawStage(SHADER_TEXT, shaders[SHADER_TEXT]);
     glDisable(GL_BLEND);
@@ -177,7 +178,7 @@ void Renderer::renderWarpEffects()
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.normalBlendFramebuffer.id);
     glClear(GL_COLOR_BUFFER_BIT);
     warpShader1.use();
-    warpShader1.setMat4("view", camera.GetViewMatrix());
+    warpShader1.setMat4("view", camera.getViewMatrix());
     warpShader1.setMat4("projection", projection);
     warpShader1.setVec2("screenSize", {options.screenWidth, options.screenHeight});
     glActiveTexture(GL_TEXTURE1);
@@ -200,7 +201,7 @@ void Renderer::renderWarpEffects()
     glEnable(GL_DEPTH_TEST);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.warpFrameBuffer.id);
     warpShader2.use();
-    warpShader2.setMat4("view", camera.GetViewMatrix());
+    warpShader2.setMat4("view", camera.getViewMatrix());
     warpShader2.setMat4("projection", projection);
     warpShader2.setVec2("screenSize", {options.screenWidth, options.screenHeight});
     glActiveTexture(GL_TEXTURE1);
@@ -217,7 +218,7 @@ void Renderer::renderWarpEffects()
     // We also render the antimatter stuff here
     Shader antiShader = shaders[SHADER_ANTI];
     antiShader.use();
-    antiShader.setMat4("view", camera.GetViewMatrix());
+    antiShader.setMat4("view", camera.getViewMatrix());
     antiShader.setMat4("projection", projection);
     antiShader.setVec2("screenSize", {options.screenWidth, options.screenHeight});
     glActiveTexture(GL_TEXTURE1);
@@ -292,7 +293,7 @@ void Renderer::mergeEffects(int bloomOutputTextureNo)
 void Renderer::renderFrame() 
 {
     UIObject::setViewInfo(options.screenWidth, options.screenHeight, 
-            projection, camera.GetViewMatrix());
+            projection, camera.getViewMatrix());
 
     toRenderMutex.lock();
     for (auto r : toRender) {

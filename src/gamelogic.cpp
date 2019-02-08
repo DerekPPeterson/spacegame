@@ -1,6 +1,7 @@
 #include "gamelogic.h"
 #include "spaceThings.h"
 #include "uithings.h"
+#include "camera2.h"
 
 #include <exception>
 
@@ -103,6 +104,8 @@ void GraphicsObjectHandler::startGame(logic::GameState initialState, int myPlaye
 
     vector<std::shared_ptr<Object>> systems = spacegrid->getAllSystems();
     objects.insert(objects.end(), systems.begin(), systems.end());
+
+    camera.lookAt(camera.getPos(), spacegrid->getSystem(1, 1)->getPos());
 
     for (auto o: systems) {
         auto s = dynamic_pointer_cast<System>(o);
@@ -364,6 +367,14 @@ void GraphicsObjectHandler::shipChange(logic::Change change)
     sysInfos[logicShip.curSystemId]->addShip(logicShip);
 }
 
+void GraphicsObjectHandler::combatStart(logic::Change change)
+{
+    int systemId = get<int>(change.data);
+    auto sys = dynamic_pointer_cast<System>(getObject(systemId));
+    auto newPos = (camera.getPos() - sys->getPos()) * 0.2f + sys->getPos();
+    camera.lookAt(newPos, sys->getPos());
+}
+
 
 void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
 {
@@ -388,6 +399,8 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
                 removeShip(change); break;
             case logic::CHANGE_SHIP_CHANGE:
                 shipChange(change); break;
+            case logic::CHANGE_COMBAT_START:
+                combatStart(change); break;
             default:
                 LOG_ERROR << "Received unhandled change from server: " << change;
         }

@@ -8,13 +8,11 @@
 #include <mutex>
 
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "camera.h"
 #include "framebuffer.h"
 #include "shader.h"
 //#include "drawable.h"
@@ -27,6 +25,8 @@ struct RenderOptions
     int screenHeight = 800;
     bool fullscreen = false;
 };
+
+class Camera;
 
 class Renderer
 {

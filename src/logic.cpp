@@ -182,26 +182,21 @@ void GameState::startGame()
 
         // Give them flagships TODO load chosen flagshipss
         LOG_INFO << "Added flagship for " << p.name;
-        logic::Ship sampleFlagship = {
-            .type = "SS1",
-            .attack = 1,
-            .shield = 5,
-            .armour = 10,
-            .movement = 1,
-            .owner = p.id,
-            .controller = p.id
-        };
+        logic::Ship flagship = ShipDefinitions::defaultFlagship;
+        flagship.controller = p.id;
+        flagship.owner = p.id;
+        flagship.newId();
 
         for (auto& s : systems) {
             if (s.home and not s.controllerId) {
-                sampleFlagship.curSystemId = s.id;
+                flagship.curSystemId = s.id;
                 s.controllerId = p.id;
                 break;
             }
         }
 
-        p.flagshipId = sampleFlagship.id;
-        ships.push_back(sampleFlagship);
+        p.flagshipId = flagship.id;
+        ships.push_back(flagship);
         players.push_back(p);
     }
 

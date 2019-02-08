@@ -1,7 +1,6 @@
 #include "timer.h"
 
 #include <map>
-#include <GLFW/glfw3.h>
 #include <exception>
 
 using namespace std;

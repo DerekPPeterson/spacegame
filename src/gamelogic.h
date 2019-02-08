@@ -13,7 +13,7 @@
 class GraphicsObjectHandler
 {
     public:
-        GraphicsObjectHandler() {};
+        GraphicsObjectHandler(Camera& camera) : camera(camera) {};
 
         void startGame(logic::GameState initialState, int myPlayerId);
 
@@ -36,6 +36,8 @@ class GraphicsObjectHandler
         void checkEvents();
 
     private:
+        Camera& camera;
+
         int playerId;
 
         void initializePlayer(logic::Player);
@@ -83,6 +85,7 @@ class GraphicsObjectHandler
         void moveShip(logic::Change change);
         void removeShip(logic::Change change);
         void shipChange(logic::Change change);
+        void combatStart(logic::Change change);
 };
 
 #endif

@@ -3,10 +3,10 @@
 #include "timer.h"
 #include "util.h"
 #include "event.h"
+#include "camera2.h"
 
 #include <cstdlib>
 #include <algorithm>
-#include <GLFW/glfw3.h>
 
 #include <plog/Log.h>
 
@@ -255,7 +255,7 @@ void SpaceShip::update(UpdateInfo& info)
     position += displacement;
 
     // Update camera pos for later use during drawWarp
-    cameraPos = info.camera->Position;
+    cameraPos = info.camera->getPos();
 }
 
 glm::mat4 SpaceShip::calcModelMat() const

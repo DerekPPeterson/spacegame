@@ -1,13 +1,12 @@
 #ifndef INPUT_H
 #define INPUT_H
 
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-#include "camera.h"
 
 struct MouseInfo
 {
@@ -16,6 +15,8 @@ struct MouseInfo
     glm::vec2 lastClickPosition = {-1, -1};
     glm::vec2 lastReleasedPosition = {-1, -1};
 };
+
+class Camera;
 
 class Input
 {

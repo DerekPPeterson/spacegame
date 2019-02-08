@@ -11,7 +11,6 @@
 #include "shader.h"
 #include "model.h"
 #include "nocopy.h"
-#include "camera.h"
 #include "input.h"
 
 /* This is black magic to statically initilize the list of classes that need
@@ -88,6 +87,8 @@ class UIObject : public virtual has_position
         static glm::mat4 projection;
         static glm::mat4 view;
 };
+
+class Camera;
 
 struct UpdateInfo
 {

@@ -1,6 +1,7 @@
 #include "input.h"
 
 #include "event.h"
+#include "camera2.h"
 
 #include <plog/Log.h>
 
@@ -29,7 +30,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     LOG_VERBOSE << "Camera offset: " << yoffset;
-    camera->ProcessMouseScroll(yoffset);
+    //camera->ProcessMouseScroll(yoffset);
 }
 
 // TODO better input press detect method
@@ -42,18 +43,18 @@ void Input::process(float deltaTime)
         glfwSetWindowShouldClose(window, true);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        camera->ProcessKeyboard(LEFT, deltaTime);
-    }
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        camera->ProcessKeyboard(RIGHT, deltaTime);
-    }
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        camera->ProcessKeyboard(FORWARD, deltaTime);
-    }
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        camera->ProcessKeyboard(BACKWARD, deltaTime);
-    }
+    //if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+    //    camera->ProcessKeyboard(LEFT, deltaTime);
+    //}
+    //if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+    //    camera->ProcessKeyboard(RIGHT, deltaTime);
+    //}
+    //if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+    //    camera->ProcessKeyboard(FORWARD, deltaTime);
+    //}
+    //if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+    //    camera->ProcessKeyboard(BACKWARD, deltaTime);
+    //}
 
     if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS && d_released) {
         d_released = false;

@@ -4,6 +4,7 @@
 #include <exception>
 #include <cstdio>
 
+#define GLFW_INCLUDE_NONE
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -23,6 +24,7 @@
 #include "logic.h"
 #include "gamelogic.h"
 #include "client.h"
+#include "camera2.h"
 
 
 #include "renderer.h"
@@ -126,7 +128,7 @@ int main(int argc, char **argv)
     // Animation updater
     ObjectUpdater updater(1); // Using 1 other thread for updating objects
 
-    GraphicsObjectHandler graphicsObjectHandler;
+    GraphicsObjectHandler graphicsObjectHandler(camera);
     graphicsObjectHandler.startGame(client.getState(), client.getMyPlayerId());
 
     // TODO create this somewhere else
@@ -185,6 +187,9 @@ int main(int argc, char **argv)
         // Update objects
         updater.updateObjects(info, graphicsObjectHandler.getObjects());
         updater.waitForUpdates(); // Cannot overlap with render yet
+
+        // Update camera
+        camera.update(info);
 
         // Render a frame
         renderer.setToRender(graphicsObjectHandler.getRenderables());
