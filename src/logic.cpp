@@ -731,6 +731,8 @@ void GameState::resolveCombats()
         // Continue until there are no ships left
         while (noWinner) {
             // Each players ships deal damage to each other players ships
+            
+            vector<pair<int, int>> shipTargets;
             for (auto player : players) {
                 auto myShips = playerShips[player.id];
                 int otherPlayer = find_if(players.begin(), players.end(), 
@@ -739,6 +741,7 @@ void GameState::resolveCombats()
 
                 auto enemyShipIt = enemyShips.begin();
                 for (auto myShip : myShips) {
+                    shipTargets.push_back({myShip->id, (*enemyShipIt)->id});
                     (*enemyShipIt)->applyDamage(myShip->attack);
                     enemyShipIt++;
                     if (enemyShipIt == enemyShips.end()) {
@@ -746,6 +749,7 @@ void GameState::resolveCombats()
                     }
                 }
             }
+            changes.push_back({.type = CHANGE_SHIP_TARGETS, .data = shipTargets});
 
             // Remove destroyed ships
             for (auto player : players) {

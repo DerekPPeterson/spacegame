@@ -58,6 +58,14 @@ class SpaceGrid : public Object, public Renderable
         std::shared_ptr<System> grid[SPACEGRID_SIZE][SPACEGRID_SIZE];
 };
 
+class LaserShot : public Object, public Renderable
+{
+    LaserShot(glm::vec3 position, glm::vec3 direction, float speed, glm::vec3 color);
+    virtual void draw(Shader& shader);
+    protected:
+        float speed;
+        glm::vec3 color;
+};
 
 // TODO use an instance renderer
 class SpaceShip : public Object, public Renderable
@@ -88,6 +96,11 @@ class SpaceShip : public Object, public Renderable
         float speed = 2;
         float warp = 1;
         float turnSpeed = 2 * 3.14;
+
+        bool shoot = false;
+        float lastShot = 0;
+        float shootDelay = 0.2;
+        std::shared_ptr<has_position> shootAt;
 
         glm::mat4 calcModelMat() const;
         static void loadModel(std::string type);

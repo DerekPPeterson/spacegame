@@ -270,6 +270,7 @@ namespace logic {
         CHANGE_PLACE_BEACON, // data will be WarpBeacon object
         CHANGE_PLAYER_RESOURCES, // data will be pair of playerId, ResourceAmount
         CHANGE_MOVE_SHIP,  // data will be pair of shipId, new systemId
+        CHANGE_SHIP_TARGETS,  // data will be vector of shipId pairs, {{a targets b}, {c targets d} ...}
         CHANGE_COMBAT_START,  // data will be systemId of system that started combat
         CHANGE_COMBAT_ROUND_END,  // no data, indicates combat round ended
         CHANGE_COMBAT_END,  // no data, indicated current combat finished
@@ -288,7 +289,8 @@ namespace logic {
             pair<int, Card>,
             WarpBeacon,
             pair<int, ResourceAmount>,
-            pair<int, int>
+            pair<int, int>,
+            vector<pair<int, int>>
             > data;
         SERIALIZE(changeNo, type, data);
         friend ostream & operator << (ostream &out, const Change &c) {
