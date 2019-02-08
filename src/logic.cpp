@@ -156,7 +156,6 @@ void GameState::startGame()
         Player p = {
             .name = "Player" + to_string(i),
             .resources = {},
-            .resourcesPerTurn = {{RESOURCE_MATERIALS, 1}, {RESOURCE_WARP_BEACONS, 1}},
         };
 
         // TODO load deck dynamically
@@ -200,7 +199,6 @@ void GameState::startGame()
                 break;
             }
         }
-
 
         p.flagshipId = sampleFlagship.id;
         ships.push_back(sampleFlagship);
@@ -501,7 +499,6 @@ void GameState::upkeep(bool firstTurn)
         changes.push_back({.type = CHANGE_DRAW_CARD, .data = drawInfo});
     }
     auto player = getPlayerById(turnInfo.whoseTurn);
-    player->resources = player->resources + player->resourcesPerTurn;
     changes.push_back({
             .type = CHANGE_PLAYER_RESOURCES, 
             .data=pair<int, ResourceAmount>(player->id, player->resources)

@@ -97,6 +97,12 @@ namespace logic {
     struct Ship;
     inline void DEFAULT_SHIP_NOTHING(GameState& state, Ship& ship) {};
 
+    enum ShipKind {
+        SHIP_NORMAL,
+        SHIP_RESOURCE,
+        SHIP_FLAGSHIP,
+    };
+
     /* Ship object, representing a unit that can move and attack other ship
      * units */
     struct Ship : public GameObject
@@ -112,7 +118,7 @@ namespace logic {
 
         int curSystemId; // Current location
 
-        bool isResourceShip = false;
+        ShipKind kind = SHIP_NORMAL;
 
         void applyDamage(int damage);
         bool isDestroyed() {return armour <= 0;};
@@ -192,12 +198,11 @@ namespace logic {
     {
         string name;
         ResourceAmount resources;
-        ResourceAmount resourcesPerTurn;
         list<Card> deck;
         list<Card> hand;
         list<Card> discard;
         int flagshipId;
-        SERIALIZE(id, name, resources, resourcesPerTurn, deck, hand, discard, flagshipId);
+        SERIALIZE(id, name, resources, deck, hand, discard, flagshipId);
 
         friend ostream & operator << (ostream &out, const Player &c)
         {

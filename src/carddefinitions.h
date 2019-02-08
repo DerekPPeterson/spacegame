@@ -52,13 +52,25 @@ namespace ShipDefinitions {
         .movement = 1,
     };
 
+    Ship defaultFlagship = {
+        .type = "Default Flagship",
+        .attack = 2,
+        .shield = 5,
+        .armour = 10,
+        .movement = 1,
+        .kind = SHIP_FLAGSHIP,
+        .upkeep = [](GameState& state, Ship& ship) {
+            resourcesToController(state, ship, {{RESOURCE_WARP_BEACONS, 1}});
+        },
+    };
+
     Ship miningShip = {
         .type = "Mining Platform",
         .attack = 0,
         .shield = 0,
         .armour = 1,
         .movement = 1,
-        .isResourceShip = true,
+        .kind = SHIP_RESOURCE,
         .upkeep = [](GameState& state, Ship& ship) {
             resourcesToController(state, ship, {{RESOURCE_MATERIALS, 1}});
         },
@@ -70,7 +82,7 @@ namespace ShipDefinitions {
         .shield = 0,
         .armour = 1,
         .movement = 1,
-        .isResourceShip = true,
+        .kind = SHIP_RESOURCE,
         .upkeep = [](GameState& state, Ship& ship) {
             resourcesToController(state, ship, {{RESOURCE_AI, 1}});
         },
@@ -82,7 +94,7 @@ namespace ShipDefinitions {
         .shield = 0,
         .armour = 1,
         .movement = 0,
-        .isResourceShip = true,
+        .kind = SHIP_RESOURCE,
         .upkeep = [](GameState& state, Ship& ship) {
             resourcesToController(state, ship, {{RESOURCE_ANTIMATTER, 1}});
         },
@@ -94,12 +106,11 @@ namespace ShipDefinitions {
         .shield = 0,
         .armour = 1,
         .movement = 0,
-        .isResourceShip = true,
+        .kind = SHIP_RESOURCE,
         .upkeep = [](GameState& state, Ship& ship) {
             resourcesToController(state, ship, {{RESOURCE_INFLUENCE, 1}});
         },
     };
-
 };
 
 namespace CardDefinitions {
