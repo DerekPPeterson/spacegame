@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <vector>
+#include <queue>
 #include <optional>
 #include "drawable.h"
 #include "renderer.h"
@@ -21,7 +22,7 @@ class GraphicsObjectHandler
 
         std::optional<logic::Action> getSelectedAction();
 
-        void updateState(std::vector<logic::Change>);
+        void updateState(std::vector<logic::Change>, UpdateInfo info);
 
         /* Get all the currently active game objects
          */
@@ -51,6 +52,9 @@ class GraphicsObjectHandler
         std::vector<logic::Action> actions;
         std::optional<logic::Action> selectedAction;
 
+        float timeToProcessNextChange = 0;
+        std::queue<logic::Change> pendingChanges;
+
         void updateSysInfoActiveButtons();
     
         // common objects that need to be referred to:
@@ -76,16 +80,20 @@ class GraphicsObjectHandler
         std::set<int> shipIdsSelected;
 
         // Change response functions
-        void resolveCard(logic::Change change);
-        void addShip(logic::Change change);
-        void drawCard(logic::Change change);
-        void phaseChange(logic::Change change);
-        void playCard(logic::Change change);
-        void changePlayerResources(logic::Change change);
-        void moveShip(logic::Change change);
-        void removeShip(logic::Change change);
-        void shipChange(logic::Change change);
-        void combatStart(logic::Change change);
+        // All accept change of a particular type and return the number of seconds
+        // to act before processing the next change
+        float resolveCard(logic::Change change);
+        float addShip(logic::Change change);
+        float drawCard(logic::Change change);
+        float phaseChange(logic::Change change);
+        float playCard(logic::Change change);
+        float changePlayerResources(logic::Change change);
+        float moveShip(logic::Change change);
+        float removeShip(logic::Change change);
+        float shipChange(logic::Change change);
+        float combatStart(logic::Change change);
+        float combatRound(logic::Change change);
+        float combatEnd(logic::Change change);
 };
 
 #endif

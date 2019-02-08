@@ -765,7 +765,11 @@ void GameState::resolveCombats()
                     noWinner = false;
                 }
             }
+
+            changes.push_back({.type = CHANGE_COMBAT_ROUND_END});
         }
+        changes.push_back({.type = CHANGE_COMBAT_END});
+
         next_system:;
     }
 }

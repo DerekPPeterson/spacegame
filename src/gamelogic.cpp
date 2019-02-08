@@ -280,24 +280,26 @@ void GraphicsObjectHandler::checkEvents()
      }
 
 }
-void GraphicsObjectHandler::resolveCard(logic::Change change)
+float GraphicsObjectHandler::resolveCard(logic::Change change)
 {
     auto cardId = get<int>(change.data);
     auto card = dynamic_pointer_cast<Card>(getObject(cardId));
     stack->removeCard(card);
     discard->addCard(card);
+    return 0;
 }
 
-void GraphicsObjectHandler::addShip(logic::Change change)
+float GraphicsObjectHandler::addShip(logic::Change change)
 {
     auto logicShip = get<logic::Ship>(change.data);
     auto system = dynamic_pointer_cast<System>(getObject(logicShip.curSystemId));
     auto ship = SpaceShip::createFrom(logicShip, system.get());
     sysInfos[logicShip.curSystemId]->addShip(logicShip);
     addObject(ship);
+    return 0;
 }
 
-void GraphicsObjectHandler::drawCard(logic::Change change)
+float GraphicsObjectHandler::drawCard(logic::Change change)
 {
     auto drawInfo = get<pair<int, logic::Card>>(change.data);
     // TODO handle other player and if card already exists
@@ -310,15 +312,17 @@ void GraphicsObjectHandler::drawCard(logic::Change change)
         card->setFaceUp(false);
         enemyHand->addCard(card);
     }
+    return 0;
 }
 
-void GraphicsObjectHandler::phaseChange(logic::Change change)
+float GraphicsObjectHandler::phaseChange(logic::Change change)
 {
     auto turnInfo = get<logic::TurnInfo>(change.data);
     turnIndicator->changeTurn(turnInfo);
+    return 0;
 }
 
-void GraphicsObjectHandler::playCard(logic::Change change)
+float GraphicsObjectHandler::playCard(logic::Change change)
 {
     auto cardId = get<int>(change.data);
     auto card = dynamic_pointer_cast<Card>(getObject(cardId));
@@ -326,9 +330,10 @@ void GraphicsObjectHandler::playCard(logic::Change change)
     hand->removeCard(card);
     enemyHand->removeCard(card);
     stack->addCard(card);
+    return 0;
 }
 
-void GraphicsObjectHandler::changePlayerResources(logic::Change change)
+float GraphicsObjectHandler::changePlayerResources(logic::Change change)
 {
     auto data = get<pair<int, ResourceAmount>>(change.data);
     auto changedPlayer = data.first;
@@ -337,9 +342,10 @@ void GraphicsObjectHandler::changePlayerResources(logic::Change change)
         myResources->set(newAmount);
     } 
     // TODO add enemy counter
+    return 0;
 }
 
-void GraphicsObjectHandler::moveShip(logic::Change change)
+float GraphicsObjectHandler::moveShip(logic::Change change)
 {
     auto data = get<pair<int, int>>(change.data);
     auto shipId = data.first;
@@ -350,59 +356,89 @@ void GraphicsObjectHandler::moveShip(logic::Change change)
     ship->gotoSystem(sys.get());
     sysInfos[oldSysId]->removeShip(shipId);
     sysInfos[newSysId]->addShip(ship->logicShipInfo);
+    return 0;
 }
 
-void GraphicsObjectHandler::removeShip(logic::Change change)
+float GraphicsObjectHandler::removeShip(logic::Change change)
 {
     auto shipId = get<int>(change.data);
     auto ship = dynamic_pointer_cast<SpaceShip>(getObject(shipId));
     sysInfos[ship->getCurSystemId()]->removeShip(shipId);
     ship->destroy();
+    return 0;
 }
 
-void GraphicsObjectHandler::shipChange(logic::Change change)
+float GraphicsObjectHandler::shipChange(logic::Change change)
 {
     auto logicShip = get<logic::Ship>(change.data);
     sysInfos[logicShip.curSystemId]->removeShip(logicShip.id);
     sysInfos[logicShip.curSystemId]->addShip(logicShip);
+    return 0;
 }
 
-void GraphicsObjectHandler::combatStart(logic::Change change)
+float GraphicsObjectHandler::combatStart(logic::Change change)
 {
     int systemId = get<int>(change.data);
     auto sys = dynamic_pointer_cast<System>(getObject(systemId));
     auto newPos = (camera.getPos() - sys->getPos()) * 0.2f + sys->getPos();
     camera.lookAt(newPos, sys->getPos());
+    return 3;
+}
+
+float GraphicsObjectHandler::combatRound(logic::Change change)
+{
+    return 0.5;
+}
+
+float GraphicsObjectHandler::combatEnd(logic::Change change)
+{
+    camera.reset();
+    return 0;
 }
 
 
-void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
+void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes, UpdateInfo info)
 {
     for (auto change : changes) {
+        pendingChanges.push(change);
+    }
+
+    while (pendingChanges.size() and timeToProcessNextChange < info.curTime) {
+        auto change = pendingChanges.front();
+        pendingChanges.pop();
+        float delay = 0;
         LOG_INFO << "Received: " << change;
         switch (change.type) {
             case logic::CHANGE_RESOLVE_CARD: 
-                resolveCard(change); break;
+                delay = resolveCard(change); break;
             case logic::CHANGE_ADD_SHIP: 
-                addShip(change); break;
+                delay = addShip(change); break;
             case logic::CHANGE_DRAW_CARD:
-                drawCard(change); break;
+                delay = drawCard(change); break;
             case logic::CHANGE_PHASE_CHANGE:
-                phaseChange(change); break;
+                delay = phaseChange(change); break;
             case logic::CHANGE_PLAY_CARD:
-                playCard(change); break;
+                delay = playCard(change); break;
             case logic::CHANGE_PLAYER_RESOURCES:
-                changePlayerResources(change); break;
+                delay = changePlayerResources(change); break;
             case logic::CHANGE_MOVE_SHIP:
-                moveShip(change); break;
+                delay = moveShip(change); break;
             case logic::CHANGE_REMOVE_SHIP:
-                removeShip(change); break;
+                delay = removeShip(change); break;
             case logic::CHANGE_SHIP_CHANGE:
-                shipChange(change); break;
+                delay = shipChange(change); break;
             case logic::CHANGE_COMBAT_START:
-                combatStart(change); break;
+                delay = combatStart(change); break;
+            case logic::CHANGE_COMBAT_ROUND_END:
+                delay = combatRound(change); break;
+            case logic::CHANGE_COMBAT_END:
+                delay = combatEnd(change); break;
             default:
                 LOG_ERROR << "Received unhandled change from server: " << change;
+        }
+
+        if (delay) {
+            timeToProcessNextChange = info.curTime + delay;
         }
     }
 }

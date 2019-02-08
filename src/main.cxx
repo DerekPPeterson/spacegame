@@ -181,8 +181,8 @@ int main(int argc, char **argv)
         auto changes = client.getChangesSince(lastChangeNo);
         if (changes.size()) {
             lastChangeNo = changes.back().changeNo;
-            graphicsObjectHandler.updateState(changes);
         }
+        graphicsObjectHandler.updateState(changes, info);
 
         // Update objects
         updater.updateObjects(info, graphicsObjectHandler.getObjects());

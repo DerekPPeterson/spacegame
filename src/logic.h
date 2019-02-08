@@ -271,6 +271,8 @@ namespace logic {
         CHANGE_PLAYER_RESOURCES, // data will be pair of playerId, ResourceAmount
         CHANGE_MOVE_SHIP,  // data will be pair of shipId, new systemId
         CHANGE_COMBAT_START,  // data will be systemId of system that started combat
+        CHANGE_COMBAT_ROUND_END,  // no data, indicates combat round ended
+        CHANGE_COMBAT_END,  // no data, indicated current combat finished
     };
 
     struct Change
