@@ -72,6 +72,17 @@ class GraphicsObjectHandler
         std::map<int, std::shared_ptr<SystemInfo>> sysInfos;
 
         std::set<int> shipIdsSelected;
+
+        // Change response functions
+        void resolveCard(logic::Change change);
+        void addShip(logic::Change change);
+        void drawCard(logic::Change change);
+        void phaseChange(logic::Change change);
+        void playCard(logic::Change change);
+        void changePlayerResources(logic::Change change);
+        void moveShip(logic::Change change);
+        void removeShip(logic::Change change);
+        void shipChange(logic::Change change);
 };
 
 #endif

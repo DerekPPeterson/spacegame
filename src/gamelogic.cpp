@@ -277,6 +277,93 @@ void GraphicsObjectHandler::checkEvents()
      }
 
 }
+void GraphicsObjectHandler::resolveCard(logic::Change change)
+{
+    auto cardId = get<int>(change.data);
+    auto card = dynamic_pointer_cast<Card>(getObject(cardId));
+    stack->removeCard(card);
+    discard->addCard(card);
+}
+
+void GraphicsObjectHandler::addShip(logic::Change change)
+{
+    auto logicShip = get<logic::Ship>(change.data);
+    auto system = dynamic_pointer_cast<System>(getObject(logicShip.curSystemId));
+    auto ship = SpaceShip::createFrom(logicShip, system.get());
+    sysInfos[logicShip.curSystemId]->addShip(logicShip);
+    addObject(ship);
+}
+
+void GraphicsObjectHandler::drawCard(logic::Change change)
+{
+    auto drawInfo = get<pair<int, logic::Card>>(change.data);
+    // TODO handle other player and if card already exists
+    auto card = Card::createFrom(drawInfo.second);
+    addObject(card);
+    if (drawInfo.first == playerId) {
+        hand->addCard(card);
+    } else {
+        card->enemyOwned = true;
+        card->setFaceUp(false);
+        enemyHand->addCard(card);
+    }
+}
+
+void GraphicsObjectHandler::phaseChange(logic::Change change)
+{
+    auto turnInfo = get<logic::TurnInfo>(change.data);
+    turnIndicator->changeTurn(turnInfo);
+}
+
+void GraphicsObjectHandler::playCard(logic::Change change)
+{
+    auto cardId = get<int>(change.data);
+    auto card = dynamic_pointer_cast<Card>(getObject(cardId));
+    card->setFaceUp(true);
+    hand->removeCard(card);
+    enemyHand->removeCard(card);
+    stack->addCard(card);
+}
+
+void GraphicsObjectHandler::changePlayerResources(logic::Change change)
+{
+    auto data = get<pair<int, ResourceAmount>>(change.data);
+    auto changedPlayer = data.first;
+    auto newAmount = data.second;
+    if (changedPlayer == playerId) {
+        myResources->set(newAmount);
+    } 
+    // TODO add enemy counter
+}
+
+void GraphicsObjectHandler::moveShip(logic::Change change)
+{
+    auto data = get<pair<int, int>>(change.data);
+    auto shipId = data.first;
+    auto newSysId = data.second;
+    auto ship = dynamic_pointer_cast<SpaceShip>(getObject(shipId));
+    auto oldSysId = ship->getCurSystemId();
+    auto sys = dynamic_pointer_cast<System>(getObject(newSysId));
+    ship->gotoSystem(sys.get());
+    sysInfos[oldSysId]->removeShip(shipId);
+    sysInfos[newSysId]->addShip(ship->logicShipInfo);
+}
+
+void GraphicsObjectHandler::removeShip(logic::Change change)
+{
+    auto shipId = get<int>(change.data);
+    auto ship = dynamic_pointer_cast<SpaceShip>(getObject(shipId));
+    sysInfos[ship->getCurSystemId()]->removeShip(shipId);
+    ship->destroy();
+}
+
+void GraphicsObjectHandler::shipChange(logic::Change change)
+{
+    auto logicShip = get<logic::Ship>(change.data);
+    sysInfos[logicShip.curSystemId]->removeShip(logicShip.id);
+    sysInfos[logicShip.curSystemId]->addShip(logicShip);
+}
+
 
 void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
 {
@@ -284,92 +371,23 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes)
         LOG_INFO << "Received: " << change;
         switch (change.type) {
             case logic::CHANGE_RESOLVE_CARD: 
-                {
-                    auto cardId = get<int>(change.data);
-                    auto card = dynamic_pointer_cast<Card>(getObject(cardId));
-                    stack->removeCard(card);
-                    discard->addCard(card);
-                    break;
-                }
+                resolveCard(change); break;
             case logic::CHANGE_ADD_SHIP: 
-                {
-                    auto logicShip = get<logic::Ship>(change.data);
-                    auto system = dynamic_pointer_cast<System>(getObject(logicShip.curSystemId));
-                    auto ship = SpaceShip::createFrom(logicShip, system.get());
-                    sysInfos[logicShip.curSystemId]->addShip(logicShip);
-                    addObject(ship);
-                    break;
-                }
+                addShip(change); break;
             case logic::CHANGE_DRAW_CARD:
-                {
-                    auto drawInfo = get<pair<int, logic::Card>>(change.data);
-                    // TODO handle other player and if card already exists
-                    auto card = Card::createFrom(drawInfo.second);
-                    addObject(card);
-                    if (drawInfo.first == playerId) {
-                        hand->addCard(card);
-                    } else {
-                        card->enemyOwned = true;
-                        card->setFaceUp(false);
-                        enemyHand->addCard(card);
-                    }
-                    break;
-                }
+                drawCard(change); break;
             case logic::CHANGE_PHASE_CHANGE:
-                {
-                    auto turnInfo = get<logic::TurnInfo>(change.data);
-                    turnIndicator->changeTurn(turnInfo);
-                    break;
-                }
+                phaseChange(change); break;
             case logic::CHANGE_PLAY_CARD:
-                {
-                    auto cardId = get<int>(change.data);
-                    auto card = dynamic_pointer_cast<Card>(getObject(cardId));
-                    card->setFaceUp(true);
-                    hand->removeCard(card);
-                    enemyHand->removeCard(card);
-                    stack->addCard(card);
-                    break;
-                }
+                playCard(change); break;
             case logic::CHANGE_PLAYER_RESOURCES:
-                {
-                    auto data = get<pair<int, ResourceAmount>>(change.data);
-                    auto changedPlayer = data.first;
-                    auto newAmount = data.second;
-                    if (changedPlayer == playerId) {
-                        myResources->set(newAmount);
-                    } 
-                    // TODO add enemy counter
-                    break;
-                }
+                changePlayerResources(change); break;
             case logic::CHANGE_MOVE_SHIP:
-                {
-                    auto data = get<pair<int, int>>(change.data);
-                    auto shipId = data.first;
-                    auto newSysId = data.second;
-                    auto ship = dynamic_pointer_cast<SpaceShip>(getObject(shipId));
-                    auto oldSysId = ship->getCurSystemId();
-                    auto sys = dynamic_pointer_cast<System>(getObject(newSysId));
-                    ship->gotoSystem(sys.get());
-                    sysInfos[oldSysId]->removeShip(shipId);
-                    sysInfos[newSysId]->addShip(ship->logicShipInfo);
-                    break;
-                }
+                moveShip(change); break;
             case logic::CHANGE_REMOVE_SHIP:
-                {
-                    auto shipId = get<int>(change.data);
-                    auto ship = dynamic_pointer_cast<SpaceShip>(getObject(shipId));
-                    sysInfos[ship->getCurSystemId()]->removeShip(shipId);
-                    ship->destroy();
-                    break;
-                }
+                removeShip(change); break;
             case logic::CHANGE_SHIP_CHANGE:
-                {
-                    auto logicShip = get<logic::Ship>(change.data);
-                    sysInfos[logicShip.curSystemId]->removeShip(logicShip.id);
-                    sysInfos[logicShip.curSystemId]->addShip(logicShip);
-                    break;
-                }
+                shipChange(change); break;
             default:
                 LOG_ERROR << "Received unhandled change from server: " << change;
         }
