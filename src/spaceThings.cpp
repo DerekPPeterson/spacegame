@@ -4,6 +4,7 @@
 #include "util.h"
 #include "event.h"
 #include "camera2.h"
+#include "particles.h"
 
 #include <cstdlib>
 #include <algorithm>
@@ -161,11 +162,48 @@ vector<shared_ptr<Object>> SpaceGrid::getAllSystems()
     return systems;
 }
 
+
+LaserShot::LaserShot(glm::vec3 position, weak_ptr<has_position> target, 
+        float speed, glm::vec3 color)
+    : Renderable(SHADER_NONE), target(target), speed(speed), color(color)
+{
+    setPos(position);
+    setVisible(true);
+}
+
+void LaserShot::update(UpdateInfo& info)
+{
+    auto targetShared = target.lock();
+    if (targetShared) {
+        auto moveVector = glm::normalize(targetShared->getPos() - position) * speed * info.deltaTime;
+        auto distLeft = glm::length(targetShared->getPos() - position);
+        if (glm::length(moveVector) > distLeft) {
+            removeThis = true;
+        } else {
+            setPos(getPos() + moveVector);
+        }
+    } else {
+        removeThis = true;
+    }
+
+}
+
+void LaserShot::queueDraw()
+{
+    Particles::queueParticleDraw(getPos(), color);
+}
+
 map<string, shared_ptr<Model>> SpaceShip::models;
 shared_ptr<Model> SpaceShip::warpQuad;
 
+// TODO get different models for these
 map<string, string> MODEL_PATHS = {
-    {"SS1", "./res/models/SS1_OBJ/SS1.obj"}
+    {"SS1", "./res/models/SS1_OBJ/SS1.obj"},
+    {"Default Flagship", "./res/models/SS1_OBJ/SS1.obj"},
+    {"Mining Platform", "./res/models/SS1_OBJ/SS1.obj"},
+    {"AI Coreship", "./res/models/SS1_OBJ/SS1.obj"},
+    {"AM Gatherer", "./res/models/SS1_OBJ/SS1.obj"},
+    {"Diplomatic Vessel", "./res/models/SS1_OBJ/SS1.obj"},
 };
 
 std::shared_ptr<SpaceShip> SpaceShip::createFrom(logic::Ship logicShip, System* s)
@@ -221,9 +259,27 @@ float calculateWarp(glm::vec3 position, float margin, glm::vec3 start, glm::vec3
 
 void SpaceShip::update(UpdateInfo& info)
 {
-    glm::vec3 targetPosition = calcOrbitPosition(curSystem->getPosition(), orbit);
+    glm::vec3 targetPosition;
     glm::vec3 targetDisplacement = targetPosition - position;
     glm::vec3 targetDirection = normalize(targetDisplacement);
+
+    auto shootAtShared = shootAt.lock();
+    if (shoot and shootAtShared) {
+        targetPosition = shootAtShared->getPos();
+        targetDisplacement = targetPosition - position;
+        targetDirection = normalize(targetDisplacement);
+        if (glm::length(targetDisplacement) < 0.5) {
+            targetDirection = glm::rotate(glm::mat4(1.0f), 3.14f / 2, {0, 1, 0}) * glm::vec4(targetDirection, 1);
+        }
+    } else {
+        targetPosition = calcOrbitPosition(curSystem->getPosition(), orbit);
+        targetDisplacement = targetPosition - position;
+        targetDirection = normalize(targetDisplacement);
+    }
+
+    bool inRange = glm::length(targetDisplacement) < range;
+
+
     float targetAngle = glm::orientedAngle(direction, targetDirection, {0, 1, 0});
 
     // Limit turn speed
@@ -237,12 +293,16 @@ void SpaceShip::update(UpdateInfo& info)
     }
     
     // Warp affects speed when far from planets
-    warp = calculateWarp(position, 4.5, prevSystem->getPosition(), curSystem->getPosition());
+    if (shoot and inRange) {
+        warp = 1;
+    } else {
+        warp = calculateWarp(position, 4.5, prevSystem->getPosition(), curSystem->getPosition());
+    }
     
     // Reduce speed when approching target position
     float decelDist = speed * 0.20;
     float curSpeed = speed;
-    if (glm::length(targetDisplacement) < decelDist) {
+    if (glm::length(targetDisplacement) < decelDist and not shoot) {
         curSpeed = glm::length(targetDisplacement) / decelDist;
     }
 
@@ -253,6 +313,12 @@ void SpaceShip::update(UpdateInfo& info)
     }
 
     position += displacement;
+
+    if (shoot and info.curTime > lastShot + shootDelay and warp < 1.05 and shootAtShared) {
+        auto shot = make_shared<LaserShot>(position, shootAt, 10, glm::vec3(100, 0, 0));
+        emit.push_back(shot);
+        lastShot = info.curTime;
+    }
 
     // Update camera pos for later use during drawWarp
     cameraPos = info.camera->getPos();
@@ -300,3 +366,15 @@ void SpaceShip::gotoSystem(System *system)
         curSystem = system;
     }
 }
+
+void SpaceShip::startShootingAt(std::shared_ptr<has_position> shootAt)
+{
+    shoot = true;
+    this->shootAt = shootAt;
+}
+
+void SpaceShip::stopShooting()
+{
+    shoot = false;
+}
+

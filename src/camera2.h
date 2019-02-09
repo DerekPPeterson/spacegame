@@ -11,8 +11,8 @@
 class Camera 
 {
     public:
-        Camera(glm::vec3 position = {0, 0, 0}, glm::vec3 up = {0, 1, 0},
-                glm::vec3 at = {1, 0, 0})
+        Camera(glm::vec3 position = {0, 0, 0}, glm::vec3 at = {1, 0, 0}, 
+                glm::vec3 up = {0, 1, 0})
             : position(position), at(at), up(up), 
             initialPos(position), initialAt(at)
         {
@@ -71,6 +71,13 @@ class Camera
         void reset(float duration = 0.5)
         {
             lookAt(initialPos, initialAt, duration);
+        }
+
+        void reset(glm::vec3 position, glm::vec3 at, float duration = 0.5)
+        {
+            initialPos = position;
+            initialAt = at;
+            lookAt(position, at, duration);
         }
 
     private:

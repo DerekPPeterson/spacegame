@@ -58,17 +58,22 @@ class SpaceGrid : public Object, public Renderable
         std::shared_ptr<System> grid[SPACEGRID_SIZE][SPACEGRID_SIZE];
 };
 
-class LaserShot : public Object, public Renderable
+class LaserShot : public Object, public Renderable, has_position
 {
-    LaserShot(glm::vec3 position, glm::vec3 direction, float speed, glm::vec3 color);
-    virtual void draw(Shader& shader);
+    public:
+        LaserShot(glm::vec3 position, std::weak_ptr<has_position> target, 
+                float speed, glm::vec3 color);
+        virtual void queueDraw() override;
+        virtual void update(UpdateInfo& info) override;
+
     protected:
+        std::weak_ptr<has_position> target;
         float speed;
         glm::vec3 color;
 };
 
 // TODO use an instance renderer
-class SpaceShip : public Object, public Renderable
+class SpaceShip : public Object, public Renderable, public has_position
 {
     public:
         SpaceShip(std::string type, System *system);
@@ -81,11 +86,13 @@ class SpaceShip : public Object, public Renderable
         int getCurSystemId() {return curSystem->logicId;};
         void destroy() {removeThis = true;};
         logic::Ship logicShipInfo;
+
+        void startShootingAt(std::shared_ptr<has_position> shootAt);
+        void stopShooting();
     
     protected:
         std::string type;
         float length = 0.1;
-        glm::vec3 position;
         System* curSystem;
         System* prevSystem;
         Orbit orbit;
@@ -100,7 +107,8 @@ class SpaceShip : public Object, public Renderable
         bool shoot = false;
         float lastShot = 0;
         float shootDelay = 0.2;
-        std::shared_ptr<has_position> shootAt;
+        float range = 1;
+        std::weak_ptr<has_position> shootAt;
 
         glm::mat4 calcModelMat() const;
         static void loadModel(std::string type);

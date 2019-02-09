@@ -29,6 +29,7 @@ enum ShaderEnum {
     SHADER_TEXT           = 1 << 11, // End of main scene, no view matrix
     SHADER_UI_LIGHTING    = 1 << 12, // End of main scene, no view matrix
     SHADER_ANTI           = 1 << 13, // During postprocess step
+    SHADER_PARTICLE       = 1 << 14, // Main scene
 };
 
 class Renderable;
@@ -86,7 +87,8 @@ class InstanceMeshRenderable : public MeshRenderable
     public:
         InstanceMeshRenderable(ShaderEnum stage, unsigned int VAO, unsigned int nIndices,
                 std::vector<InstanceAttribName>, 
-                std::vector<unsigned int> textureIds = {});
+                std::vector<unsigned int> textureIds = {},
+                GLenum mode = GL_TRIANGLES);
         virtual void draw(Shader& shader) override;
         virtual void queueDraw() override;
 
@@ -107,6 +109,7 @@ class InstanceMeshRenderable : public MeshRenderable
         void addInstance(void *data);
 
     protected:
+        GLenum mode;
         int maxInstances = 1000;
 
         std::vector<unsigned int> textureIds;

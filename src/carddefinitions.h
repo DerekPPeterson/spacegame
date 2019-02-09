@@ -77,7 +77,7 @@ namespace ShipDefinitions {
     };
 
     Ship aiCore = {
-        .type = "AI coreship",
+        .type = "AI Coreship",
         .attack = 0,
         .shield = 0,
         .armour = 1,
@@ -89,7 +89,7 @@ namespace ShipDefinitions {
     };
 
     Ship amGatherer = {
-        .type = "AM gatherer",
+        .type = "AM Gatherer",
         .attack = 0,
         .shield = 0,
         .armour = 1,

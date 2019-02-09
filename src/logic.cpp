@@ -162,10 +162,10 @@ void GameState::startGame()
         list<logic::Card> deck;
         vector<Card> toUse = {
             CardDefinitions::sample_ship,
-            CardDefinitions::ai_coreship,
-            CardDefinitions::am_gatherer,
+            //CardDefinitions::ai_coreship,
+            //CardDefinitions::am_gatherer,
             CardDefinitions::resource_ship,
-            CardDefinitions::diplomaticVessal,
+            //CardDefinitions::diplomaticVessal,
         };
         for (int i = 0; i < 40; i++) {
             Card card = toUse[i % toUse.size()];
@@ -741,6 +741,9 @@ void GameState::resolveCombats()
 
                 auto enemyShipIt = enemyShips.begin();
                 for (auto myShip : myShips) {
+                    if (myShip->kind == SHIP_RESOURCE) {
+                        continue;
+                    }
                     shipTargets.push_back({myShip->id, (*enemyShipIt)->id});
                     (*enemyShipIt)->applyDamage(myShip->attack);
                     enemyShipIt++;

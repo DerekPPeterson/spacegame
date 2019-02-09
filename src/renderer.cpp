@@ -63,6 +63,7 @@ void Renderer::compileLinkShaders()
     shaders.try_emplace(SHADER_CARD, "./src/shaders/card.vert", "./src/shaders/card.frag");
     shaders.try_emplace(SHADER_TEXT, "./src/shaders/text.vert", "./src/shaders/text.frag");
     shaders.try_emplace(SHADER_UI_LIGHTING, "./src/shaders/vertex.vert", "./src/shaders/uilighting.frag");
+    shaders.try_emplace(SHADER_PARTICLE, "./src/shaders/particle.vert", "./src/shaders/particle.frag");
 }
 
 Renderer::Renderer(RenderOptions options, Camera& camera) :
@@ -107,6 +108,11 @@ void Renderer::renderMainScene()
     shaders[SHADER_LAMP].setMat4("view", camera.getViewMatrix());
     shaders[SHADER_LAMP].setMat4("projection", projection);
     Renderable::drawStage(SHADER_LAMP, shaders[SHADER_LAMP]);
+
+    shaders[SHADER_PARTICLE].use();
+    shaders[SHADER_PARTICLE].setMat4("view", camera.getViewMatrix());
+    shaders[SHADER_PARTICLE].setMat4("projection", projection);
+    Renderable::drawStage(SHADER_PARTICLE, shaders[SHADER_PARTICLE]);
 
     std::vector<std::shared_ptr<Light>> lights = Light::getAllLights();
     shaders[SHADER_SIMPLE_DIFFUSE].use();

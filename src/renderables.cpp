@@ -21,6 +21,7 @@ void Renderable::queueDraw() {
         SHADER_CARD,
         SHADER_TEXT,
         SHADER_UI_LIGHTING,
+        SHADER_PARTICLE,
     };
     for (auto s : stageList) {
         if (s & stage) {
@@ -81,8 +82,9 @@ void MeshRenderable::draw(Shader& shader)
 InstanceMeshRenderable::InstanceMeshRenderable(
         ShaderEnum stage, unsigned int VAO, unsigned int nIndices,
         std::vector<InstanceAttribName> attribs,
-        vector<unsigned int> textureIds) : 
-    MeshRenderable(stage, VAO, nIndices), textureIds(textureIds)
+        vector<unsigned int> textureIds,
+        GLenum mode) : 
+    MeshRenderable(stage, VAO, nIndices), mode(mode), textureIds(textureIds)
 {
     int curAttribNo = 3;
     glGenBuffers(1, &bufId);
@@ -203,7 +205,7 @@ void InstanceMeshRenderable::draw(Shader& shader)
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, bufId);
     glBufferData(GL_ARRAY_BUFFER, (curInstance) * dataSize, buf.data(), GL_DYNAMIC_DRAW);
-    glDrawElementsInstanced(GL_TRIANGLES, nIndices, GL_UNSIGNED_INT, 0, curInstance);
+    glDrawElementsInstanced(mode, nIndices, GL_UNSIGNED_INT, 0, curInstance);
 
     curInstance = 0;
     queued = false;
@@ -214,7 +216,8 @@ void InstanceMeshRenderable::queueDraw() {
         return; // Only queue the draw once
     }
     ShaderEnum stageList[] = {
-        SHADER_TEXT
+        SHADER_TEXT,
+        SHADER_PARTICLE
     };
     for (auto s : stageList) {
         if (s & stage) {

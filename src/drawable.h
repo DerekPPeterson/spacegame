@@ -141,6 +141,7 @@ class Object : public non_copyable
         bool visible = false;
         bool removeThis = false;
         int logicId = 0;
+        std::vector<std::shared_ptr<Object>> emit;
     private:
         static void setup();
 

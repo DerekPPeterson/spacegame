@@ -17,7 +17,10 @@ vector<shared_ptr<Object>> GraphicsObjectHandler::getObjects()
 
 vector<shared_ptr<Renderable>> GraphicsObjectHandler::getRenderables()
 {
+    // TODO this seems like the wrong place for these
     removeObjects();
+    checkObjectEmits();
+
     vector<shared_ptr<Renderable>> renderables;
     for (auto o : objects) {
         auto r = dynamic_pointer_cast<Renderable>(o);
@@ -44,6 +47,19 @@ void GraphicsObjectHandler::removeObjects()
             o.reset();
         }
     }
+}
+
+void GraphicsObjectHandler::checkObjectEmits()
+{
+    for (auto o : objects) {
+        if (o and o->emit.size()) {
+            for (auto emit : o->emit) {
+                addObject(emit);
+            }
+            o->emit.clear();
+        }
+    }
+
 }
 
 shared_ptr<Object> GraphicsObjectHandler::getObject(int logicId)
@@ -105,7 +121,7 @@ void GraphicsObjectHandler::startGame(logic::GameState initialState, int myPlaye
     vector<std::shared_ptr<Object>> systems = spacegrid->getAllSystems();
     objects.insert(objects.end(), systems.begin(), systems.end());
 
-    camera.lookAt(camera.getPos(), spacegrid->getSystem(1, 1)->getPos());
+    camera.reset(camera.getPos(), spacegrid->getSystem(1, 1)->getPos());
 
     for (auto o: systems) {
         auto s = dynamic_pointer_cast<System>(o);
@@ -380,19 +396,30 @@ float GraphicsObjectHandler::combatStart(logic::Change change)
 {
     int systemId = get<int>(change.data);
     auto sys = dynamic_pointer_cast<System>(getObject(systemId));
-    auto newPos = (camera.getPos() - sys->getPos()) * 0.2f + sys->getPos();
-    camera.lookAt(newPos, sys->getPos());
+    auto newPos = sys->getPos() + glm::vec3(-10, 5, -10);
+    camera.lookAt(newPos, sys->getPos(), 1.0);
     return 3;
 }
 
 float GraphicsObjectHandler::combatRound(logic::Change change)
 {
-    return 0.5;
+    return 1;
 }
 
 float GraphicsObjectHandler::combatEnd(logic::Change change)
 {
-    camera.reset();
+    camera.reset(1.0);
+    return 0;
+}
+
+float GraphicsObjectHandler::shipTargets(logic::Change change)
+{
+    auto targets = get<vector<pair<int, int>>>(change.data);
+    for (auto [shooterId, targetid] : targets) {
+        auto shooter = dynamic_pointer_cast<SpaceShip>(getObject(shooterId));
+        auto target = dynamic_pointer_cast<SpaceShip>(getObject(targetid));
+        shooter->startShootingAt(target);
+    }
     return 0;
 }
 
@@ -433,6 +460,8 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes, Upda
                 delay = combatRound(change); break;
             case logic::CHANGE_COMBAT_END:
                 delay = combatEnd(change); break;
+            case logic::CHANGE_SHIP_TARGETS:
+                delay = shipTargets(change); break;
             default:
                 LOG_ERROR << "Received unhandled change from server: " << change;
         }

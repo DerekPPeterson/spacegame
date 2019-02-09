@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 
 
 
-    Camera camera(glm::vec3(-100.0f, 100.0f, 0));
+    Camera camera(glm::vec3(-40, 40, 40));
 
     GLFWwindow *window = setupOpenGlContext(options);
 

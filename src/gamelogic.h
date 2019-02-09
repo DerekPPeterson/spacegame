@@ -44,6 +44,7 @@ class GraphicsObjectHandler
         void initializePlayer(logic::Player);
         void addObject(std::shared_ptr<Object> object);
         void removeObjects();
+        void checkObjectEmits();
 
         std::shared_ptr<Object> getObject(int logicId);
         std::vector<std::shared_ptr<Object>> objects;
@@ -94,6 +95,7 @@ class GraphicsObjectHandler
         float combatStart(logic::Change change);
         float combatRound(logic::Change change);
         float combatEnd(logic::Change change);
+        float shipTargets(logic::Change change);
 };
 
 #endif
