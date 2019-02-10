@@ -1,6 +1,5 @@
 #include "client.h"
 
-#include <plog/Log.h>
 
 #include "timer.h"
 
@@ -34,7 +33,6 @@ void GameClient::startGame()
     }
     gameId = ret.first;
     playerId = ret.second;
-    LOG_INFO << "Created game (id: " << gameId << ")";
 }
 
 void GameClient::joinGame(string gameId)
@@ -50,7 +48,6 @@ void GameClient::joinGame(string gameId)
     }
     this->gameId = ret.first;
     playerId = ret.second;
-    LOG_INFO << "Joined game (id: " << gameId << ")";
 };
 
 void GameClient::joinUser(string username)
@@ -66,13 +63,11 @@ void GameClient::joinUser(string username)
     }
     this->gameId = ret.first;
     playerId = ret.second;
-    LOG_INFO << "Joined game (id: " << gameId << ")";
 };
 
 string GameClient::makeRequest(string path, string data) const
 {
     if (loginToken == "") {
-        LOG_ERROR << "Attempting to make request without logging in";
     };
     RequestData request = {
         .loginToken = loginToken,
@@ -102,9 +97,7 @@ string GameClient::makeRequest(string path, string data) const
         request.setOpt(Timeout(1));
         os << request;
     } catch (curlpp::LogicError & e) {
-		LOG_ERROR << e.what() << std::endl;
 	} catch (curlpp::RuntimeError & e) {
-		LOG_ERROR << e.what() << std::endl;
     }
 
     return os.str();
@@ -158,7 +151,6 @@ vector<logic::Change> GameClient::getChangesSince(int changeNo)
         changesLastRequest = 0; // reset timer to submit a request immediatly
         auto changes = futureChanges->get();
         if (changes.size()) {
-            LOG_INFO << "Got " << changes.size() << "changes from server, biggest changeNo: " << changes.back().changeNo;
         }
 
         futureChanges.reset();

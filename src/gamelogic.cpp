@@ -434,7 +434,6 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes, Upda
         auto change = pendingChanges.front();
         pendingChanges.pop();
         float delay = 0;
-        LOG_INFO << "Received: " << change;
         switch (change.type) {
             case logic::CHANGE_RESOLVE_CARD: 
                 delay = resolveCard(change); break;
@@ -463,7 +462,7 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes, Upda
             case logic::CHANGE_SHIP_TARGETS:
                 delay = shipTargets(change); break;
             default:
-                LOG_ERROR << "Received unhandled change from server: " << change;
+				;
         }
 
         if (delay) {

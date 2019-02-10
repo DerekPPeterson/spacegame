@@ -144,12 +144,9 @@ list<logic::System> createSystems(int n)
 
 void GameState::startGame()
 {
-    LOG_INFO << "Setting up game";
 
-    LOG_INFO << "Initilializing systems";
     systems = createSystems(SPACEGRID_SIZE);
 
-    LOG_INFO << "Creating player objects";
     for (int i = 0; i < 2; i++) {
         // Create player objects
 
@@ -178,10 +175,8 @@ void GameState::startGame()
         for (int i = 0; i < 7; i++) {
             p.draw();
         }
-        LOG_INFO << "Adding player " << p.name;
 
         // Give them flagships TODO load chosen flagshipss
-        LOG_INFO << "Added flagship for " << p.name;
         logic::Ship flagship = ShipDefinitions::defaultFlagship;
         flagship.controller = p.id;
         flagship.owner = p.id;
@@ -388,7 +383,6 @@ vector<Action> GameState::getValidShipsForBeacon(int beaconId)
         vector<int> targets;
         targets.insert(targets.begin(), possibleShips.begin(), possibleShips.end());
         stringstream ss;
-        ss << targets;
         Action action = {
             .type = ACTION_SELECT_SHIPS,
             .playerId = turnInfo.whoseTurn,
@@ -522,7 +516,6 @@ void GameState::performAction(Action action)
     switch (turnInfo.phase.back()) {
         case PHASE_UPKEEP: {
             // TODO handle fast actions
-            LOG_INFO << "End upkeep, start main phase";
             turnInfo.phase[0] = PHASE_MAIN;
             changes.push_back({.type = CHANGE_PHASE_CHANGE, .data = turnInfo});
             break;
@@ -542,7 +535,6 @@ void GameState::performAction(Action action)
                     break;
                 case ACTION_SELECT_SHIPS:
                 case ACTION_SELECT_SYSTEM:
-                    LOG_ERROR << "Cannot select ships / system from main phase";
                     break;
             }
             break;
@@ -562,7 +554,7 @@ void GameState::performAction(Action action)
                     resolveStackTop();
                     break;
                 default:
-                    LOG_ERROR << "Invalid action type when resolving stack";
+					;
             }
             break;
         case PHASE_SELECT_CARD_TARGETS:
@@ -603,7 +595,6 @@ void GameState::playCard(int cardId, int playerId)
     stack.push_back(*card);
     player->hand.erase(card);
 
-    LOG_INFO << "Played card: " << card->name;
 
 }
 
@@ -652,7 +643,6 @@ void GameState::moveShipsToBeacon(int beaconId, vector<int> ships)
     };
     resolveCombats();
     updateSystemControllers();
-    LOG_INFO << "Moving ship ids: " << ships << " to system id: " << beacon->systemId;
 }
 
 void GameState::endTurn()
@@ -660,7 +650,6 @@ void GameState::endTurn()
     // Advance the turn to the next player
     auto it = find_if(players.begin(), players.end(), 
             [this] (Player& p) {return p.id == turnInfo.whoseTurn;});
-    LOG_INFO << "Turn ending for playerid " << it->id;
     it++;
     if (it == players.end()) {
         it = players.begin();
@@ -671,7 +660,6 @@ void GameState::endTurn()
 
     changes.push_back({.type = CHANGE_PHASE_CHANGE, .data = turnInfo});
 
-    LOG_INFO << "It is now player id " << nextPlayerId << "'s turn" << endl;
     turnInfo.phase[0] = PHASE_UPKEEP;
 };
 
@@ -716,7 +704,6 @@ void GameState::resolveCombats()
             }
         }
         changes.push_back({.type = CHANGE_COMBAT_START, .data = sys.id});
-        LOG_INFO << "Combat starting in system: " << sys.id;
 
         // Sort ships by "impressiveness"
         for (auto player : players) {
@@ -761,7 +748,6 @@ void GameState::resolveCombats()
                     if (ship->isDestroyed()) {
                         changes.push_back({.type = CHANGE_REMOVE_SHIP, .data = ship->id});
                         deleteShipById(ship->id);
-                        LOG_INFO << "Ship id: " << ship->id << " destroyed";
                     } else {
                         changes.push_back({.type = CHANGE_SHIP_CHANGE, .data = *ship});
                         newShipList.push_back(ship);
@@ -787,12 +773,10 @@ pair<int, Card> Player::draw()
         // TODO handle drawing from empty deck
         // probably instant loss
         return {id, Card()};
-        LOG_INFO << "Player " << name << " drew from an empty deck";
     };
     auto card = deck.back();
     deck.pop_back();
     hand.push_back(card);
-    LOG_INFO << "Player " << name << " drew a card: " << card.name;
     return {id, card};
 };
 
@@ -815,7 +799,6 @@ ostream & logic::operator<< (ostream &out, const Action &c)
         out << " " << c.description;
     }
     if (c.targets.size()) {
-        out << " pick " << c.minTargets << "-" << c.maxTargets << " targets: " << c.targets;
     }
     out << ")";
 
@@ -847,7 +830,6 @@ ostream & logic::operator<< (ostream &out, const GameState &c)
 {
     out << "GameState:\n";
     out << "\tPlayer id of current turn: " << c.turnInfo.whoseTurn << endl;
-    out << "\tCurrent phase: " << c.turnInfo.phase << endl;
     out << "\tPlayers:" << endl;
     for (auto& p : c.players) {
         cout << "\t\t" << p << endl;

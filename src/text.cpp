@@ -1,6 +1,5 @@
 #include "text.h"
 
-#include <plog/Log.h>
 #include <glad/glad.h>
 
 #include <glm/glm.hpp>
@@ -22,7 +21,7 @@ Font::Font(string fntFilename)
 {
     path p = fntFilename;
 	info = parseUbfg(fntFilename);
-    textureId = loadTextureFromFile(info.textureFilename, p.parent_path(), false);
+    textureId = loadTextureFromFile(info.textureFilename, p.parent_path().string(), false);
     textQuad = createTextQuad();
 }
 
@@ -32,11 +31,9 @@ UbfgInfo Font::parseUbfg(std::string filename)
 	ifstream file;
 	file.open(filename);
 	if (file.fail()) {
-		LOG_ERROR << "Failed to open font file: " << filename;
 		return info;
 	}
 
-	LOG_INFO << "Loading font from: " << filename;
 
 	regex texRegex("textures:\\s+(\\S+)");
 	regex charRegex("(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)");
@@ -44,7 +41,11 @@ UbfgInfo Font::parseUbfg(std::string filename)
 	regex namesizeRegex("(.*)\\s+(\\d+)pt");
 	smatch m;
 
-	for (string line; getline(file, line);) {
+	cout << "Loading: " << filename << endl;
+
+	string line;
+	getline(file, line);
+	while (line.size()) {
 		if (regex_search(line, m, namesizeRegex)) {
             name = m[1];
             pointSize = stoi(m[2]);
@@ -64,8 +65,10 @@ UbfgInfo Font::parseUbfg(std::string filename)
 
             info.characters[character.codepoint] = character;
 		} else if (regex_search(line, m, kerning)) {
+			break;
             info.kerningPairs[stoi(m[1])][stoi(m[2])] = stof(m[3]);
         }
+		getline(file, line);
 	}
 	return info;
 }
@@ -121,7 +124,6 @@ std::shared_ptr<Font> Fonts::regular;
 std::shared_ptr<Font> Fonts::console;
 std::shared_ptr<Font> Fonts::mono;
 void Fonts::setup() {
-    LOG_INFO << "Loading all fonts";
     title = shared_ptr<Font>(new Font("./res/fonts/conthrax.fnt"));
     regular = shared_ptr<Font>(new Font("./res/fonts/gravity.fnt"));
     console = shared_ptr<Font>(new Font("./res/fonts/console.fnt"));

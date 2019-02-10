@@ -6,7 +6,6 @@
 #include <unordered_set>
 
 #include <glm/gtc/type_ptr.hpp>
-#include <plog/Log.h>
 
 #include "shader.h"
 #include "model.h"

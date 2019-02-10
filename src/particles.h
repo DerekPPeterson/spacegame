@@ -12,7 +12,6 @@ class Particles : public needs_setup<Particles>
     public:
     static void setup() {
 
-        LOG_INFO << "Setting up particles";
 
         float vertices[] = {0, 0, 0};
         unsigned int indices[] = {0};

@@ -1,13 +1,10 @@
 #include "logic.h"
-#include <plog/Log.h>
 
 using namespace std;
 using namespace logic;
 
 int main()
 {
-    static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
-    plog::init(plog::verbose, &consoleAppender);
 
     GameState state;
     state.startGame();

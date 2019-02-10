@@ -1,5 +1,4 @@
 #include <math.h>
-#include <unistd.h>
 #include <ctime>
 #include <exception>
 #include <cstdio>
@@ -12,7 +11,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <plog/Log.h>
 
 #include <cxxopts.hpp>
 #include <ctime>
@@ -78,6 +76,7 @@ GLFWwindow* setupOpenGlContext(RenderOptions options)
 
 int main(int argc, char **argv)
 {
+	cout << "game starting" << endl;
     cxxopts::Options opts("Spacegame", "A game");
     opts.add_options()
         ("w,screenwidth", "Horizontal display resolution", cxxopts::value<int>()->default_value("1000"))
@@ -90,12 +89,12 @@ int main(int argc, char **argv)
         ;
     auto result = opts.parse(argc, argv);
 
+	cout << "parsed args" << endl;
+
     //remove(result["logfile"].as<string>().c_str());
     std::ofstream ofs;
     ofs.open(result["logfile"].as<string>().c_str(), std::ofstream::out | std::ofstream::trunc);
     ofs.close();
-    plog::init(plog::verbose, result["logfile"].as<string>().c_str());
-    LOG_INFO << "Starting program";
 
     RenderOptions options = {
         .screenWidth=result["screenwidth"].as<int>(),
@@ -107,15 +106,23 @@ int main(int argc, char **argv)
 
     Camera camera(glm::vec3(-40, 40, 40));
 
+	cout << "created camera" << endl;
     GLFWwindow *window = setupOpenGlContext(options);
+	cout << "created window" << endl;
+
 
     runAllSetups();
+	cout << "ran setups" << endl;
+
 
     Input input(window, &camera);
+	cout << "created input object" << endl;
 
     Renderer renderer(options, camera);
+	cout << "created renderer" << endl;
 
-    GameClient client("localhost", 40000);
+
+    GameClient client("192.168.0.29", 40000);
     client.login(result["username"].as<string>());
     if (result.count("joingame")) {
         client.joinGame(result["joingame"].as<string>());
@@ -124,6 +131,8 @@ int main(int argc, char **argv)
     } else {
         client.startGame();
     }
+
+	cout << "connected to server" << endl;
 
     // Animation updater
     ObjectUpdater updater(1); // Using 1 other thread for updating objects
@@ -153,7 +162,6 @@ int main(int argc, char **argv)
         info.curTime = Timer::global.get();
         info.mouse = input.mouse;
         frameTimes.push_back(info.deltaTime);
-        LOG_VERBOSE << "Frametime: " << info.deltaTime;
 
         if (actions.size()) {
             // This will trigger animations and iterface for selecting
@@ -204,7 +212,6 @@ int main(int argc, char **argv)
         average += t;
     }
     average /= frameTimes.size();
-    LOG_INFO << "Average frametime: " << average;
 
     glfwTerminate();
 

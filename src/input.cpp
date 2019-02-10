@@ -3,7 +3,6 @@
 #include "event.h"
 #include "camera2.h"
 
-#include <plog/Log.h>
 
 MouseInfo MOUSE_INFO;
 Camera* camera;
@@ -13,7 +12,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
     MOUSE_INFO.position.x = xpos;
     MOUSE_INFO.position.y = ypos;
-    LOG_VERBOSE << "Mouse position: " << xpos << " " << ypos;
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -29,7 +27,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    LOG_VERBOSE << "Camera offset: " << yoffset;
     //camera->ProcessMouseScroll(yoffset);
 }
 

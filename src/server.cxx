@@ -5,7 +5,6 @@
 #include "pistache/router.h"
 #include "pistache/endpoint.h"
 
-#include <plog/Log.h>
 #include <backward.hpp>
 
 #include <iostream>
@@ -103,7 +102,6 @@ class GameEndpoint
                 oarchive(ret);
             }
 
-            LOG_INFO << "Create new game with id: " << gameId;
             response.send(Http::Code::Ok, ss.str());
          }
 
@@ -128,7 +126,6 @@ class GameEndpoint
                 oarchive(ret);
             }
 
-            LOG_INFO << "Player " << user.username << " joined game with id: " << gameId;
             response.send(Http::Code::Ok, ss.str());
          }
 
@@ -148,7 +145,6 @@ class GameEndpoint
                  }
              }
              if (not gameId.size()) {
-                LOG_ERROR << "Player " << user.username << " tried to join " 
                     << usernameToJoin 
                     << " but that user was not in a game or is not logged in";
                 response.send(Http::Code::Failed_Dependency, "");
@@ -162,7 +158,6 @@ class GameEndpoint
                 oarchive(ret);
             }
 
-            LOG_INFO << "Player " << user.username << " joined game with id: " << gameId;
             response.send(Http::Code::Ok, ss.str());
          }
 
@@ -170,7 +165,6 @@ class GameEndpoint
              // TODO some kind of auth check not currently logged in
              auto username = request.param(":username").as<string>();
              string playerToken = randString(8);
-             LOG_INFO << "Player " << username << " logged in";
              User user = {
                  .username = username,
                  .loginToken = playerToken,
@@ -181,7 +175,6 @@ class GameEndpoint
 
          void getState(const Rest::Request& request, Http::ResponseWriter response) {
             auto gameId = request.param(":gameid").as<string>();
-            LOG_INFO << "Got request for state for game id: " << gameId;
             stringstream ss;
             {
                 cereal::PortableBinaryOutputArchive oarchive(ss);
@@ -194,7 +187,6 @@ class GameEndpoint
             auto r = getRequestData(request.body());
             auto user = r.first;
             auto gameId = request.param(":gameid").as<string>();
-            LOG_INFO << "Got request for actions for game id: " << gameId << " from user: " << user.username;
 
             vector<Action> actions = games[gameId].state.getPossibleActions(user.playerId);
             stringstream ss;
@@ -210,7 +202,6 @@ class GameEndpoint
             auto user = r.first;
             string serializedData = r.second;
             auto gameId = request.param(":gameid").as<string>();
-             LOG_INFO << "Got request to perform action for game id: " << gameId;
             stringstream ss;
             ss << serializedData;
             Action action;
@@ -218,7 +209,6 @@ class GameEndpoint
                 cereal::PortableBinaryInputArchive iarchive(ss);
                 iarchive(action);
             }
-             LOG_DEBUG << "Performing: " << action;
             games[gameId].state.performAction(action);
             response.send(Http::Code::Ok, "");
          }
@@ -226,12 +216,10 @@ class GameEndpoint
          void getChangesSince(const Rest::Request& request, Http::ResponseWriter response) {
             auto gameId = request.param(":gameid").as<string>();
             auto changeNo = request.param(":changeNo").as<int>();
-            LOG_INFO << "Got request for changes for game id: " << gameId 
                 << " since changeNo: " << changeNo;
 
             auto changes = games[gameId].state.getChangesAfter(changeNo);
             for (auto change : changes) {
-                LOG_DEBUG << "Sending: " << change;
             }
 
             // TODO actually implement this
@@ -252,8 +240,6 @@ class GameEndpoint
 
 int main() {
     remove("server.log");
-    plog::init(plog::verbose, "server.log");
-    LOG_INFO << "Starting server";
 
     Port port(40000);
 

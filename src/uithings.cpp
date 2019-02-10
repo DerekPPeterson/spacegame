@@ -376,10 +376,8 @@ void Button::onClick()
     if (active) {
         if (clickEventLabel.size()) {
             Event::triggerEvent<string>(EVENT_BUTTON_PRESS, clickEventLabel);
-            LOG_INFO << "Clicked button: " << clickEventLabel;
         } else {
             Event::triggerEvent<string>(EVENT_BUTTON_PRESS, label);
-            LOG_INFO << "Clicked button: " << label;
         }
     }
 }
@@ -406,7 +404,7 @@ void TurnIndicator::changeTurn(logic::TurnInfo newTurnInfo)
         case logic::PHASE_END:
             phaseText.setText("End Phase"); break;
         default:
-            LOG_ERROR << "Incorrect phase given";
+			;
     }
 
     turnText.setColor(color);

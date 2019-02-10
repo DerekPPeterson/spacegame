@@ -23,13 +23,8 @@
 #include <cereal/types/common.hpp>
 #include <cereal/types/utility.hpp>
 
-#include <prettyprint.hpp>
-#include <plog/Log.h>
-#include <plog/Appenders/ColorConsoleAppender.h>
 
 #include <stdarg.h>
-
-#include <backward.hpp>
 
 #define SERIALIZE(...) \
 template<class Archive> \
@@ -160,7 +155,6 @@ namespace logic {
     };
 
     inline void DEFAULT_CARD_RESOLVE(GameState& state) {
-        LOG_ERROR << "Resolving a card with a default resolve function";
     }
 
 

@@ -8,8 +8,8 @@
 #include <list>
 #include <variant>
 #include <string>
+#include <optional>
 
-#include <plog/Log.h>
 
 #include "nocopy.h"
 

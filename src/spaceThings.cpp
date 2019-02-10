@@ -9,8 +9,6 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include <plog/Log.h>
-
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/vector_angle.hpp>
@@ -111,7 +109,6 @@ glm::vec3 System::getPosition()
 
 void System::onClick()
 {
-    LOG_INFO << "System [" << gridx << ", " << gridy << "] clicked";
     Event::triggerEvent(EVENT_SYSTEM_CLICK, logicId);
 }
 

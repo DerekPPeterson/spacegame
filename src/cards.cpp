@@ -4,7 +4,6 @@
 #include "util.h"
 #include "event.h"
 
-#include <plog/Log.h>
 
 #include <algorithm>
 #include <random>
@@ -71,7 +70,6 @@ std::string createCostString(ResourceAmount amount)
 
 void Card::setup()
 {
-    LOG_INFO << "Loading card models/fonts";
     // make sure to update the quad vertices if the model changes
     cardModel = shared_ptr<LineModel>(new LineModel("./res/models/card/card.obj"));
     cardBackModel = shared_ptr<LineModel>(new LineModel("./res/models/card_back/card_back.obj"));
@@ -235,12 +233,10 @@ void Card::update(UpdateInfo& info)
 
 void Card::onClick()
 {
-    LOG_INFO << "Card: " << info.name << " clicked";
 };
 
 void Card::onRelease()
 {
-    LOG_INFO << "Card: " << info.name << " released at: " << position.x << position.y;
     if (position.y > -0.45) {
         Event::triggerEvent(EVENT_PLAY_CARD, logicId);
     }
@@ -266,9 +262,7 @@ void CardZone::addCard(shared_ptr<Card> card)
         }
         card->zone = zone;
         cards.push_back(card);
-        LOG_INFO << "Added card: '" << card->info.name << "' to " << zone;
     } else {
-        LOG_ERROR << "Tried to add a nullptr to a card zone";
     }
 }
 
@@ -279,9 +273,7 @@ void CardZone::removeCard(shared_ptr<Card> card)
         card->dragEnabled = false;
         card->zone = ZONE_NONE;
         cards.erase(remove(cards.begin(), cards.end(), card), cards.end());
-        LOG_INFO << "Removed card: '" << card->info.name << "' from " << zone;
     } else {
-        LOG_ERROR << "Tried to add a nullptr to a card zone";
     }
 }
 

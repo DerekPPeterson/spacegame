@@ -12,7 +12,6 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 
-#include <plog/Log.h>
 
 
 using namespace std;
@@ -153,7 +152,6 @@ bool Selectable::checkSetHoverCircle(UpdateInfo info, bool screenSpace)
 
 void Selectable::onClick()
 {
-    LOG_INFO << "Clicked a selectable without a click handler";
 }
 
 

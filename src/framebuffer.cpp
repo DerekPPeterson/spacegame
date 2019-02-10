@@ -1,7 +1,6 @@
 #include "framebuffer.h"
 
 #include <iostream>
-#include <plog/Log.h>
 
 #include "glad/glad.h"
 
@@ -63,7 +62,6 @@ void Framebuffers::createMainFramebuffer(Framebuffer& buf, int nColorBuffers, in
 
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            LOG_ERROR << "Framebuffer is not complete!";
             throw std::runtime_error("Could not complete framebuffer");
     }
 

@@ -2,14 +2,12 @@
 #include <iostream>
 #include <stdio.h>
 
-#include <plog/Log.h>
 
 using namespace std;
 
 void ObjectUpdater::updateFunc(int tid)
 {
     while(go) {
-        LOG_VERBOSE << "Update thread " << tid <<  " waiting to start";
         {
             unique_lock<mutex> lk(m);
             cstart.wait(lk, [this, tid]{return not hasRun[tid];});
@@ -24,8 +22,6 @@ void ObjectUpdater::updateFunc(int tid)
             end += objects.size() % nThreads;
         }
 
-        LOG_VERBOSE << "Update thread " << tid << " processing elements " << 
-            start << " -> " << end;
         for (int i = start; i < end; i++) {
             if (objects[i]) {
                 objects[i]->update(info);
@@ -66,18 +62,17 @@ void ObjectUpdater::updateObjects(UpdateInfo info, vector<shared_ptr<Object>> ob
     this->info = info;
     this->objects = objects;
 
-    LOG_VERBOSE << "Telling update threads to start";
-    lock_guard<mutex> lk(m);
-    for (int i = 0; i < nThreads; i++) {
-        hasRun[i] = false;
-    }
-    m.unlock();
+	{
+		lock_guard<mutex> lk(m);
+		for (int i = 0; i < nThreads; i++) {
+			hasRun[i] = false;
+		}
+	}
     cstart.notify_all();
 }
 
 void ObjectUpdater::waitForUpdates()
 {
-    LOG_VERBOSE << "Waiting for update threads to be done";
     unique_lock<mutex> lk(m);
     cfinish.wait(lk, [this]{
             bool done = true;

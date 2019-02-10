@@ -91,7 +91,6 @@ class GameClient
         template <class T> 
         T getObject(std::string path) const
         {
-            LOG_DEBUG << "Making server request to: " << path << " port: " << serverPort;
             auto data = makeRequest(path, "");
             std::stringstream ss;
             ss << data;

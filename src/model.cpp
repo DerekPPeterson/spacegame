@@ -5,7 +5,6 @@
 #include <set>
 #include <stdio.h>
 #include <memory>
-#include <plog/Log.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -136,13 +135,11 @@ void Model::draw(Shader& shader)
 
 void Model::loadModel(string path)
 {
-    LOG_INFO << "Loading model from: " << path;
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(path, 
             aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
 
     if (!scene or scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE or !scene->mRootNode) {
-        LOG_ERROR << importer.GetErrorString();
         return;
     }
     directory = path.substr(0, path.find_last_of('/'));
@@ -216,10 +213,8 @@ unsigned int loadTextureFromFile(string path, string directory,
     string full_path = directory + "/" + path;
     unsigned char *data = stbi_load(full_path.c_str(), &width, &height, &nrChannels, 0); 
     if (not data) {
-        LOG_ERROR << "Failed to load texture: " << full_path;
     }
 
-	LOG_INFO << "Loading texture: " << full_path;
 
 	// Create texture from image
     unsigned int texture;
@@ -265,7 +260,6 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial *mat,
 
 LineMesh LineModel::loadLineMesh(string path)
 {
-    LOG_INFO << "Loading line object from: " << path;
     LineObj model = readLineObj(path);
     return LineMesh(model.vertices, model.indices);
 }
