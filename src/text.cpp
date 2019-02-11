@@ -21,12 +21,17 @@ using namespace std::experimental::filesystem;
 Font::Font(string fntFilename)
 {
     path p = fntFilename;
-	info = parseUbfg(fntFilename);
+    LOG_INFO << "Loading font from " << fntFilename;
+    ifstream ifile(p, ios::binary);
+    {
+        cereal::PortableBinaryInputArchive iarchive(ifile);
+        iarchive(info);
+    }
     textureId = loadTextureFromFile(info.textureFilename, p.parent_path(), false);
     textQuad = createTextQuad();
 }
 
-UbfgInfo Font::parseUbfg(std::string filename)
+UbfgInfo parseUbfg(std::string filename)
 {
 	UbfgInfo info;
 	ifstream file;
@@ -46,8 +51,8 @@ UbfgInfo Font::parseUbfg(std::string filename)
 
 	for (string line; getline(file, line);) {
 		if (regex_search(line, m, namesizeRegex)) {
-            name = m[1];
-            pointSize = stoi(m[2]);
+            info.fontName = m[1];
+            info.pointSize = stoi(m[2]);
         } else if (regex_search(line, m, texRegex)) {
 			info.textureFilename = m[1];
 		} else if (regex_search(line, m, charRegex)) {
@@ -122,10 +127,10 @@ std::shared_ptr<Font> Fonts::console;
 std::shared_ptr<Font> Fonts::mono;
 void Fonts::setup() {
     LOG_INFO << "Loading all fonts";
-    title = shared_ptr<Font>(new Font("./res/fonts/conthrax.fnt"));
-    regular = shared_ptr<Font>(new Font("./res/fonts/gravity.fnt"));
-    console = shared_ptr<Font>(new Font("./res/fonts/console.fnt"));
-    mono = shared_ptr<Font>(new Font("./res/fonts/notosansmono.fnt"));
+    title = shared_ptr<Font>(new Font("./res/fonts/conthrax.ubfgdat"));
+    regular = shared_ptr<Font>(new Font("./res/fonts/gravity.ubfgdat"));
+    console = shared_ptr<Font>(new Font("./res/fonts/console.ubfgdat"));
+    mono = shared_ptr<Font>(new Font("./res/fonts/notosansmono.ubfgdat"));
 }
 volatile Fonts fonts; // need to instantiate fonts so setup gets run
 

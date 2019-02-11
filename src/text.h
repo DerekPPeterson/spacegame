@@ -9,6 +9,17 @@
 #include <vector>
 #include <map>
 
+#include <cereal/archives/portable_binary.hpp>
+#include <cereal/types/map.hpp>
+#include <cereal/types/string.hpp>
+
+#define SERIALIZE(...) \
+template<class Archive> \
+void serialize(Archive & archive) \
+{\
+    archive(__VA_ARGS__); \
+}
+
 struct CharInfo
 {
 	unsigned int codepoint;
@@ -20,6 +31,8 @@ struct CharInfo
 	float yoffset;
 	float origw;
 	float origh;
+
+    SERIALIZE( codepoint, xpos, ypos, width, height, xoffset, yoffset, origw, origh)
 };
 
 struct UbfgInfo
@@ -30,7 +43,12 @@ struct UbfgInfo
 	int textureWidth = 1024; // TODO dynamically set these
 	int	textureHeight = 1024;
 	std::string fontName;
+    int pointSize;
+
+    SERIALIZE(characters, kerningPairs, textureFilename, textureWidth, textureHeight, fontName, pointSize);
 };
+
+UbfgInfo parseUbfg(std::string filename);
 
 class Font : public non_copyable
 {
@@ -38,7 +56,6 @@ class Font : public non_copyable
 		Font(std::string path);
 
 	private:
-		UbfgInfo parseUbfg(std::string filename);
 		UbfgInfo info;
 		unsigned int textureId = 0;
         unsigned int pointSize = 0;

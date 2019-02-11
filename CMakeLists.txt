@@ -28,3 +28,6 @@ target_link_libraries(tests spacegamelib ${LIBS})
 
 add_executable(startgame test/startgame.cxx)
 
+add_executable(preprocessUBFG src/preprocessUBFG.cxx)
+target_link_libraries(preprocessUBFG spacegamelib ${LIBS})
+

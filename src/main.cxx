@@ -13,6 +13,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <plog/Log.h>
+#include <plog/Appenders/ColorConsoleAppender.h>
 
 #include <cxxopts.hpp>
 #include <ctime>
@@ -84,17 +85,23 @@ int main(int argc, char **argv)
         ("h,screenheight", "Vertical display resolution", cxxopts::value<int>()->default_value("800"))
         ("f,fullscreen", "Enable fullscreen")
         ("l,logfile", "Log output location", cxxopts::value<string>()->default_value("spacegame.log"))
+        ("log-stdout", "log to stdout")
         ("u,username", "set username", cxxopts::value<string>()->default_value("AckbarsRevenge"))
         ("j,joingame", "join a game rather than starting one", cxxopts::value<string>())
         ("joinuser", "join a game by user rather than starting one", cxxopts::value<string>())
         ;
     auto result = opts.parse(argc, argv);
 
-    //remove(result["logfile"].as<string>().c_str());
-    std::ofstream ofs;
-    ofs.open(result["logfile"].as<string>().c_str(), std::ofstream::out | std::ofstream::trunc);
-    ofs.close();
-    plog::init(plog::verbose, result["logfile"].as<string>().c_str());
+    if (result.count("log-stdout")) {
+        static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
+        plog::init(plog::verbose, &consoleAppender);
+    } else {
+        std::ofstream ofs;
+        ofs.open(result["logfile"].as<string>().c_str(), std::ofstream::out | std::ofstream::trunc);
+        ofs.close();
+        plog::init(plog::verbose, result["logfile"].as<string>().c_str());
+    }
+
     LOG_INFO << "Starting program";
 
     RenderOptions options = {
@@ -102,8 +109,6 @@ int main(int argc, char **argv)
         .screenHeight=result["screenheight"].as<int>(), 
         .fullscreen=(result.count("fullscreen") > 0)
     };
-
-
 
     Camera camera(glm::vec3(-40, 40, 40));
 

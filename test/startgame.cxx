@@ -15,7 +15,7 @@ int main()
             "-l", "spacegame1.log",
             "-w", width, "-h", height,
             });
-    usleep(4e6);
+    usleep(2e6);
     auto app2 = Popen({"./app", 
             "-u", "player2", 
             "--joinuser", "player1",
