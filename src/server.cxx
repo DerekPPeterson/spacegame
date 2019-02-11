@@ -12,6 +12,7 @@
 #include <vector>
 #include <sstream>
 #include <iterator>
+#include <mutex>
 
 #include "client.h"
 
@@ -90,11 +91,17 @@ class GameEndpoint
             auto& user = r.first;
 
             string gameId = randString(8);
-            ActiveGame newGame;
-            newGame.state.startGame();
-            games[gameId] = newGame;
 
-            addPlayerToGame(user, gameId);
+            gameLocks[gameId];
+            {
+                lock_guard<mutex> lk(gameLocks[gameId]);
+
+                ActiveGame newGame;
+                newGame.state.startGame();
+                games[gameId] = newGame;
+
+                addPlayerToGame(user, gameId);
+            }
 
             pair<string, int> ret = {gameId, user.playerId};
             stringstream ss;
@@ -118,6 +125,7 @@ class GameEndpoint
             auto r = getRequestData(request.body());
             auto& user = r.first;
              auto gameId = request.param(":gameid").as<string>();
+            lock_guard<mutex> lk(gameLocks[gameId]);
 
              addPlayerToGame(user, gameId);
 
@@ -143,6 +151,7 @@ class GameEndpoint
                  auto otherUser = pair.second;
                  if (otherUser.username == usernameToJoin) {
                      gameId = otherUser.currentGame;
+                    lock_guard<mutex> lk(gameLocks[gameId]);
                      addPlayerToGame(user, gameId);
                      break;
                  }
@@ -181,6 +190,7 @@ class GameEndpoint
 
          void getState(const Rest::Request& request, Http::ResponseWriter response) {
             auto gameId = request.param(":gameid").as<string>();
+            lock_guard<mutex> lk(gameLocks[gameId]);
             LOG_INFO << "Got request for state for game id: " << gameId;
             stringstream ss;
             {
@@ -194,6 +204,7 @@ class GameEndpoint
             auto r = getRequestData(request.body());
             auto user = r.first;
             auto gameId = request.param(":gameid").as<string>();
+            lock_guard<mutex> lk(gameLocks[gameId]);
             LOG_INFO << "Got request for actions for game id: " << gameId << " from user: " << user.username;
 
             vector<Action> actions = games[gameId].state.getPossibleActions(user.playerId);
@@ -210,6 +221,7 @@ class GameEndpoint
             auto user = r.first;
             string serializedData = r.second;
             auto gameId = request.param(":gameid").as<string>();
+            lock_guard<mutex> lk(gameLocks[gameId]);
              LOG_INFO << "Got request from user: " << user.username << " to perform action for game id: " << gameId;
             stringstream ss;
             ss << serializedData;
@@ -229,6 +241,7 @@ class GameEndpoint
             LOG_INFO << "Got request for changes for game id: " << gameId 
                 << " since changeNo: " << changeNo;
 
+            lock_guard<mutex> lk(gameLocks[gameId]);
             auto changes = games[gameId].state.getChangesAfter(changeNo);
             for (auto change : changes) {
                 LOG_DEBUG << "Sending: " << change;
@@ -246,6 +259,7 @@ class GameEndpoint
 	    std::shared_ptr<Http::Endpoint> httpEndpoint;
 		Rest::Router router;
 
+        map<string, mutex> gameLocks;
         map<string, ActiveGame> games;
         map<string, User> users;
 };

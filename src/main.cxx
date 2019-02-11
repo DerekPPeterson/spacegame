@@ -164,6 +164,9 @@ int main(int argc, char **argv)
             // This will trigger animations and iterface for selecting
             // an action
             graphicsObjectHandler.setPossibleActions(actions);
+            if (actions.size()) {
+                LOG_DEBUG << actions;
+            }
         } else {
             // If there are no current actions get pending ones from the 
             // server This might return an empty list, in which case we will

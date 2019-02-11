@@ -349,7 +349,7 @@ vector<Action> GameState::getValidBeaconActions()
     auto player = getPlayerById(turnInfo.whoseTurn);
 
     ResourceAmount needed = {{RESOURCE_WARP_BEACONS, 1}};
-    if (turnInfo.phase.back() == PHASE_MAIN and (player->resources > needed)) {
+    if (turnInfo.phase.back() == PHASE_MAIN and (player->resources >= needed)) {
 
         set<int> possibleSystems;
         for (auto s : ships) {
