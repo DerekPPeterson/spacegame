@@ -3,24 +3,31 @@
 
 using namespace subprocess;
 
-int main()
+int main(int argc, char **argv)
 {
     LocalServerStarter server;
 
-    char width[] = "710";
-    char height[] = "400";
+    std::string width = "710";
+    std::string height = "400";
 
-    auto app1 = Popen({"./app", 
+    if (argc == 3) {
+        width = argv[1];
+        height = argv[2];
+    }
+
+    auto app1 = Popen({ 
+            "./app",
             "-u", "player1", 
             "-l", "spacegame1.log",
-            "-w", width, "-h", height,
+            "-w", width.c_str(), "-h", height.c_str(),
             });
-    usleep(2e6);
-    auto app2 = Popen({"./app", 
+    usleep(1e6);
+    auto app2 = Popen({
+            "./app",
             "-u", "player2", 
             "--joinuser", "player1",
             "-l", "spacegame2.log",
-            "-w", width, "-h", height,
+            "-w", width.c_str(), "-h", height.c_str(),
             });
 
     app1.wait();
