@@ -7,8 +7,8 @@ int main()
 {
     LocalServerStarter server;
 
-    char width[] = "1600";
-    char height[] = "900";
+    char width[] = "710";
+    char height[] = "400";
 
     auto app1 = Popen({"./app", 
             "-u", "player1", 

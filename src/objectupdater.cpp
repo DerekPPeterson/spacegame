@@ -67,11 +67,12 @@ void ObjectUpdater::updateObjects(UpdateInfo info, vector<shared_ptr<Object>> ob
     this->objects = objects;
 
     LOG_VERBOSE << "Telling update threads to start";
-    lock_guard<mutex> lk(m);
-    for (int i = 0; i < nThreads; i++) {
-        hasRun[i] = false;
+    {
+        lock_guard<mutex> lk(m);
+        for (int i = 0; i < nThreads; i++) {
+            hasRun[i] = false;
+        }
     }
-    m.unlock();
     cstart.notify_all();
 }
 

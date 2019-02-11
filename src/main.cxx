@@ -171,6 +171,7 @@ int main(int argc, char **argv)
         // the actions list
         graphicsObjectHandler.checkEvents();
         auto selectedAction = graphicsObjectHandler.getSelectedAction();
+        client.performQueuedAction();
         if (selectedAction) {
             client.performAction(*selectedAction);
             actions.clear();

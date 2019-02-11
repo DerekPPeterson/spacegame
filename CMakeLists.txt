@@ -18,12 +18,12 @@ add_executable(app src/main.cxx src/backward.cpp)
 target_link_libraries(app bfd dl pthread spacegamelib ${LIBS} )
 
 add_executable(textgame src/textgame.cxx src/backward.cpp)
-target_link_libraries(textgame bfd dl pthread spacegamelib ${LIBS})
+target_link_libraries(textgame spacegamelib ${LIBS})
 
 add_executable(server src/server.cxx )
 target_link_libraries(server spacegamelib ${LIBS})
 
-add_executable(tests test/tests.cxx ${TEST_SOURCES})
+add_executable(tests test/tests.cxx src/backward.cpp ${TEST_SOURCES})
 target_link_libraries(tests spacegamelib ${LIBS})
 
 add_executable(startgame test/startgame.cxx)

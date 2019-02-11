@@ -210,7 +210,7 @@ class GameEndpoint
             auto user = r.first;
             string serializedData = r.second;
             auto gameId = request.param(":gameid").as<string>();
-             LOG_INFO << "Got request to perform action for game id: " << gameId;
+             LOG_INFO << "Got request from user: " << user.username << " to perform action for game id: " << gameId;
             stringstream ss;
             ss << serializedData;
             Action action;
@@ -252,7 +252,7 @@ class GameEndpoint
 
 int main() {
     remove("server.log");
-    plog::init(plog::verbose, "server.log");
+    plog::init(plog::debug, "server.log");
     LOG_INFO << "Starting server";
 
     Port port(40000);

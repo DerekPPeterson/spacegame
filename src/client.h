@@ -3,13 +3,16 @@
 
 #include <memory>
 #include <vector>
+#include <queue>
 #include <future>
 #include <sstream>
 #include <optional>
+#include <thread>
 
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Easy.hpp>
 #include <curlpp/Options.hpp>
+#include <curlpp/Infos.hpp>
 
 #include "logic.h"
 #include "timer.h"
@@ -21,11 +24,24 @@ struct RequestData
     SERIALIZE(loginToken, serializedData);
 };
 
+struct RequestThreadData
+{
+    std::mutex m;
+    bool pending = false;
+    bool done = false;
+    bool stop = false;
+    std::string path; 
+    std::string sendData;
+    std::string response;
+    std::condition_variable start;
+};
+
 
 class GameClient
 {
     public:
         GameClient(std::string serverAddr, int port);
+        ~GameClient();
 
         void login(std::string username);
         bool isLoggedIn() { return loginToken.size() > 0;};
@@ -53,6 +69,10 @@ class GameClient
          */
         void performAction(logic::Action action);
 
+        /* Call every frame, just in case there are pending actions that
+         * have not been sent to the server */
+        void performQueuedAction();
+
         /* Get changes to state since a particular change number.
          * Asynchonous in the same way a the getActions function
          */
@@ -71,15 +91,11 @@ class GameClient
         const float rateLimit = 0.5;
        
         float actionsLastRequest = 0;
-        std::vector<logic::Action> _getActions() const;
-        std::optional<std::future<std::vector<logic::Action>>> futureActions;
 
         void _performAction(logic::Action action) const;
         std::optional<std::future<void>> actionPending;
 
         float changesLastRequest = 0;
-        std::vector<logic::Change> _getChangesSince(int changeNo) const;
-        std::optional<std::future<std::vector<logic::Change>>> futureChanges;
 
         std::string makeRequest(std::string path, std::string data) const;
 
@@ -103,6 +119,21 @@ class GameClient
             }
             return obj;
         }
+
+        std::thread getActionsThread;
+        RequestThreadData getActionsData;
+
+        std::queue<std::string> pendingPerformActions;
+        std::thread performActionsThread;
+        RequestThreadData performActionsData;
+
+        std::thread getChangesThread;
+        RequestThreadData getChangesData;
+
+        std::thread create(std::string path);
+        void requestThreadFunc(RequestThreadData* data);
+        bool makeRequestOnThread(RequestThreadData* threadData, std::string path, std::string sendData);
+        std::optional<std::string> getResponseFromThread(RequestThreadData* threadData);
 };
 
 #endif
