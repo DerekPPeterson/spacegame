@@ -18,8 +18,8 @@ vector<shared_ptr<Object>> GraphicsObjectHandler::getObjects()
 vector<shared_ptr<Renderable>> GraphicsObjectHandler::getRenderables()
 {
     // TODO this seems like the wrong place for these
-    removeObjects();
     checkObjectEmits();
+    removeObjects();
 
     vector<shared_ptr<Renderable>> renderables;
     for (auto o : objects) {
@@ -381,7 +381,7 @@ float GraphicsObjectHandler::removeShip(logic::Change change)
     auto ship = dynamic_pointer_cast<SpaceShip>(getObject(shipId));
     sysInfos[ship->getCurSystemId()]->removeShip(shipId);
     ship->destroy();
-    return 0;
+    return rand_float_between(0, 0.5);
 }
 
 float GraphicsObjectHandler::shipChange(logic::Change change)

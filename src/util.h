@@ -4,6 +4,8 @@
 #include <random>
 #include <map>
 #include <string>
+#include <math.h>
+#include <glm/glm.hpp>
 
 inline float rand_float_between(float LO, float HI)
 {
@@ -19,6 +21,17 @@ inline std::string randString(int n)
     }
     return ret;
 };
+
+inline glm::vec3 randWithinSphere(int radius)
+{
+    glm::vec3 ret;
+    ret.x = rand_float_between(-1, 1);
+    ret.y = rand_float_between(-1, 1);
+    ret.z = rand_float_between(-1, 1);
+    ret = glm::normalize(ret);
+    ret *= cbrt(rand_float_between(0, 1)) * radius;
+    return ret;
+}
 
 template <class T>
 class Interpolated

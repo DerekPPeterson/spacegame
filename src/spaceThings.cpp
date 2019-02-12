@@ -4,7 +4,6 @@
 #include "util.h"
 #include "event.h"
 #include "camera2.h"
-#include "particles.h"
 
 #include <cstdlib>
 #include <algorithm>
@@ -193,6 +192,42 @@ void LaserShot::queueDraw()
     Particles::queueParticleDraw(getPos(), color);
 }
 
+Explosion::Explosion(glm::vec3 position, float size, float duration)
+    : Renderable(SHADER_LAMP), size(size), duration(duration)
+{
+    this->position = position;
+    int nParticles = 200;
+    for (int i = 0; i < nParticles; i++) {
+            particles.addParticle(position, randWithinSphere(3) * size, 
+                    glm::vec3(
+                        0.866 * rand_float_between(10, 20),
+                        0.533 * rand_float_between(10, 20),
+                        0.172 * rand_float_between(10, 20)
+                        ));
+    }
+}
+
+void Explosion::queueDraw()
+{
+    particles.queueDraw();
+}
+
+void Explosion::update(UpdateInfo& info)
+{
+    particles.update(info);
+    if (not startTime) {
+        startTime = info.curTime;
+    }
+    float timeLeft = startTime + duration - info.curTime;
+
+    if (timeLeft < 0) {
+        removeThis = true;
+    } else if (timeLeft < duration / 2) {
+        particles.colorMultiplier = timeLeft * 2 /  duration;
+    }
+}
+
+
 map<string, shared_ptr<Model>> SpaceShip::models;
 shared_ptr<Model> SpaceShip::warpQuad;
 
@@ -365,6 +400,12 @@ void SpaceShip::gotoSystem(System *system)
         prevSystem = curSystem;
         curSystem = system;
     }
+}
+
+void SpaceShip::destroy()
+{
+    emit.push_back(make_shared<Explosion>(getPos(), length*4, 2));
+    removeThis = true;
 }
 
 void SpaceShip::startShootingAt(std::shared_ptr<has_position> shootAt)

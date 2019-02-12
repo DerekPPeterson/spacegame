@@ -3,6 +3,7 @@
 
 #include "renderables.h"
 #include <memory>
+#include <vector>
 #include "drawable.h"
 
 class Particles : public needs_setup<Particles>
@@ -61,6 +62,21 @@ class Particles : public needs_setup<Particles>
         particle->queueDraw();
     }
 };
+
+class ParticleGroup : public Object, public Renderable
+{
+    public:
+        ParticleGroup() : Renderable(SHADER_NONE) {};
+        void addParticle(glm::vec3 position, glm::vec3 velocity, glm::vec3 color);
+        virtual void queueDraw() override;
+        virtual void update(UpdateInfo& info) override;
+        float colorMultiplier = 1;
+    protected:
+        std::vector<glm::vec3> positions;
+        std::vector<glm::vec3> velocities;
+        std::vector<glm::vec3> colors;
+};
+
 
 
 #endif

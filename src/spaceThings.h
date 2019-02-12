@@ -13,6 +13,7 @@
 
 #include "renderables.h"
 #include "logic.h"
+#include "particles.h"
 
 typedef struct Orbit {
     float radius;
@@ -72,6 +73,19 @@ class LaserShot : public Object, public Renderable, has_position
         glm::vec3 color;
 };
 
+class Explosion : public Object, public Renderable, public has_position
+{
+    public:
+        Explosion(glm::vec3 position, float size, float duration);
+        virtual void queueDraw() override;
+        virtual void update(UpdateInfo& info) override;
+    protected:
+        float size;
+        float startTime = 0;
+        float duration;
+        ParticleGroup particles;
+};
+
 // TODO use an instance renderer
 class SpaceShip : public Object, public Renderable, public has_position
 {
@@ -84,7 +98,7 @@ class SpaceShip : public Object, public Renderable, public has_position
 
         static std::shared_ptr<SpaceShip> createFrom(logic::Ship logicShip, System *s);
         int getCurSystemId() {return curSystem->logicId;};
-        void destroy() {removeThis = true;};
+        void destroy();
         logic::Ship logicShipInfo;
 
         void startShootingAt(std::shared_ptr<has_position> shootAt);
@@ -100,7 +114,7 @@ class SpaceShip : public Object, public Renderable, public has_position
 
         // +xaxis of model will be front of ship
         glm::vec3 direction = {1, 0, 0};
-        float speed = 2;
+        float speed = 4;
         float warp = 1;
         float turnSpeed = 2 * 3.14;
 
