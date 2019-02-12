@@ -87,6 +87,11 @@ void Card::queueDraw()
         titleText.setModel(titleModel);
         titleText.queueDraw();
 
+        glm::mat4 typeModel = glm::translate(model, {+1.05, -1.6, 0});
+        typeModel = glm::rotate(typeModel, 3.141f / 2, {0, 0, 1});
+        typeText.setModel(typeModel);
+        typeText.queueDraw();
+
         glm::mat4 textModel = glm::translate(model, {-0.8, -0.5, 0.03});
         cardText.setModel(textModel);
         cardText.queueDraw();
@@ -128,7 +133,8 @@ map<ResourceType, glm::vec3> CARD_COLORS = {
 Card::Card(CardInfo info) : Renderable(SHADER_CARD),
     titleText(Fonts::title, info.name, info.color, 0, 0.2),
     cardText(Fonts::regular, info.text, info.color, 1.6, 0.15),
-    costText(Fonts::regular, createCostString(info.cost), info.color, 1.6, 0.25)
+    costText(Fonts::regular, createCostString(info.cost), info.color, 1.6, 0.25),
+    typeText(Fonts::title, info.type, info.color, 9, 0.15)
 {
     position = {-1, -1, -5};
     // For clickbox
@@ -161,16 +167,20 @@ Card::Card(CardInfo info) : Renderable(SHADER_CARD),
     titleText.setColor(Card::info.color);
     cardText.setColor(Card::info.color);
     cardText.setColor(Card::info.color);
+    typeText.setColor(Card::info.color);
 }
 
 std::shared_ptr<Card> Card::createFrom(logic::Card logicCard)
 {
+    stringstream type;
+    type << logicCard.type;
     CardInfo info = {
         .name = logicCard.name,
         .text = logicCard.cardText,
         .cost = logicCard.cost,
         .provides = logicCard.provides,
         .ownerId = logicCard.ownerId,
+        .type = type.str(),
     };
     auto card = shared_ptr<Card>(new Card(info));
     card->logicId = logicCard.id;

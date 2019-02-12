@@ -295,11 +295,25 @@ vector<Action> GameState::getValidCardActions()
     // TODO more complicated logic
     vector<Action> actions;
 
-    if (turnInfo.phase.back() == PHASE_MAIN 
-            or turnInfo.phase.back() == PHASE_RESOLVE_STACK) {
+    if (turnInfo.phase.back() == PHASE_MAIN) {
         auto player = getPlayerById(turnInfo.activePlayer);
         for (auto& card : player->hand) {
             if (card.cost <= player->resources) {
+                Action action = {
+                    .type = ACTION_PLAY_CARD,
+                    .playerId = turnInfo.activePlayer,
+                    .id = card.id,
+                    .description = card.name,
+                };
+                actions.push_back(action);
+            }
+        }
+    }
+
+    if (turnInfo.phase.back() == PHASE_RESOLVE_STACK) {
+        auto player = getPlayerById(turnInfo.activePlayer);
+        for (auto& card : player->hand) {
+            if (card.cost <= player->resources and card.type == CARD_INSTANT_ACTION) {
                 Action action = {
                     .type = ACTION_PLAY_CARD,
                     .playerId = turnInfo.activePlayer,
@@ -840,6 +854,23 @@ ostream & logic::operator<< (ostream &out, const TurnPhases &c)
             out << "select beacon targets"; break;
         case PHASE_RESOLVE_STACK:
             out << "resolve stack"; break;
+    }
+    return out;
+}
+
+ostream & logic::operator<< (ostream &out, const CardType c)
+{
+    switch (c) {
+        case CARD_SHIP:
+            out << "Construct Ship"; break;
+        case CARD_RESOURCE_SHIP:
+            out << "Construct Resource Ship"; break;
+        case CARD_ACTION:
+            out << "Action"; break;
+        case CARD_INSTANT_ACTION:
+            out << "Instant Action"; break;
+        case CARD_STRUCTURE:
+            out << "Construct Structure"; break;
     }
     return out;
 }

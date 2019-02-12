@@ -16,6 +16,7 @@ struct CardInfo
 {
     std::string name = "Long Card Name";
     std::string text = "Warp Beacon: {wb}\nMaterials: {mat}\nAI: {ai}\nAM: {am}\nInf: {inf}";
+    std::string type = "Card Type";
     glm::vec3 color = {0.1, 2, 2};
     ResourceAmount cost = {
         {RESOURCE_MATERIALS, 1}, 
@@ -113,6 +114,7 @@ class Card : public Renderable , public Object, public Dragable,
         Text titleText;
         Text cardText;
         Text costText;
+        Text typeText;
 
         float size = 0.2;
         glm::vec3 speed = {0, 0, 0};

@@ -215,9 +215,9 @@ void GraphicsObjectHandler::setPossibleActions(std::vector<logic::Action> action
     }
 
     // TODO debug only
-    stringstream ss;
-    ss << actions;
-    debugInfo->addInfo(ss.str());
+    //stringstream ss;
+    //ss << actions;
+    //debugInfo->addInfo(ss.str());
     
     passButton->setActive(false);
     confirmButton->setActive(false);
@@ -358,7 +358,7 @@ float GraphicsObjectHandler::playCard(logic::Change change)
     hand->removeCard(card);
     enemyHand->removeCard(card);
     stack->addCard(card);
-    return 0;
+    return 3;
 }
 
 float GraphicsObjectHandler::changePlayerResources(logic::Change change)
@@ -415,7 +415,7 @@ float GraphicsObjectHandler::combatStart(logic::Change change)
 
 float GraphicsObjectHandler::combatRound(logic::Change change)
 {
-    return 1;
+    return 0.5;
 }
 
 float GraphicsObjectHandler::combatEnd(logic::Change change)
@@ -432,7 +432,7 @@ float GraphicsObjectHandler::shipTargets(logic::Change change)
         auto target = dynamic_pointer_cast<SpaceShip>(getObject(targetid));
         shooter->startShootingAt(target);
     }
-    return 0;
+    return 1;
 }
 
 

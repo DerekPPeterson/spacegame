@@ -139,6 +139,7 @@ namespace CardDefinitions {
         .name = "Sample Ship",
         .cardText = "Construct a sample ship in a system you control",
         .cost = {{RESOURCE_MATERIALS, 1}},
+        .type = CARD_SHIP,
         .getValidTargets = singleSystemControlledByActivePlayer,
         .resolve = [](GameState& state) {
             createShipIn(state, ShipDefinitions::sampleShip);
@@ -150,6 +151,7 @@ namespace CardDefinitions {
         .cardText = "Construct in system you control.\nProvides 1 {mat} per turn",
         .cost = {},
         .provides = {{RESOURCE_MATERIALS, 1}},
+        .type = CARD_RESOURCE_SHIP,
         .getValidTargets = singleSystemControlledByActivePlayer,
         .resolve = [](GameState& state) {
             createShipIn(state, ShipDefinitions::miningShip);
@@ -161,6 +163,7 @@ namespace CardDefinitions {
         .cardText = "Construct in system you control.\nProvides 1 {ai} per turn",
         .cost = {},
         .provides = {{RESOURCE_AI, 1}},
+        .type = CARD_RESOURCE_SHIP,
         .getValidTargets = singleSystemControlledByActivePlayer,
         .resolve = [](GameState& state) {
             createShipIn(state, ShipDefinitions::aiCore);
@@ -172,6 +175,7 @@ namespace CardDefinitions {
         .cardText = "Construct in system you control.\nProvides 1 {am} per turn",
         .cost = {},
         .provides = {{RESOURCE_ANTIMATTER, 1}},
+        .type = CARD_RESOURCE_SHIP,
         .getValidTargets = singleSystemControlledByActivePlayer,
         .resolve = [](GameState& state) {
             createShipIn(state, ShipDefinitions::amGatherer);
@@ -183,6 +187,7 @@ namespace CardDefinitions {
         .cardText = "Construct in system you control.\nProvides 1 {inf} per turn",
         .cost = {},
         .provides = {{RESOURCE_INFLUENCE, 1}},
+        .type = CARD_RESOURCE_SHIP,
         .getValidTargets = singleSystemControlledByActivePlayer,
         .resolve = [](GameState& state) {
             createShipIn(state, ShipDefinitions::diplomaticVessal);
@@ -193,6 +198,7 @@ namespace CardDefinitions {
         .name = "Anti-matter laser",
         .cardText = "Destroy target ship",
         .cost = {{RESOURCE_ANTIMATTER, 2}},
+        .type = CARD_INSTANT_ACTION,
         .getValidTargets = [](GameState& state) {
             return tuple<int, int, vector<Target>>(1, 1, getAllNonFlagships(state));},
         .resolve = [](GameState& state) {

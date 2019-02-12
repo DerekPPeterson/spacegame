@@ -175,12 +175,22 @@ namespace logic {
         SERIALIZE(type, id);
     };
 
+    enum CardType {
+        CARD_SHIP,
+        CARD_RESOURCE_SHIP,
+        CARD_ACTION,
+        CARD_INSTANT_ACTION,
+        CARD_STRUCTURE,
+    };
+    ostream & operator<< (ostream &out, const CardType c);
+
     struct Card : public GameObject
     {
         string name;
         string cardText;
         ResourceAmount cost;
         ResourceAmount provides; // Used to determine color of card if cost is not present
+        CardType type;
         int playedBy = 0;
         int ownerId = 0;
         vector<int> targets;
@@ -191,7 +201,7 @@ namespace logic {
             out << "(Card: " << c.name << " id " << c.id << ")";
             return out;
         }
-        SERIALIZE(id, name, cardText, cost, provides, playedBy, targets, ownerId);
+        SERIALIZE(id, name, cardText, cost, type, provides, playedBy, targets, ownerId);
     };
 
     struct Player : public GameObject
