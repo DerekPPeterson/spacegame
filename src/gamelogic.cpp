@@ -207,28 +207,33 @@ void GraphicsObjectHandler::updateSysInfoActiveButtons()
 
 void GraphicsObjectHandler::setPossibleActions(std::vector<logic::Action> actions) 
 {
+    // Reset buttons
+    passButton->setActive(false);
+    confirmButton->setActive(false);
+
     this->actions = actions;
+    // If there is only one choice to make then make it
     if (actions.size() == 1 
             and (actions[0].minTargets == actions[0].maxTargets == actions[0].targets.size()
                 or actions[0].targets.size() ==0)) {
         selectedAction = actions[0];
+    } else {
+        // Otherwise update buttons and will wait for new updates
+        for (auto a : actions) {
+            if (a.type == logic::ACTION_NONE) {
+                passButton->setActive(true);
+            } else if (a.type == logic::ACTION_SELECT_SHIPS) {
+                confirmButton->setActive(true);
+                updateSysInfoActiveButtons();
+            }
+        }
     }
-
+    //
     // TODO debug only
     //stringstream ss;
     //ss << actions;
     //debugInfo->addInfo(ss.str());
     
-    passButton->setActive(false);
-    confirmButton->setActive(false);
-    for (auto a : actions) {
-        if (a.type == logic::ACTION_NONE) {
-            passButton->setActive(true);
-        } else if (a.type == logic::ACTION_SELECT_SHIPS) {
-            confirmButton->setActive(true);
-            updateSysInfoActiveButtons();
-        }
-    }
 };
 
 optional<logic::Action> GraphicsObjectHandler::getSelectedAction()

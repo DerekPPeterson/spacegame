@@ -212,7 +212,9 @@ namespace logic {
         list<Card> hand;
         list<Card> discard;
         int flagshipId;
-        SERIALIZE(id, name, resources, deck, hand, discard, flagshipId);
+        bool playedResourceShipThisTurn = false;
+
+        SERIALIZE(id, name, resources, deck, hand, discard, flagshipId, playedResourceShipThisTurn);
 
         friend ostream & operator << (ostream &out, const Player &c)
         {

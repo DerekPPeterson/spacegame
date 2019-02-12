@@ -298,7 +298,9 @@ vector<Action> GameState::getValidCardActions()
     if (turnInfo.phase.back() == PHASE_MAIN) {
         auto player = getPlayerById(turnInfo.activePlayer);
         for (auto& card : player->hand) {
-            if (card.cost <= player->resources) {
+            if (card.cost <= player->resources 
+                    and not (card.type == CARD_RESOURCE_SHIP 
+                        and player->playedResourceShipThisTurn)) {
                 Action action = {
                     .type = ACTION_PLAY_CARD,
                     .playerId = turnInfo.activePlayer,
@@ -509,16 +511,18 @@ void GameState::upkeep(bool firstTurn)
         changes.push_back({.type = CHANGE_DRAW_CARD, .data = drawInfo});
     }
     auto player = getPlayerById(turnInfo.whoseTurn);
-    changes.push_back({
-            .type = CHANGE_PLAYER_RESOURCES, 
-            .data=pair<int, ResourceAmount>(player->id, player->resources)
-            });
 
     for (auto& ship : ships) {
         if (ship.controller == turnInfo.whoseTurn) {
             ship.upkeep(*this, ship);
         }
     }
+    changes.push_back({
+            .type = CHANGE_PLAYER_RESOURCES, 
+            .data=pair<int, ResourceAmount>(player->id, player->resources)
+            });
+
+    player->playedResourceShipThisTurn = false;
 }
 
 void GameState::updateSystemControllers()

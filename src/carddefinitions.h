@@ -42,6 +42,11 @@ void createShipIn(GameState& state, logic::Ship ship)
     ship.curSystemId = card.targets.front();
     state.ships.push_back(ship);
     state.changes.push_back({.type = CHANGE_ADD_SHIP, .data = ship});
+
+    if (ship.kind == SHIP_RESOURCE) {
+        auto player = state.getPlayerById(card.playedBy);
+        player->playedResourceShipThisTurn = true;
+    }
 }
 
 void destroyTargetShips(GameState& state)
