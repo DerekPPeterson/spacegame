@@ -163,7 +163,8 @@ void GameState::startGame()
         vector<Card> toUse = {
             CardDefinitions::sample_ship,
             //CardDefinitions::ai_coreship,
-            //CardDefinitions::am_gatherer,
+            CardDefinitions::am_gatherer,
+            CardDefinitions::am_laser,
             CardDefinitions::resource_ship,
             //CardDefinitions::diplomaticVessal,
         };

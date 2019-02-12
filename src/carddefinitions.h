@@ -4,6 +4,17 @@
 
 using namespace logic;
 
+vector<Target> getAllNonFlagships(GameState& state)
+{
+    vector<Target> targets;
+    for (auto ship : state.ships) {
+        if (ship.kind != SHIP_FLAGSHIP) {
+            targets.push_back({.id = ship.id, .type = TARGET_SHIP});
+        }
+    }
+    return targets;
+}
+
 vector<Target> getSystemsControlledByActivePlayer(GameState& state)
 {
     vector<Target> systemIds;
@@ -31,6 +42,16 @@ void createShipIn(GameState& state, logic::Ship ship)
     ship.curSystemId = card.targets.front();
     state.ships.push_back(ship);
     state.changes.push_back({.type = CHANGE_ADD_SHIP, .data = ship});
+}
+
+void destroyTargetShips(GameState& state)
+{
+    auto card = state.stack.back();
+    for (auto shipId : card.targets) {
+        state.changes.push_back({.type = CHANGE_REMOVE_SHIP, .data = shipId});
+        state.deleteShipById(shipId);
+        LOG_INFO << "Ship id: " << shipId << " destroyed";
+    }
 }
 
 void resourcesToController(GameState& state, Ship& ship, ResourceAmount amount)
@@ -165,6 +186,17 @@ namespace CardDefinitions {
         .getValidTargets = singleSystemControlledByActivePlayer,
         .resolve = [](GameState& state) {
             createShipIn(state, ShipDefinitions::diplomaticVessal);
+        },
+    };
+
+    Card am_laser = {
+        .name = "Anti-matter laser",
+        .cardText = "Destroy target ship",
+        .cost = {{RESOURCE_ANTIMATTER, 2}},
+        .getValidTargets = [](GameState& state) {
+            return tuple<int, int, vector<Target>>(1, 1, getAllNonFlagships(state));},
+        .resolve = [](GameState& state) {
+            destroyTargetShips(state);
         },
     };
 }

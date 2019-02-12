@@ -208,16 +208,16 @@ void GraphicsObjectHandler::updateSysInfoActiveButtons()
 void GraphicsObjectHandler::setPossibleActions(std::vector<logic::Action> actions) 
 {
     this->actions = actions;
-    if (actions.size() == 1) {
-        if (actions[0].minTargets == actions[0].maxTargets) {
-            selectedAction = actions[0];
-        }
+    if (actions.size() == 1 
+            and (actions[0].minTargets == actions[0].maxTargets == actions[0].targets.size()
+                or actions[0].targets.size() ==0)) {
+        selectedAction = actions[0];
     }
 
     // TODO debug only
-    //stringstream ss;
-    //ss << actions;
-    //debugInfo->addInfo(ss.str());
+    stringstream ss;
+    ss << actions;
+    debugInfo->addInfo(ss.str());
     
     passButton->setActive(false);
     confirmButton->setActive(false);
@@ -268,7 +268,16 @@ void GraphicsObjectHandler::checkEvents()
              if (shipIdsSelected.count(shipId)) {
                  shipIdsSelected.erase(shipId);
              } else {
-                 shipIdsSelected.insert(shipId);
+                 for (auto action : actions) {
+                     if (action.type == logic::ACTION_SELECT_SHIPS) {
+                         if (action.maxTargets > shipIdsSelected.size()) {
+                             shipIdsSelected.insert(shipId);
+                         } else if (action.maxTargets == 1) {
+                             shipIdsSelected.clear();
+                             shipIdsSelected.insert(shipId);
+                         }
+                     }
+                 }
              }
          } else if (label == "Confirm") {
              for (auto action : actions) {
@@ -279,6 +288,9 @@ void GraphicsObjectHandler::checkEvents()
                      }
                      shipIdsSelected = {};
                      selectedAction = action;
+                     actions = {};
+                     updateSysInfoActiveButtons();
+                     break;
                  }
              }
          }
