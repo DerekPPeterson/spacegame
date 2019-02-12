@@ -87,7 +87,8 @@ class Explosion : public Object, public Renderable, public has_position
 };
 
 // TODO use an instance renderer
-class SpaceShip : public Object, public Renderable, public has_position
+class SpaceShip : public Object, public Renderable, public has_position,
+    needs_setup<SpaceShip>
 {
     public:
         SpaceShip(std::string type, System *system);
@@ -103,6 +104,8 @@ class SpaceShip : public Object, public Renderable, public has_position
 
         void startShootingAt(std::shared_ptr<has_position> shootAt);
         void stopShooting();
+
+        static void setup();
     
     protected:
         std::string type;

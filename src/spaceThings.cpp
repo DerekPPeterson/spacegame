@@ -262,6 +262,15 @@ void SpaceShip::loadModel(string type)
     }
 }
 
+void SpaceShip::setup()
+{
+    for (auto& [type, path] : MODEL_PATHS) {
+        if (models.find(type) == models.end()) {
+            models[type] = shared_ptr<Model>(new Model(MODEL_PATHS[type].c_str()));
+        }
+    }
+}
+
 SpaceShip::SpaceShip(string type, System* system) :
     Renderable(SHADER_LIGHTING),
     type(type), curSystem(system), prevSystem(system)
