@@ -102,8 +102,9 @@ void Card::queueDraw()
         costText.setModel(costModel);
         costText.queueDraw();
 
-        glm::mat4 displayShipModel = glm::translate(model, {0, 0.1, -1});
+        glm::mat4 displayShipModel = glm::translate(model, {0, 0.65, -1});
         displayShipModel = glm::rotate(displayShipModel,(float) (Timer::global.get() * 2.0f * 3.14 / 4), {0, 1, 0});
+        displayShipModel = glm::scale(displayShipModel, glm::vec3(0.5));
         displayShip.setModel(displayShipModel);
         displayShip.queueDraw();
 
