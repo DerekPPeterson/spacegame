@@ -11,6 +11,7 @@
 #include <memory>
 #include <map>
 #include <iostream>
+#include <optional>
 
 struct CardInfo
 {
@@ -27,6 +28,8 @@ struct CardInfo
     };
     ResourceAmount provides = {};
     int ownerId = 0;
+    int logicId = 0;
+    std::optional<logic::Ship> creates;
 };
 
 std::string createCostString(ResourceAmount amount);
@@ -83,6 +86,38 @@ struct SpringSystem
     void updatePositions(float deltaTime);
 };
 
+class StencilModel : public ModelWithModel
+{
+    public:
+        StencilModel(int id, std::shared_ptr<Model> m) 
+            : ModelWithModel(SHADER_STENCIL, m),
+              id(id % 255 + 1)
+        {};
+
+        virtual void draw(Shader& shader) {
+            glStencilFunc(GL_ALWAYS, id, 0xFF);
+            ModelWithModel::draw(shader);
+        }
+    private:
+        int id;
+};
+
+class ModelUnderStencil : public ModelWithModel
+{
+    public:
+        ModelUnderStencil(int id, std::shared_ptr<Model> m)
+            : ModelWithModel(SHADER_UI_LIGHTING_CARD_IMAGE, m),
+              id(id % 255 + 1)
+        {};
+
+        virtual void draw(Shader& shader) {
+            glStencilFunc(GL_EQUAL, id, 0xFF);
+            ModelWithModel::draw(shader);
+        }
+    private:
+        int id;
+};
+
 class Card : public Renderable , public Object, public Dragable,
              public needs_setup<Card>, public SpringObject
 {
@@ -123,6 +158,9 @@ class Card : public Renderable , public Object, public Dragable,
         CardInfo info;
         Zone zone;
 
+        ModelUnderStencil displayShip;
+        static std::shared_ptr<Model> stencilQuad;
+        StencilModel stencilQuadWithModel;
 
         float highlight = 1;
 

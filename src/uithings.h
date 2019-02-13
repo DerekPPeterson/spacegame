@@ -129,6 +129,22 @@ class ResourceDisplay : public Renderable, public Object,
         Text text;
 };
 
+class ModelWithModel : public Object, public Renderable, public has_model_mat
+{
+    public:
+        ModelWithModel(ShaderEnum type, std::shared_ptr<Model> m) 
+            : Renderable(type), m(m) {};
+        virtual void draw(Shader& shader) override {
+            if (m) {
+                shader.setCommon(UNIFORM_MODEL, getModel());
+                m->draw(shader);
+            }
+        }
+    private:
+        std::shared_ptr<Model> m;
+
+};
+
 class Button : public Object, public Renderable, public UIObject,
     public Selectable
 {

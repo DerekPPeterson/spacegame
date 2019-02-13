@@ -146,6 +146,7 @@ namespace CardDefinitions {
         .cost = {{RESOURCE_MATERIALS, 1}},
         .type = CARD_SHIP,
         .getValidTargets = singleSystemControlledByActivePlayer,
+        .creates = ShipDefinitions::sampleShip,
         .resolve = [](GameState& state) {
             createShipIn(state, ShipDefinitions::sampleShip);
         },
@@ -158,6 +159,7 @@ namespace CardDefinitions {
         .provides = {{RESOURCE_MATERIALS, 1}},
         .type = CARD_RESOURCE_SHIP,
         .getValidTargets = singleSystemControlledByActivePlayer,
+        .creates = ShipDefinitions::miningShip,
         .resolve = [](GameState& state) {
             createShipIn(state, ShipDefinitions::miningShip);
         },

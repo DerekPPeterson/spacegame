@@ -228,18 +228,31 @@ void Explosion::update(UpdateInfo& info)
 }
 
 
-map<string, shared_ptr<Model>> SpaceShip::models;
 shared_ptr<Model> SpaceShip::warpQuad;
 
 // TODO get different models for these
 map<string, string> MODEL_PATHS = {
     {"SS1", "./res/models/SS1_OBJ/SS1.obj"},
     {"Default Flagship", "./res/models/SS1_OBJ/SS1.obj"},
-    {"Mining Platform", "./res/models/SS1_OBJ/SS1.obj"},
+    {"Mining Platform", "./res/models/mining_platform/mining_platform.obj"},
     {"AI Coreship", "./res/models/SS1_OBJ/SS1.obj"},
     {"AM Gatherer", "./res/models/SS1_OBJ/SS1.obj"},
     {"Diplomatic Vessel", "./res/models/SS1_OBJ/SS1.obj"},
 };
+
+map<string, shared_ptr<Model>> shipModels;
+
+class ShipModelLoader : needs_setup<ShipModelLoader>
+{
+    public:
+    static void setup()
+    {
+        for (auto& [type, path] : MODEL_PATHS) {
+            shipModels[type] = make_shared<Model>(MODEL_PATHS[type].c_str());
+        }
+    }
+};
+volatile ShipModelLoader l;
 
 std::shared_ptr<SpaceShip> SpaceShip::createFrom(logic::Ship logicShip, System* s)
 {
@@ -249,39 +262,18 @@ std::shared_ptr<SpaceShip> SpaceShip::createFrom(logic::Ship logicShip, System* 
     return ship;
 }
 
-void SpaceShip::loadModel(string type)
-{
-    // Check if we've already loaded it
-    if (models.find(type) == models.end()) {
-        models[type] = shared_ptr<Model>(new Model(MODEL_PATHS[type].c_str()));
-    }
-    static bool sphereLoaded = false;
-    if (not sphereLoaded) {
-        warpQuad = shared_ptr<Model>(new Model("./res/models/quad/quad.obj"));
-        sphereLoaded = true;
-    }
-}
-
-void SpaceShip::setup()
-{
-    for (auto& [type, path] : MODEL_PATHS) {
-        if (models.find(type) == models.end()) {
-            models[type] = shared_ptr<Model>(new Model(MODEL_PATHS[type].c_str()));
-        }
-    }
-}
 
 SpaceShip::SpaceShip(string type, System* system) :
     Renderable(SHADER_LIGHTING),
     type(type), curSystem(system), prevSystem(system)
 {
     this->type = type;
-    loadModel(type);
     orbit.phase = rand_float_between(0, 2 * 3.14);
     orbit.inclination = rand_float_between(0, 3.14 / 3);
     orbit.radius = rand_float_between(1, 3);
     position = calcOrbitPosition(curSystem->getPosition(), orbit);
     stage = SHADER_LIGHTING | SHADER_WARP_STEP1;
+    warpQuad = Shapes::warpQuad;
 }
 
 float calculateWarp(glm::vec3 position, float margin, glm::vec3 start, glm::vec3 end)
@@ -380,7 +372,7 @@ glm::mat4 SpaceShip::calcModelMat() const
 void SpaceShip::draw(Shader& shader)
 {
     shader.setCommon(UNIFORM_MODEL, calcModelMat());
-    models[type]->draw(shader);
+    shipModels[type]->draw(shader);
 }
 
 void SpaceShip::drawWarp(Shader& shader)

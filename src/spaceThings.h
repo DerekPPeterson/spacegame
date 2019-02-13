@@ -86,9 +86,10 @@ class Explosion : public Object, public Renderable, public has_position
         ParticleGroup particles;
 };
 
+extern std::map<std::string, std::shared_ptr<Model>> shipModels;
+
 // TODO use an instance renderer
-class SpaceShip : public Object, public Renderable, public has_position,
-    needs_setup<SpaceShip>
+class SpaceShip : public Object, public Renderable, public has_position
 {
     public:
         SpaceShip(std::string type, System *system);
@@ -105,8 +106,6 @@ class SpaceShip : public Object, public Renderable, public has_position,
         void startShootingAt(std::shared_ptr<has_position> shootAt);
         void stopShooting();
 
-        static void setup();
-    
     protected:
         std::string type;
         float length = 0.1;
@@ -129,7 +128,6 @@ class SpaceShip : public Object, public Renderable, public has_position,
 
         glm::mat4 calcModelMat() const;
         static void loadModel(std::string type);
-        static std::map<std::string, std::shared_ptr<Model>> models;
         static std::shared_ptr<Model> warpQuad;
 };
 

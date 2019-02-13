@@ -12,6 +12,7 @@
 #include "model.h"
 #include "nocopy.h"
 #include "input.h"
+#include "has_property.h"
 
 /* This is black magic to statically initilize the list of classes that need
  * to run their setup functions
@@ -48,25 +49,6 @@ glm::vec2 calcScreenSpaceCoords(glm::vec3 position,
 glm::vec3 calcWorldSpaceCoords(glm::vec2 screenCoords, float worldDepth,
         glm::mat4 projection, glm::mat4 view,
         int screenWidth, int screenHeight);
-
-class has_position
-{
-    public:
-        glm::vec3 getPos() const {return position;};
-        void setPos(glm::vec3 pos) {this->position = pos;};
-    protected:
-        glm::vec3 position = glm::vec3(1.0f);
-};
-
-class has_model_mat
-{
-    public:
-        has_model_mat() : model(1.0f) {};
-        glm::mat4 getModel() const {return model;};
-        void setModel(glm::mat4 m) {model = m;};
-    protected:
-        glm::mat4 model;
-};
 
 class UIObject : public virtual has_position
 {

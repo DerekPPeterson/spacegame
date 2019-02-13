@@ -22,6 +22,7 @@
 #include <cereal/types/functional.hpp>
 #include <cereal/types/common.hpp>
 #include <cereal/types/utility.hpp>
+#include <cereal/types/optional.hpp>
 
 #include <prettyprint.hpp>
 #include <plog/Log.h>
@@ -194,6 +195,7 @@ namespace logic {
         int playedBy = 0;
         int ownerId = 0;
         vector<int> targets;
+        optional<Ship> creates;
 
         function<void(GameState&)> resolve = DEFAULT_CARD_RESOLVE;
         function<tuple<int, int, vector<Target>>(GameState&)> getValidTargets;
@@ -201,7 +203,7 @@ namespace logic {
             out << "(Card: " << c.name << " id " << c.id << ")";
             return out;
         }
-        SERIALIZE(id, name, cardText, cost, type, provides, playedBy, targets, ownerId);
+        SERIALIZE(id, name, cardText, cost, type, provides, playedBy, targets, ownerId, creates);
     };
 
     struct Player : public GameObject

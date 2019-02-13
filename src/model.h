@@ -12,6 +12,7 @@
 
 #include "shader.h"
 #include "renderables.h"
+#include "has_property.h"
 
 unsigned int loadTextureFromFile(std::string path, std::string directory, bool genMipmaps=true);
 
@@ -70,7 +71,7 @@ class Model : public Renderable
         {
             loadModel(path);
         }
-        void draw(Shader& shader) override;
+        virtual void draw(Shader& shader) override;
 
     private:
         // Model Data

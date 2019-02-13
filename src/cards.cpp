@@ -54,6 +54,7 @@ void SpringSystem::updatePositions(float deltaTime)
 // TODO different card models?
 shared_ptr<LineModel> Card::cardModel;
 shared_ptr<LineModel> Card::cardBackModel;
+shared_ptr<Model> Card::stencilQuad;
 
 std::string createCostString(ResourceAmount amount)
 {
@@ -75,6 +76,7 @@ void Card::setup()
     // make sure to update the quad vertices if the model changes
     cardModel = shared_ptr<LineModel>(new LineModel("./res/models/card/card.obj"));
     cardBackModel = shared_ptr<LineModel>(new LineModel("./res/models/card_back/card_back.obj"));
+    stencilQuad = make_shared<Model>("./res/models/card/card_stencil.obj");
 }
 
 void Card::queueDraw() 
@@ -97,9 +99,16 @@ void Card::queueDraw()
         cardText.queueDraw();
 
         glm::mat4 costModel = glm::translate(model, {-1, 2, 0});
-        //costModel = glm::scale(costModel, glm::vec3(0.1));
         costText.setModel(costModel);
         costText.queueDraw();
+
+        glm::mat4 displayShipModel = glm::translate(model, {0, 0.1, -1});
+        displayShipModel = glm::rotate(displayShipModel,(float) (Timer::global.get() * 2.0f * 3.14 / 4), {0, 1, 0});
+        displayShip.setModel(displayShipModel);
+        displayShip.queueDraw();
+
+        stencilQuadWithModel.setModel(model);
+        stencilQuadWithModel.queueDraw();
     }
 }
 
@@ -134,7 +143,9 @@ Card::Card(CardInfo info) : Renderable(SHADER_CARD),
     titleText(Fonts::title, info.name, info.color, 0, 0.2),
     cardText(Fonts::regular, info.text, info.color, 1.6, 0.15),
     costText(Fonts::regular, createCostString(info.cost), info.color, 1.6, 0.25),
-    typeText(Fonts::title, info.type, info.color, 9, 0.15)
+    typeText(Fonts::title, info.type, info.color, 9, 0.15),
+    displayShip(info.logicId, info.creates ? shipModels[info.creates->type] : nullptr),
+    stencilQuadWithModel(info.logicId, stencilQuad)
 {
     position = {-1, -1, -5};
     // For clickbox
@@ -181,6 +192,8 @@ std::shared_ptr<Card> Card::createFrom(logic::Card logicCard)
         .provides = logicCard.provides,
         .ownerId = logicCard.ownerId,
         .type = type.str(),
+        .creates = logicCard.creates,
+        .logicId = logicCard.id,
     };
     auto card = shared_ptr<Card>(new Card(info));
     card->logicId = logicCard.id;

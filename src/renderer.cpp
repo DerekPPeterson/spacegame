@@ -64,6 +64,8 @@ void Renderer::compileLinkShaders()
     shaders.try_emplace(SHADER_TEXT, "./src/shaders/text.vert", "./src/shaders/text.frag");
     shaders.try_emplace(SHADER_UI_LIGHTING, "./src/shaders/vertex.vert", "./src/shaders/uilighting.frag");
     shaders.try_emplace(SHADER_PARTICLE, "./src/shaders/particle.vert", "./src/shaders/particle.frag");
+    shaders.try_emplace(SHADER_UI_LIGHTING_CARD_IMAGE, "./src/shaders/vertex.vert", "./src/shaders/uilighting.frag");
+    shaders.try_emplace(SHADER_STENCIL, "./src/shaders/stencil.vert", "./src/shaders/stencil.frag");
 }
 
 Renderer::Renderer(RenderOptions options, Camera& camera) :
@@ -101,7 +103,7 @@ void Renderer::renderMainScene()
     glDrawBuffers(2, attachments);
    
     glClearColor(0, 0, 0, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     // TODO improve uniform setting
     shaders[SHADER_LAMP].use();
@@ -146,11 +148,39 @@ void Renderer::renderMainScene()
     shaders[SHADER_UI_LIGHTING].setMat4("view", glm::mat4(1.0f));
     Renderable::drawStage(SHADER_UI_LIGHTING, shaders[SHADER_UI_LIGHTING]);
 
+    glEnable(GL_STENCIL_TEST);
+    //glStencilFunc(GL_ALWAYS, 1, 0xFF);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);  
+    glStencilMask(0xFF);
+    glDisable(GL_CULL_FACE);  // No face culling, warp effects are only 2d quads
+    glColorMask(false, false, false, false);
+    glDepthMask(false);
+
+    shaders[SHADER_STENCIL].use();
+    shaders[SHADER_STENCIL].setMat4("projection", projection);
+    shaders[SHADER_STENCIL].setMat4("view", glm::mat4(1.0f));
+    Renderable::drawStage(SHADER_STENCIL, shaders[SHADER_STENCIL]);
+
+    glColorMask(true, true, true, true);
+    glDepthMask(true);
+    glEnable(GL_CULL_FACE);  // No face culling, warp effects are only 2d quads
+    //glStencilFunc(GL_EQUAL, 1, 0xFF);
+    glStencilMask(0x00);
+
+    shaders[SHADER_UI_LIGHTING_CARD_IMAGE].use();
+    shaders[SHADER_UI_LIGHTING_CARD_IMAGE].setMat4("projection", projection);
+    shaders[SHADER_UI_LIGHTING_CARD_IMAGE].setMat4("view", glm::mat4(1.0f));
+    Renderable::drawStage(SHADER_UI_LIGHTING_CARD_IMAGE, shaders[SHADER_UI_LIGHTING_CARD_IMAGE]);
+
+    glDisable(GL_STENCIL_TEST);
+    glStencilMask(0xFF);
+
     shaders[SHADER_SKYBOX].use();
     glm::mat4 skyboxView = glm::mat4(glm::mat3(camera.getViewMatrix()));  
     shaders[SHADER_SKYBOX].setMat4("view", skyboxView);
     shaders[SHADER_SKYBOX].setMat4("projection", projection);
     Renderable::drawStage(SHADER_SKYBOX, shaders[SHADER_SKYBOX]);
+
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
