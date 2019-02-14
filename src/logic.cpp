@@ -162,9 +162,10 @@ void GameState::startGame()
         list<logic::Card> deck;
         vector<Card> toUse = {
             CardDefinitions::sample_ship,
-            //CardDefinitions::ai_coreship,
-            CardDefinitions::am_gatherer,
-            CardDefinitions::am_laser,
+            CardDefinitions::ai_coreship,
+            CardDefinitions::subtle_hack,
+            //CardDefinitions::am_gatherer,
+            //CardDefinitions::am_laser,
             CardDefinitions::resource_ship,
             //CardDefinitions::diplomaticVessal,
         };
@@ -280,6 +281,15 @@ Card* GameState::getCardById(int id)
     return card;
 }
 
+int GameState::otherPlayer(int playerId) {
+    for (auto p : players) {
+        if (p.id != playerId) {
+            return p.id;
+        }
+    }
+    return 0;
+}
+
 vector<Change> GameState::getChangesAfter(int changeNo)
 {
     for (int i = 0; i < changes.size(); i++) {
@@ -299,6 +309,7 @@ vector<Action> GameState::getValidCardActions()
         auto player = getPlayerById(turnInfo.activePlayer);
         for (auto& card : player->hand) {
             if (card.cost <= player->resources 
+                    and card.canPlay(*this)
                     and not (card.type == CARD_RESOURCE_SHIP 
                         and player->playedResourceShipThisTurn)) {
                 Action action = {
@@ -315,7 +326,9 @@ vector<Action> GameState::getValidCardActions()
     if (turnInfo.phase.back() == PHASE_RESOLVE_STACK) {
         auto player = getPlayerById(turnInfo.activePlayer);
         for (auto& card : player->hand) {
-            if (card.cost <= player->resources and card.type == CARD_INSTANT_ACTION) {
+            if (card.cost <= player->resources 
+                    and card.canPlay(*this)
+                    and card.type == CARD_INSTANT_ACTION) {
                 Action action = {
                     .type = ACTION_PLAY_CARD,
                     .playerId = turnInfo.activePlayer,
@@ -506,11 +519,11 @@ vector<Action> GameState::getPossibleActions(int playerId)
 
 void GameState::upkeep(bool firstTurn)
 {
-    if (not firstTurn) {
-        auto drawInfo = getPlayerById(turnInfo.whoseTurn)->draw();
-        changes.push_back({.type = CHANGE_DRAW_CARD, .data = drawInfo});
-    }
     auto player = getPlayerById(turnInfo.whoseTurn);
+
+    if (not firstTurn) {
+        drawCard(player->id);
+    }
 
     for (auto& ship : ships) {
         if (ship.controller == turnInfo.whoseTurn) {
@@ -523,6 +536,11 @@ void GameState::upkeep(bool firstTurn)
             });
 
     player->playedResourceShipThisTurn = false;
+}
+
+void GameState::drawCard(int playerId) {
+    auto drawInfo = getPlayerById(turnInfo.whoseTurn)->draw();
+    changes.push_back({.type = CHANGE_DRAW_CARD, .data = drawInfo});
 }
 
 void GameState::updateSystemControllers()
@@ -578,8 +596,19 @@ void GameState::performAction(Action action)
                     playCard(action.id, turnInfo.activePlayer);
                     break;
                 case ACTION_NONE:
-                    resolveStackTop();
-                    break;
+                    {
+                        auto card = stack.back();
+                        if (turnInfo.activePlayer == card.playedBy) {
+                            turnInfo.activePlayer = otherPlayer(turnInfo.activePlayer);
+                        } else {
+                            resolveStackTop();
+                            turnInfo.activePlayer = otherPlayer(turnInfo.activePlayer);
+                        }
+                        if (stack.size() == 0) {
+                            turnInfo.activePlayer = turnInfo.whoseTurn;
+                        }
+                        break;
+                    }
                 default:
                     LOG_ERROR << "Invalid action type when resolving stack";
             }
@@ -612,6 +641,7 @@ void GameState::playCard(int cardId, int playerId)
 
     if (turnInfo.phase.back() != PHASE_RESOLVE_STACK) {
         turnInfo.phase.push_back(PHASE_RESOLVE_STACK);
+        turnInfo.activePlayer = otherPlayer(turnInfo.activePlayer);
     }
 
     if (card->getValidTargets) {

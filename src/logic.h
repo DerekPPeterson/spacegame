@@ -164,6 +164,10 @@ namespace logic {
         LOG_ERROR << "Resolving a card with a default resolve function";
     }
 
+    inline bool DEFAULT_CARD_CAN_PLAY(GameState& state) {
+        return true;
+    }
+
 
     enum TargetType {
         TARGET_SYSTEM,
@@ -199,6 +203,8 @@ namespace logic {
 
         function<void(GameState&)> resolve = DEFAULT_CARD_RESOLVE;
         function<tuple<int, int, vector<Target>>(GameState&)> getValidTargets;
+        function<bool(GameState&)> canPlay = DEFAULT_CARD_CAN_PLAY;
+
         friend ostream & operator << (ostream &out, const Card &c) {
             out << "(Card: " << c.name << " id " << c.id << ")";
             return out;
@@ -288,6 +294,7 @@ namespace logic {
         CHANGE_COMBAT_START,  // data will be systemId of system that started combat
         CHANGE_COMBAT_ROUND_END,  // no data, indicates combat round ended
         CHANGE_COMBAT_END,  // no data, indicated current combat finished
+        CHANGE_RETURN_CARD_STACK_TO_HAND,  // cardId of card to return to it's owners hand
     };
 
     struct Change
@@ -335,6 +342,7 @@ namespace logic {
         System* getSystemByPos(int i, int j);
         Card* getCardById(int id);
         WarpBeacon* getBeaconById(int id);
+        int otherPlayer(int playerId);
         
         vector<Change> getChangesAfter(int changeNo = 0);
 
@@ -347,22 +355,22 @@ namespace logic {
 
         vector<Change> changes;
 
-        private:
-            void playCard(int cardId, int playerId);
-            void resolveStackTop();
-            void placeBeacon(int systemId, int ownerId);
-            void moveShipsToBeacon(int beaconId, vector<int> ships);
-            void endTurn();
-            void upkeep(bool firstTurn=false);
-            void updateSystemControllers();
-            void resolveCombats();
+        void playCard(int cardId, int playerId);
+        void resolveStackTop();
+        void placeBeacon(int systemId, int ownerId);
+        void moveShipsToBeacon(int beaconId, vector<int> ships);
+        void endTurn();
+        void upkeep(bool firstTurn=false);
+        void updateSystemControllers();
+        void resolveCombats();
+        void drawCard(int playerId);
 
-            vector<Action> getValidCardActions();
-            vector<Action> getValidBeaconActions();
-            vector<Action> getTargetActions();
-            vector<Action> getValidShipsForBeacon(int beaconId);
+        vector<Action> getValidCardActions();
+        vector<Action> getValidBeaconActions();
+        vector<Action> getTargetActions();
+        vector<Action> getValidShipsForBeacon(int beaconId);
 
-            set<int> shipCanReach(int shipId);
+        set<int> shipCanReach(int shipId);
     };
 };
 

@@ -96,6 +96,7 @@ class GraphicsObjectHandler
         float combatRound(logic::Change change);
         float combatEnd(logic::Change change);
         float shipTargets(logic::Change change);
+        float returnCardToHand(logic::Change change);
 };
 
 #endif

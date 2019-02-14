@@ -32,6 +32,22 @@ tuple<int, int, vector<Target>> singleSystemControlledByActivePlayer(GameState& 
     return {1, 1, getSystemsControlledByActivePlayer(state)};
 }
 
+tuple<int, int, vector<Target>> noTargets(GameState& state)
+{
+    return {0, 0, {}};
+}
+
+void subtle_hack(GameState& state) {
+    auto cardIt = prev(state.stack.end(), 2);
+    auto card = *cardIt;
+    state.stack.erase(cardIt);
+    auto haltedPlayer = state.getPlayerById(card.playedBy);
+    haltedPlayer->hand.push_back(card);
+    state.changes.push_back({.type=CHANGE_RETURN_CARD_STACK_TO_HAND, .data=card.id});
+
+    state.drawCard(state.stack.back().playedBy);
+}
+
 void createShipIn(GameState& state, logic::Ship ship)
 {
     auto card = state.stack.back();
@@ -175,6 +191,16 @@ namespace CardDefinitions {
         .resolve = [](GameState& state) {
             createShipIn(state, ShipDefinitions::aiCore);
         },
+    };
+
+    Card subtle_hack = {
+        .name = "Subtle hack",
+        .cardText = "Halt the last card play. Return that card to it's owners hand. Draw a card.",
+        .cost = {{RESOURCE_AI, 1}},
+        .type = CARD_INSTANT_ACTION,
+        //.getValidTargets = noTargets,
+        .resolve = ::subtle_hack,
+        .canPlay = [](GameState& state){return state.stack.size() > 0;},
     };
 
     Card am_gatherer = {

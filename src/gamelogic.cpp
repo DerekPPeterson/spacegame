@@ -207,11 +207,16 @@ void GraphicsObjectHandler::updateSysInfoActiveButtons()
 
 void GraphicsObjectHandler::setPossibleActions(std::vector<logic::Action> actions) 
 {
+    this->actions = actions;
+
+    if (pendingChanges.size()) {
+        return;
+    }
+    
     // Reset buttons
     passButton->setActive(false);
     confirmButton->setActive(false);
 
-    this->actions = actions;
     // If there is only one choice to make then make it
     if (actions.size() == 1 
             and (actions[0].minTargets == actions[0].maxTargets == actions[0].targets.size()
@@ -363,7 +368,7 @@ float GraphicsObjectHandler::playCard(logic::Change change)
     hand->removeCard(card);
     enemyHand->removeCard(card);
     stack->addCard(card);
-    return 3;
+    return 2;
 }
 
 float GraphicsObjectHandler::changePlayerResources(logic::Change change)
@@ -440,6 +445,19 @@ float GraphicsObjectHandler::shipTargets(logic::Change change)
     return 1;
 }
 
+float GraphicsObjectHandler::returnCardToHand(logic::Change change)
+{
+    auto cardId = get<int>(change.data);
+    auto card = dynamic_pointer_cast<Card>(getObject(cardId));
+    stack->removeCard(card);
+    if (card->enemyOwned) {
+        enemyHand->addCard(card);
+    } else {
+        hand->addCard(card);
+    }
+    return 0.5;
+}
+
 
 void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes, UpdateInfo info)
 {
@@ -479,6 +497,8 @@ void GraphicsObjectHandler::updateState(std::vector<logic::Change> changes, Upda
                 delay = combatEnd(change); break;
             case logic::CHANGE_SHIP_TARGETS:
                 delay = shipTargets(change); break;
+            case logic::CHANGE_RETURN_CARD_STACK_TO_HAND:
+                delay = returnCardToHand(change); break;
             default:
                 LOG_ERROR << "Received unhandled change from server: " << change;
         }
