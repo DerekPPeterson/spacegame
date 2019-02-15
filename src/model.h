@@ -77,7 +77,6 @@ class Model : public Renderable
         // Model Data
         std::vector<Mesh> meshes;
         std::string directory;
-        std::set<std::string> texture_paths;
 
         //functions
         void loadModel(std::string path);

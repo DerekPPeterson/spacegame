@@ -303,13 +303,69 @@ void Quad::draw()
     glDrawArrays(GL_TRIANGLES, 0, numVertices);
 }
 
+TexturedQuad::TexturedQuad(ShaderEnum stage, string path)
+    : Renderable(stage)
+{
+    textureId = loadTextureFromFile(path, ".");
+};
+
+void TexturedQuad::draw(Shader& shader)
+{
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    shader.setCommon(UNIFORM_MODEL, getModel());
+    //shader.setInt("tex" , 0);
+    Shapes::framebufferQuad->draw(shader);
+}
+
+shared_ptr<MeshRenderable> createFramebufferQuad()
+{
+    float vertices[] = {
+        // positions   // texCoords
+        -1.0f,  1.0f,  0.0f, 1.0f,
+        -1.0f, -1.0f,  0.0f, 0.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+
+        -1.0f,  1.0f,  0.0f, 1.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+         1.0f,  1.0f,  1.0f, 1.0f
+        };
+
+    unsigned int indices[] = {0, 1, 2, 3, 4, 5};
+
+    unsigned int VAO, VBO, EBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices[0], GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), &indices[0], GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (void*) 0);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 
+            (void*) (sizeof(float) * 2));
+    
+    // This renderable is only ever rendered manually
+    return make_shared<MeshRenderable>(SHADER_NONE, VAO, sizeof(indices) / sizeof(indices[0]));
+};
+
 shared_ptr<Model> Shapes::sphere;
 shared_ptr<Model> Shapes::warpQuad;
+shared_ptr<MeshRenderable> Shapes::framebufferQuad;
+
 volatile Shapes shapes; // Needed to force setup func to run
 void Shapes::setup()
 {
     sphere = shared_ptr<Model>(new Model("./res/models/sphere.obj"));
     warpQuad = shared_ptr<Model>(new Model("./res/models/quad/quad.obj"));
+    framebufferQuad = createFramebufferQuad();
 }
 
 shared_ptr<Model> Cube::model;

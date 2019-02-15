@@ -44,7 +44,6 @@ class Renderer
         Framebuffers framebuffers;
         glm::mat4 projection;
         std::unordered_map<ShaderEnum, Shader> shaders;
-        MeshRenderable framebufferQuad;
         std::vector<std::shared_ptr<Renderable>> toRender;
         std::vector<std::shared_ptr<Renderable>> alwaysRender;
         std::mutex toRenderMutex;

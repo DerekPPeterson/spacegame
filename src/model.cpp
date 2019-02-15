@@ -3,6 +3,7 @@
 
 #include <string>
 #include <set>
+#include <map>
 #include <stdio.h>
 #include <memory>
 #include <plog/Log.h>
@@ -15,6 +16,8 @@
 #include <assimp/postprocess.h>
 
 using namespace std;
+
+map<string, int> LOADED_TEXTURES;
 
 
 Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices,
@@ -214,6 +217,11 @@ unsigned int loadTextureFromFile(string path, string directory,
 {
     int width, height, nrChannels;
     string full_path = directory + "/" + path;
+
+    if (LOADED_TEXTURES.count(full_path)) {
+        return LOADED_TEXTURES[full_path];
+    }
+
     unsigned char *data = stbi_load(full_path.c_str(), &width, &height, &nrChannels, 0); 
     if (not data) {
         LOG_ERROR << "Failed to load texture: " << full_path;
@@ -240,6 +248,8 @@ unsigned int loadTextureFromFile(string path, string directory,
 
     stbi_image_free(data);
 
+    LOADED_TEXTURES[full_path] = texture;
+
     return texture;
 }
 
@@ -251,10 +261,6 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial *mat,
         aiString str;
         mat->GetTexture(type, i, &str);
         string texture_path = str.C_Str();
-        if (texture_paths.count(texture_path)) {
-            continue;
-        }
-        texture_paths.insert(texture_path);
         Texture texture;
         texture.id = loadTextureFromFile(texture_path, directory);
         texture.type = typeName;
@@ -269,3 +275,4 @@ LineMesh LineModel::loadLineMesh(string path)
     LineObj model = readLineObj(path);
     return LineMesh(model.vertices, model.indices);
 }
+

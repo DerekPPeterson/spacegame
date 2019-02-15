@@ -24,6 +24,7 @@ void Renderable::queueDraw() {
         SHADER_PARTICLE,
         SHADER_STENCIL,
         SHADER_UI_LIGHTING_CARD_IMAGE,
+        SHADER_CARD_BG,
     };
     for (auto s : stageList) {
         if (s & stage) {

@@ -77,6 +77,9 @@ void Card::setup()
     cardModel = shared_ptr<LineModel>(new LineModel("./res/models/card/card.obj"));
     cardBackModel = shared_ptr<LineModel>(new LineModel("./res/models/card_back/card_back.obj"));
     stencilQuad = make_shared<Model>("./res/models/card/card_stencil.obj");
+    
+    // This loads the texture here rather than on card creation
+    TexturedQuad(SHADER_CARD_BG, "./res/textures/dark_space.jpg");
 }
 
 void Card::queueDraw() 
@@ -107,6 +110,11 @@ void Card::queueDraw()
         displayShipModel = glm::scale(displayShipModel, glm::vec3(0.5));
         displayShip.setModel(displayShipModel);
         displayShip.queueDraw();
+
+        glm::mat4 cardBackgroundModel = glm::translate(model, {0, 0, -5});
+        cardBackgroundModel = glm::scale(cardBackgroundModel, glm::vec3(5));
+        cardBackground.setModel(cardBackgroundModel);
+        cardBackground.queueDraw();
 
         stencilQuadWithModel.setModel(model);
         stencilQuadWithModel.queueDraw();
@@ -146,6 +154,7 @@ Card::Card(CardInfo info) : Renderable(SHADER_CARD),
     costText(Fonts::regular, createCostString(info.cost), info.color, 1.6, 0.25),
     typeText(Fonts::title, info.type, info.color, 9, 0.15),
     displayShip(info.logicId, info.creates ? shipModels[info.creates->type] : nullptr),
+    cardBackground(info.logicId, "./res/textures/dark_space.jpg"),
     stencilQuadWithModel(info.logicId, stencilQuad)
 {
     position = {-1, -1, -5};

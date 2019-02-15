@@ -32,6 +32,7 @@ enum ShaderEnum {
     SHADER_STENCIL       = 1 << 14, // Main scene, used to block out card image areas
     SHADER_PARTICLE       = 1 << 15, // Main scene
     SHADER_UI_LIGHTING_CARD_IMAGE    = 1 << 16, // Main scene only write to card image areas
+    SHADER_CARD_BG    = 1 << 17, // Main scene only write to card image areas
 };
 
 class Renderable;

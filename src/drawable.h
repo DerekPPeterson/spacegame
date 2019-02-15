@@ -162,12 +162,22 @@ class Quad: public Object
         static bool isSetup;
 };
 
+class TexturedQuad : public Renderable, public has_model_mat
+{
+    public:
+        TexturedQuad(ShaderEnum stage, std::string path);
+        virtual void draw(Shader& shader);
+    private:
+        unsigned int textureId;
+};
+
 class Shapes : public needs_setup<Shapes>
 {
     public:
         static void setup();
         static std::shared_ptr<Model> sphere;
         static std::shared_ptr<Model> warpQuad;
+        static std::shared_ptr<MeshRenderable> framebufferQuad;
 };
 
 enum LightType {LIGHT_POINT};

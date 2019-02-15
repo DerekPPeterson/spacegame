@@ -9,43 +9,6 @@
 
 using namespace std;
 
-MeshRenderable createFramebufferQuad()
-{
-    float vertices[] = {
-        // positions   // texCoords
-        -1.0f,  1.0f,  0.0f, 1.0f,
-        -1.0f, -1.0f,  0.0f, 0.0f,
-         1.0f, -1.0f,  1.0f, 0.0f,
-
-        -1.0f,  1.0f,  0.0f, 1.0f,
-         1.0f, -1.0f,  1.0f, 0.0f,
-         1.0f,  1.0f,  1.0f, 1.0f
-        };
-
-    unsigned int indices[] = {0, 1, 2, 3, 4, 5};
-
-    unsigned int VAO, VBO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices[0], GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), &indices[0], GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (void*) 0);
-
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 
-            (void*) (sizeof(float) * 2));
-    
-    // This renderable is only ever rendered manually
-    return MeshRenderable(SHADER_NONE, VAO, sizeof(indices) / sizeof(indices[0]));
-};
 
 void Renderer::compileLinkShaders()
 {
@@ -65,13 +28,13 @@ void Renderer::compileLinkShaders()
     shaders.try_emplace(SHADER_UI_LIGHTING, "./src/shaders/vertex.vert", "./src/shaders/uilighting.frag");
     shaders.try_emplace(SHADER_PARTICLE, "./src/shaders/particle.vert", "./src/shaders/particle.frag");
     shaders.try_emplace(SHADER_UI_LIGHTING_CARD_IMAGE, "./src/shaders/vertex.vert", "./src/shaders/uilighting.frag");
+    shaders.try_emplace(SHADER_CARD_BG, "./src/shaders/cardbg.vert", "./src/shaders/cardbg.frag");
     shaders.try_emplace(SHADER_STENCIL, "./src/shaders/stencil.vert", "./src/shaders/stencil.frag");
 }
 
 Renderer::Renderer(RenderOptions options, Camera& camera) :
     options(options), camera(camera), 
-    framebuffers(Framebuffers(options.screenWidth, options.screenHeight)),
-    framebufferQuad(createFramebufferQuad())
+    framebuffers(Framebuffers(options.screenWidth, options.screenHeight))
 {
     glViewport(0, 0, options.screenWidth, options.screenHeight);
     //TODO should more of these be options?
@@ -171,6 +134,11 @@ void Renderer::renderMainScene()
     shaders[SHADER_UI_LIGHTING_CARD_IMAGE].setMat4("projection", projection);
     shaders[SHADER_UI_LIGHTING_CARD_IMAGE].setMat4("view", glm::mat4(1.0f));
     Renderable::drawStage(SHADER_UI_LIGHTING_CARD_IMAGE, shaders[SHADER_UI_LIGHTING_CARD_IMAGE]);
+
+    shaders[SHADER_CARD_BG].use();
+    shaders[SHADER_CARD_BG].setMat4("projection", projection);
+    shaders[SHADER_CARD_BG].setMat4("view", glm::mat4(1.0f));
+    Renderable::drawStage(SHADER_CARD_BG, shaders[SHADER_CARD_BG]);
 
     glDisable(GL_STENCIL_TEST);
     glStencilMask(0xFF);
@@ -285,7 +253,7 @@ int Renderer::renderBloom()
     framebufferShader.setInt("hdrBuffer", 0);
     //glGenerateMipmap(GL_TEXTURE_2D);
     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 1);
-    framebufferQuad.draw(framebufferShader);
+    Shapes::framebufferQuad->draw(framebufferShader);
 
     // Blur bright areas for bloom
     blurShader.use();
@@ -299,7 +267,7 @@ int Renderer::renderBloom()
         ); 
 
         glActiveTexture(GL_TEXTURE0);
-        framebufferQuad.draw(blurShader);
+        Shapes::framebufferQuad->draw(blurShader);
 
         horizontal = !horizontal;
     }
@@ -323,7 +291,7 @@ void Renderer::mergeEffects(int bloomOutputTextureNo)
     blendShader.use();
     blendShader.setInt("hdrBuffer1", 1);
     blendShader.setInt("hdrBuffer2", 2);
-    framebufferQuad.draw(blendShader);
+    Shapes::framebufferQuad->draw(blendShader);
 }
 
 void Renderer::renderFrame() 

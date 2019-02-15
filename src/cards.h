@@ -118,6 +118,23 @@ class ModelUnderStencil : public ModelWithModel
         int id;
 };
 
+class TexturedQuadUnderStencil : public TexturedQuad
+{
+    public:
+        TexturedQuadUnderStencil(int id, std::string path)
+            : TexturedQuad(SHADER_CARD_BG, path),
+              id(id % 255 + 1)
+        {};
+
+        virtual void draw(Shader& shader) {
+            glStencilFunc(GL_EQUAL, id, 0xFF);
+            TexturedQuad::draw(shader);
+        }
+    private:
+        int id;
+};
+
+
 class Card : public Renderable , public Object, public Dragable,
              public needs_setup<Card>, public SpringObject
 {
@@ -159,6 +176,7 @@ class Card : public Renderable , public Object, public Dragable,
         Zone zone;
 
         ModelUnderStencil displayShip;
+        TexturedQuadUnderStencil cardBackground;
         static std::shared_ptr<Model> stencilQuad;
         StencilModel stencilQuadWithModel;
 
