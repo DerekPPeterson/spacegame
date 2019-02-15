@@ -15,11 +15,12 @@ vector<Target> getAllNonFlagships(GameState& state)
     return targets;
 }
 
-vector<Target> getSystemsControlledByActivePlayer(GameState& state)
+vector<Target> getSystemsControlledByCardPlayer(GameState& state)
 {
     vector<Target> systemIds;
+    auto card = state.stack.back();
     for (auto &s : state.systems) {
-        if (s.controllerId == state.turnInfo.activePlayer) {
+        if (s.controllerId == card.playedBy) {
             Target target = {.id = s.id, .type = TARGET_SYSTEM};
             systemIds.push_back(target);
         }
@@ -29,7 +30,7 @@ vector<Target> getSystemsControlledByActivePlayer(GameState& state)
 
 tuple<int, int, vector<Target>> singleSystemControlledByActivePlayer(GameState& state)
 {
-    return {1, 1, getSystemsControlledByActivePlayer(state)};
+    return {1, 1, getSystemsControlledByCardPlayer(state)};
 }
 
 tuple<int, int, vector<Target>> noTargets(GameState& state)
