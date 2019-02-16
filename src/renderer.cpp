@@ -117,18 +117,26 @@ void Renderer::renderMainScene()
     glStencilMask(0xFF);
     glDisable(GL_CULL_FACE);  // No face culling, warp effects are only 2d quads
     glColorMask(false, false, false, false);
-    glDepthMask(false);
+    //glDepthMask(false);
 
+    // update stencils/ using depth buffer
     shaders[SHADER_STENCIL].use();
+    shaders[SHADER_STENCIL].setBool("resetDepth", false);
     shaders[SHADER_STENCIL].setMat4("projection", projection);
     shaders[SHADER_STENCIL].setMat4("view", glm::mat4(1.0f));
     Renderable::drawStage(SHADER_STENCIL, shaders[SHADER_STENCIL]);
 
+    glStencilMask(0x00);
+    glDisable(GL_DEPTH_TEST);
+    shaders[SHADER_STENCIL].setBool("resetDepth", true);
+    Renderable::drawStage(SHADER_STENCIL, shaders[SHADER_STENCIL]);
+
+    glEnable(GL_DEPTH_TEST);
     glColorMask(true, true, true, true);
-    glDepthMask(true);
+    //glDepthMask(true);
     glEnable(GL_CULL_FACE);  // No face culling, warp effects are only 2d quads
     //glStencilFunc(GL_EQUAL, 1, 0xFF);
-    glStencilMask(0x00);
+    //glStencilMask(0x00);
 
     shaders[SHADER_UI_LIGHTING_CARD_IMAGE].use();
     shaders[SHADER_UI_LIGHTING_CARD_IMAGE].setMat4("projection", projection);
@@ -139,6 +147,18 @@ void Renderer::renderMainScene()
     shaders[SHADER_CARD_BG].setMat4("projection", projection);
     shaders[SHADER_CARD_BG].setMat4("view", glm::mat4(1.0f));
     Renderable::drawStage(SHADER_CARD_BG, shaders[SHADER_CARD_BG]);
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);  // No face culling, warp effects are only 2d quads
+    glColorMask(false, false, false, false);
+    shaders[SHADER_STENCIL].use();
+    shaders[SHADER_STENCIL].setBool("resetDepth", false);
+    shaders[SHADER_STENCIL].setMat4("projection", projection);
+    shaders[SHADER_STENCIL].setMat4("view", glm::mat4(1.0f));
+    Renderable::drawStage(SHADER_STENCIL, shaders[SHADER_STENCIL]);
+    glColorMask(true, true, true, true);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);  // No face culling, warp effects are only 2d quads
 
     glDisable(GL_STENCIL_TEST);
     glStencilMask(0xFF);
