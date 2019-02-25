@@ -96,6 +96,14 @@ namespace ShipDefinitions {
         .movement = 1,
     };
 
+    Ship sampleShip2 = {
+        .type = "SS2",
+        .attack = 2,
+        .shield = 3,
+        .armour = 4,
+        .movement = 1,
+    };
+
     Ship defaultFlagship = {
         .type = "Default Flagship",
         .attack = 2,
@@ -168,6 +176,18 @@ namespace CardDefinitions {
         .resolve = [](GameState& state) {
             auto ship = createShipIn(state, ShipDefinitions::sampleShip);
             ship->upkeep(state, *ship);
+        },
+    };
+
+    Card sample_ship2 = {
+        .name = "Sample Ship 2",
+        .cardText = "Construct a sample ship 2 in a system you control",
+        .cost = {{RESOURCE_MATERIALS, 1}, {RESOURCE_ANY, 2}},
+        .type = CARD_SHIP,
+        .getValidTargets = singleSystemControlledByActivePlayer,
+        .creates = ShipDefinitions::sampleShip2,
+        .resolve = [](GameState& state) {
+            createShipIn(state, ShipDefinitions::sampleShip2);
         },
     };
 

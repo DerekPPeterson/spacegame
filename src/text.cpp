@@ -176,11 +176,26 @@ void Text::calcCharPositions()
         if (c == '{') {
             string key;
             int j;
+            bool isAny = false;
+            string anyAmount;
             for (j = i + 1; j < text.size() and text[j] != '}'; j++) {
-                key.push_back(text[j]);
+                if (text[j] == '|') {
+                    isAny = true;
+                    continue;
+                }
+                if (isAny) {
+                    anyAmount.push_back(text[j]);
+                } else {
+                    key.push_back(text[j]);
+                }
+
             }
             if (resourceStrings.count(key)) {
-                icons.push_back(createIcon(resourceStrings[key]));
+                if (isAny) {
+                    icons.push_back(createIcon(resourceStrings[key], stoi(anyAmount)));
+                } else {
+                    icons.push_back(createIcon(resourceStrings[key]));
+                }
                 i = j;
                 charInfo = iconInfo;
                 c = '~';

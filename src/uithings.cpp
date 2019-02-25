@@ -17,7 +17,7 @@ std::map<std::string, ResourceType> resourceStrings = {
     {"any", RESOURCE_ANY},
 };
 
-std::shared_ptr<Renderable> createIcon(ResourceType type)
+std::shared_ptr<Renderable> createIcon(ResourceType type, int n)
 {
     Renderable * icon = nullptr;
     switch (type) {
@@ -31,9 +31,8 @@ std::shared_ptr<Renderable> createIcon(ResourceType type)
             icon = new AntiMatterIcon(); break;
         case RESOURCE_INFLUENCE:
             icon = new InfluenceIcon(); break;
-        // TODO new icon for this?
         case RESOURCE_ANY:
-            icon = nullptr; break;
+            icon = new AnyResIcon(n); break;
     }
     return shared_ptr<Renderable>(icon);
 };
@@ -241,6 +240,18 @@ void InfluenceIcon::update(UpdateInfo& info)
 {
     curTime = info.curTime;
 }
+
+AnyResIcon::AnyResIcon(int n) :
+    Renderable(SHADER_NONE), t(Fonts::title, to_string(n), {2, 2, 2}, 0, 0.6)
+{
+}
+
+void AnyResIcon::queueDraw()
+{
+    t.setModel(glm::translate(getModel(), {-0.5, 0.5, 0}));
+    t.queueDraw();
+}
+
 
 IconNum::IconNum(std::shared_ptr<Renderable> icon) : 
     Renderable(SHADER_UI_LIGHTING), t(Fonts::title, "", {1.1, 1.1, 1.1}), 

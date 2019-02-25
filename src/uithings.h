@@ -96,6 +96,18 @@ class InfluenceIcon : public Renderable, public Selectable, public Object,
         static std::shared_ptr<Model> m;
 };
 
+class AnyResIcon : public Renderable, public Selectable, public Object,
+    public needs_setup<AnyResIcon>
+{
+    public:
+        AnyResIcon(int n);
+        void queueDraw() override;
+        static void setup() {};
+    protected:
+        Text t;
+        //static std::shared_ptr<Model> m;
+};
+
 class IconNum : public Renderable, public Selectable, 
      public Object, public UIObject
 {
@@ -114,7 +126,7 @@ class IconNum : public Renderable, public Selectable,
 };
 
 extern std::map<std::string, ResourceType> resourceStrings;
-std::shared_ptr<Renderable> createIcon(ResourceType type);
+std::shared_ptr<Renderable> createIcon(ResourceType type, int n=0);
 
 class ResourceDisplay : public Renderable, public Object, 
     public UIObject, public has_model_mat

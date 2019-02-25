@@ -59,13 +59,18 @@ shared_ptr<Model> Card::stencilQuad;
 std::string createCostString(ResourceAmount amount)
 {
     stringstream ss;
-    for (auto p : resourceStrings) {
-        string str = p.first;
-        ResourceType type = p.second;
+    for (auto [str, type] : resourceStrings) {
 
-        for (int i = 0; i < amount[type]; i++) {
-            ss << "{" << str << "}";
+        if (type == RESOURCE_ANY) {
+            if (amount[type] > 0) {
+                ss << "{" << str << "|" << amount[type] << "}";
+            }
+        } else {
+            for (int i = 0; i < amount[type]; i++) {
+                ss << "{" << str << "}";
+            }
         }
+
     }
     return ss.str();
 }

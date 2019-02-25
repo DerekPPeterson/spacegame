@@ -72,24 +72,46 @@ ResourceAmount operator - (ResourceAmount a, const ResourceAmount& b)
     return a;
 }
 
-bool operator >= (const ResourceAmount& a, const ResourceAmount& b)
+bool operator >= (const ResourceAmount& a, ResourceAmount& b)
 {
-    auto difference = a - b;
+    ResourceAmount b_copy = b;
+    int bResourceAnyAmount = b_copy[RESOURCE_ANY];
+    b_copy[RESOURCE_ANY] = 0;
+
+    auto difference = a - b_copy;
+    int remaining = 0;
     for (auto pair : difference) {
         if (pair.second < 0) {
             return false;
+        } else {
+            remaining += pair.second;
         }
     }
+    
+    if (bResourceAnyAmount > remaining) {
+        return false;
+    }
+
     return true;
 }
 
 bool operator <= (const ResourceAmount& a, const ResourceAmount& b)
 {
-    auto difference = b - a;
+    ResourceAmount a_copy = a;
+    int aResourceAnyAmount = a_copy[RESOURCE_ANY];
+    a_copy[RESOURCE_ANY] = 0;
+
+    auto difference = b - a_copy;
+    int remaining = 0;
     for (auto pair : difference) {
         if (pair.second < 0) {
             return false;
+        } else {
+            remaining += pair.second;
         }
+    }
+    if (aResourceAnyAmount > remaining) {
+        return false;
     }
     return true;
 }
@@ -161,7 +183,7 @@ void GameState::startGame()
         // TODO load deck dynamically
         list<logic::Card> deck;
         vector<Card> toUse = {
-            CardDefinitions::sample_ship,
+            CardDefinitions::sample_ship2,
             CardDefinitions::ai_coreship,
             CardDefinitions::subtle_hack,
             //CardDefinitions::am_gatherer,
