@@ -33,7 +33,7 @@ void Renderable::queueDraw() {
     }
 }
 
-void Renderable::drawStage(ShaderEnum stage, Shader& shader)
+void Renderable::drawStage(ShaderEnum stage, Shader& shader, bool clear)
 {
     
     switch (stage) { 
@@ -47,13 +47,17 @@ void Renderable::drawStage(ShaderEnum stage, Shader& shader)
             for (auto p : queues[SHADER_WARP_STEP1]) {
                 p.first(SHADER_WARP_STEP1, shader, p.second);
             }
-            queues[SHADER_WARP_STEP1].clear();
+            if (clear) {
+                queues[SHADER_WARP_STEP1].clear();
+            }
             break;
         default:
             for (auto p : queues[stage]) {
                 p.first(stage, shader, p.second);
             }
-            queues[stage].clear();
+            if (clear) {
+                queues[stage].clear();
+            }
     }
 };
 

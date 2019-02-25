@@ -112,7 +112,6 @@ void Renderer::renderMainScene()
     Renderable::drawStage(SHADER_UI_LIGHTING, shaders[SHADER_UI_LIGHTING]);
 
     glEnable(GL_STENCIL_TEST);
-    //glStencilFunc(GL_ALWAYS, 1, 0xFF);
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);  
     glStencilMask(0xFF);
     glDisable(GL_CULL_FACE);  // No face culling, warp effects are only 2d quads
@@ -124,31 +123,30 @@ void Renderer::renderMainScene()
     shaders[SHADER_STENCIL].setBool("resetDepth", false);
     shaders[SHADER_STENCIL].setMat4("projection", projection);
     shaders[SHADER_STENCIL].setMat4("view", glm::mat4(1.0f));
-    Renderable::drawStage(SHADER_STENCIL, shaders[SHADER_STENCIL]);
+    Renderable::drawStage(SHADER_STENCIL, shaders[SHADER_STENCIL], false);
 
-    glStencilMask(0x00);
-    glDisable(GL_DEPTH_TEST);
-    shaders[SHADER_STENCIL].setBool("resetDepth", true);
-    Renderable::drawStage(SHADER_STENCIL, shaders[SHADER_STENCIL]);
+    //glStencilMask(0x00);
+    //glDisable(GL_DEPTH_TEST);
+    //shaders[SHADER_STENCIL].setBool("resetDepth", true);
+    //Renderable::drawStage(SHADER_STENCIL, shaders[SHADER_STENCIL], false);
 
-    glEnable(GL_DEPTH_TEST);
     glColorMask(true, true, true, true);
     //glDepthMask(true);
-    glEnable(GL_CULL_FACE);  // No face culling, warp effects are only 2d quads
-    //glStencilFunc(GL_EQUAL, 1, 0xFF);
+    glEnable(GL_CULL_FACE);  
     //glStencilMask(0x00);
 
-    shaders[SHADER_UI_LIGHTING_CARD_IMAGE].use();
-    shaders[SHADER_UI_LIGHTING_CARD_IMAGE].setMat4("projection", projection);
-    shaders[SHADER_UI_LIGHTING_CARD_IMAGE].setMat4("view", glm::mat4(1.0f));
-    Renderable::drawStage(SHADER_UI_LIGHTING_CARD_IMAGE, shaders[SHADER_UI_LIGHTING_CARD_IMAGE]);
-
+    glDepthFunc(GL_ALWAYS);
     shaders[SHADER_CARD_BG].use();
     shaders[SHADER_CARD_BG].setMat4("projection", projection);
     shaders[SHADER_CARD_BG].setMat4("view", glm::mat4(1.0f));
     Renderable::drawStage(SHADER_CARD_BG, shaders[SHADER_CARD_BG]);
 
-    glDisable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    shaders[SHADER_UI_LIGHTING_CARD_IMAGE].use();
+    shaders[SHADER_UI_LIGHTING_CARD_IMAGE].setMat4("projection", projection);
+    shaders[SHADER_UI_LIGHTING_CARD_IMAGE].setMat4("view", glm::mat4(1.0f));
+    Renderable::drawStage(SHADER_UI_LIGHTING_CARD_IMAGE, shaders[SHADER_UI_LIGHTING_CARD_IMAGE]);
+
     glDisable(GL_CULL_FACE);  // No face culling, warp effects are only 2d quads
     glColorMask(false, false, false, false);
     shaders[SHADER_STENCIL].use();
@@ -157,8 +155,8 @@ void Renderer::renderMainScene()
     shaders[SHADER_STENCIL].setMat4("view", glm::mat4(1.0f));
     Renderable::drawStage(SHADER_STENCIL, shaders[SHADER_STENCIL]);
     glColorMask(true, true, true, true);
-    glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);  // No face culling, warp effects are only 2d quads
+    glDepthFunc(GL_LESS);
 
     glDisable(GL_STENCIL_TEST);
     glStencilMask(0xFF);

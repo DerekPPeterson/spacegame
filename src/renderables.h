@@ -51,7 +51,7 @@ class Renderable
         virtual void queueDraw();
         virtual void draw(Shader& shader) {};
         virtual void drawWarp(Shader& shader) {};
-        static void drawStage(ShaderEnum stage, Shader& shader);
+        static void drawStage(ShaderEnum stage, Shader& shader, bool clear=true);
         virtual void setStage(ShaderEnum stage) {this->stage = stage;};
         unsigned int stage = SHADER_NONE;
         bool isVisible() {return visible;}
