@@ -60,7 +60,7 @@ struct Spring
     Spring() {};
     Spring(float l, std::shared_ptr<SpringObject> a, std::shared_ptr<SpringObject> b )
         : l(l), a(a), b(b) {};
-    float k = 20;
+    float k = 40;
     float l = 1;
     std::shared_ptr<SpringObject> a;
     glm::vec3 aOffset = {0, 0, 0};
@@ -80,7 +80,7 @@ struct Spring
 
 struct SpringSystem
 {
-    float damping = 2 * sqrt(20);
+    float damping = 2 * sqrt(40);
     std::vector<std::shared_ptr<SpringObject>> objects;
     std::vector<std::shared_ptr<Spring>> springs;
     void updatePositions(float deltaTime);

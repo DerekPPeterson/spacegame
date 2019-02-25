@@ -49,7 +49,7 @@ void subtle_hack(GameState& state) {
     state.drawCard(state.stack.back().playedBy);
 }
 
-void createShipIn(GameState& state, logic::Ship ship)
+Ship* createShipIn(GameState& state, logic::Ship ship)
 {
     auto card = state.stack.back();
     ship.newId();
@@ -64,6 +64,7 @@ void createShipIn(GameState& state, logic::Ship ship)
         auto player = state.getPlayerById(card.playedBy);
         player->playedResourceShipThisTurn = true;
     }
+    return state.getShipById(ship.id);
 }
 
 void destroyTargetShips(GameState& state)
@@ -165,7 +166,8 @@ namespace CardDefinitions {
         .getValidTargets = singleSystemControlledByActivePlayer,
         .creates = ShipDefinitions::sampleShip,
         .resolve = [](GameState& state) {
-            createShipIn(state, ShipDefinitions::sampleShip);
+            auto ship = createShipIn(state, ShipDefinitions::sampleShip);
+            ship->upkeep(state, *ship);
         },
     };
 
@@ -178,7 +180,8 @@ namespace CardDefinitions {
         .getValidTargets = singleSystemControlledByActivePlayer,
         .creates = ShipDefinitions::miningShip,
         .resolve = [](GameState& state) {
-            createShipIn(state, ShipDefinitions::miningShip);
+            auto ship = createShipIn(state, ShipDefinitions::miningShip);
+            ship->upkeep(state, *ship);
         },
     };
 
@@ -190,7 +193,8 @@ namespace CardDefinitions {
         .type = CARD_RESOURCE_SHIP,
         .getValidTargets = singleSystemControlledByActivePlayer,
         .resolve = [](GameState& state) {
-            createShipIn(state, ShipDefinitions::aiCore);
+            auto ship = createShipIn(state, ShipDefinitions::aiCore);
+            ship->upkeep(state, *ship);
         },
     };
 
@@ -212,7 +216,8 @@ namespace CardDefinitions {
         .type = CARD_RESOURCE_SHIP,
         .getValidTargets = singleSystemControlledByActivePlayer,
         .resolve = [](GameState& state) {
-            createShipIn(state, ShipDefinitions::amGatherer);
+            auto ship = createShipIn(state, ShipDefinitions::amGatherer);
+            ship->upkeep(state, *ship);
         },
     };
 
@@ -224,7 +229,8 @@ namespace CardDefinitions {
         .type = CARD_RESOURCE_SHIP,
         .getValidTargets = singleSystemControlledByActivePlayer,
         .resolve = [](GameState& state) {
-            createShipIn(state, ShipDefinitions::diplomaticVessal);
+            auto ship = createShipIn(state, ShipDefinitions::diplomaticVessal);
+            ship->upkeep(state, *ship);
         },
     };
 

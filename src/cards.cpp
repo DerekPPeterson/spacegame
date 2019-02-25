@@ -143,7 +143,7 @@ void Card::setFaceUp(bool faceUp)
 map<ResourceType, glm::vec3> CARD_COLORS = {
     {RESOURCE_WARP_BEACONS, {0, 2, 0}},
     {RESOURCE_MATERIALS, {1 * 2, 2 * 0.560,  2 * 0.239}},
-    {RESOURCE_AI, {0, 0, 0}},
+    {RESOURCE_AI, {0, 1.5, 0}},
     {RESOURCE_ANTIMATTER, {2 * 0.745, 2 * 0.654, 2 * 0.843}},
     {RESOURCE_INFLUENCE, {2, 0, 0}},
 };
