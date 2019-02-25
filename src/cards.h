@@ -80,7 +80,7 @@ struct Spring
 
 struct SpringSystem
 {
-    float damping = sqrt(20);
+    float damping = 2 * sqrt(20);
     std::vector<std::shared_ptr<SpringObject>> objects;
     std::vector<std::shared_ptr<Spring>> springs;
     void updatePositions(float deltaTime);
