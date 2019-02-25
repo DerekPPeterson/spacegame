@@ -112,7 +112,7 @@ void Card::queueDraw()
         displayShip.queueDraw();
 
         glm::mat4 cardBackgroundModel = glm::translate(model, {0, 0, -5});
-        cardBackgroundModel = glm::scale(cardBackgroundModel, glm::vec3(5));
+        cardBackgroundModel = glm::scale(cardBackgroundModel, glm::vec3(10));
         cardBackground.setModel(cardBackgroundModel);
         cardBackground.queueDraw();
 
