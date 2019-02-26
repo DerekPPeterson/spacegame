@@ -158,7 +158,7 @@ Card::Card(CardInfo info) : Renderable(SHADER_CARD),
     cardText(Fonts::regular, info.text, info.color, 1.6, 0.15),
     costText(Fonts::regular, createCostString(info.cost), info.color, 1.6, 0.25),
     typeText(Fonts::title, info.type, info.color, 9, 0.15),
-    displayShip(info.logicId, info.creates ? shipModels[info.creates->type] : nullptr),
+    displayShip(info.logicId, info.creates ? (shipModels[info.creates->type] ? shipModels[info.creates->type] : shipModels["FALLBACK"]) : nullptr),
     cardBackground(info.logicId, "./res/textures/dark_space.jpg"),
     stencilQuadWithModel(info.logicId, stencilQuad)
 {

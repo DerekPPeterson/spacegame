@@ -57,6 +57,8 @@ ResourceAmount operator + (ResourceAmount a, const ResourceAmount& b);
 ResourceAmount operator - (ResourceAmount a, const ResourceAmount& b);
 bool operator >= (const ResourceAmount& a, const ResourceAmount& b);
 bool operator <= (const ResourceAmount& a, const ResourceAmount& b);
+int totalCost(const ResourceAmount&);
+std::optional<ResourceAmount> singlePossiblePayment(ResourceAmount need, ResourceAmount have);
 
 // The size of the spacegrid to create
 #define SPACEGRID_SIZE 3
@@ -273,9 +275,14 @@ namespace logic {
         int minTargets;
         int maxTargets;
 
+        // used when need to pay for something (most commonly playing a card)
+        ResourceAmount payWith;
+        bool needToPickCost = false;
+
         string description;
         friend ostream & operator << (ostream &out, const Action &c);
-        SERIALIZE(type, playerId, id, targets, minTargets, maxTargets, description);
+        SERIALIZE(type, playerId, id, targets, minTargets, maxTargets, 
+                description, payWith, needToPickCost);
     };
 
     enum ChangeType
@@ -355,7 +362,7 @@ namespace logic {
 
         vector<Change> changes;
 
-        void playCard(int cardId, int playerId);
+        void playCard(int cardId, int playerId, ResourceAmount payWith);
         void resolveStackTop();
         void placeBeacon(int systemId, int ownerId);
         void moveShipsToBeacon(int beaconId, vector<int> ships);

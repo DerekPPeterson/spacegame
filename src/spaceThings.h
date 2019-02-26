@@ -129,6 +129,7 @@ class SpaceShip : public Object, public Renderable, public has_position
         glm::mat4 calcModelMat() const;
         static void loadModel(std::string type);
         static std::shared_ptr<Model> warpQuad;
+        std::shared_ptr<Model> meshModel;
 };
 
 #endif

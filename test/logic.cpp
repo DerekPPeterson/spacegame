@@ -122,10 +122,10 @@ TEST_CASE("ResourceAmount arithmatic", "[ResourceAmount]")
             {RESOURCE_ANY, 3}
         };
 
-        //REQUIRE(a - b == aMinusB);
-        //REQUIRE((a <= c) == true);
-        //REQUIRE((a >= b) == true);
-        //REQUIRE((a <= d) == true);
+        REQUIRE(a - b == aMinusB);
+        REQUIRE((a <= c) == true);
+        REQUIRE((a >= b) == true);
+        REQUIRE((a <= d) == true);
 
         ResourceAmount amount = {
             {RESOURCE_WARP_BEACONS, 1},
@@ -144,5 +144,33 @@ TEST_CASE("ResourceAmount arithmatic", "[ResourceAmount]")
 
         REQUIRE((cost <= amount) == true);
 
+        amount = {
+            {RESOURCE_MATERIALS, 2}
+        };
+        cost = {
+            {RESOURCE_MATERIALS, 1},
+            {RESOURCE_ANY, 2},
+        };
+
+        REQUIRE((cost <= amount) == false);
+
+        REQUIRE((amount >= cost) == false);
+
+        amount = {
+            {RESOURCE_AI, 4}, 
+            {RESOURCE_MATERIALS, 4}, 
+        };
+
+        auto payment = singlePossiblePayment(cost, amount);
+        REQUIRE(not payment);
+
+        amount = {
+            {RESOURCE_MATERIALS, 4}, 
+        };
+
+        ResourceAmount correctPayment = {{RESOURCE_MATERIALS, 3}};
+        payment = singlePossiblePayment(cost, amount);
+        REQUIRE(payment.has_value());
+        REQUIRE(*payment == correctPayment);
     }
 }

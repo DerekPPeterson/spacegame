@@ -11,6 +11,47 @@ using namespace std;
 
 int GameObject::curId = 1;
 
+int totalCost(const ResourceAmount& r)
+{
+    int total = 0;
+    for (auto [type, amount] : r) {
+        total += amount;
+    }
+    return total;
+}
+
+optional<ResourceAmount> singlePossiblePayment(ResourceAmount need, ResourceAmount have)
+{
+    optional<ResourceAmount> notPossible;
+    if (not (need <= have)) {
+        return notPossible;
+    }   
+
+    int resAnyNeeded = need[RESOURCE_ANY];
+    if (not resAnyNeeded) {
+        return need;
+    }
+
+    need[RESOURCE_ANY] = 0;
+    auto haveLeft = have - need;
+
+    if (totalCost(haveLeft) == resAnyNeeded) {
+        return have;
+    }
+
+    ResourceType typeLeft = RESOURCE_ANY;
+    for (auto [type, amount] : haveLeft) {
+        if (amount > 0 and typeLeft != RESOURCE_ANY) {
+            return notPossible;
+        } else if (amount > 0) {
+            typeLeft = type;
+        }
+    }
+
+    ResourceAmount usedForAny = {{typeLeft, resAnyNeeded}};
+    return need + usedForAny;
+}
+
 bool operator == (ResourceAmount a, ResourceAmount b)
 {
     for (auto it = a.begin(); it != a.end(); it++) {
@@ -72,7 +113,7 @@ ResourceAmount operator - (ResourceAmount a, const ResourceAmount& b)
     return a;
 }
 
-bool operator >= (const ResourceAmount& a, ResourceAmount& b)
+bool operator >= (const ResourceAmount& a, const ResourceAmount& b)
 {
     ResourceAmount b_copy = b;
     int bResourceAnyAmount = b_copy[RESOURCE_ANY];
@@ -333,12 +374,18 @@ vector<Action> GameState::getValidCardActions()
             if (card.cost <= player->resources 
                     and card.canPlay(*this)
                     and not (card.type == CARD_RESOURCE_SHIP 
-                        and player->playedResourceShipThisTurn)) {
+                             and player->playedResourceShipThisTurn)) {
+
+                auto payment = singlePossiblePayment(card.cost, player->resources);
+                ResourceAmount nothing = {};
+
                 Action action = {
                     .type = ACTION_PLAY_CARD,
                     .playerId = turnInfo.activePlayer,
                     .id = card.id,
                     .description = card.name,
+                    .payWith = payment ? *payment : nothing,
+                    .needToPickCost = not payment,
                 };
                 actions.push_back(action);
             }
@@ -589,7 +636,7 @@ void GameState::performAction(Action action)
         case PHASE_MAIN:
             switch (action.type) {
                 case ACTION_PLAY_CARD:
-                    playCard(action.id, turnInfo.activePlayer); 
+                    playCard(action.id, turnInfo.activePlayer, action.payWith); 
                     // May change phase to a target select phase
                     break;
                 case ACTION_PLACE_BEACON:
@@ -615,7 +662,7 @@ void GameState::performAction(Action action)
         case PHASE_RESOLVE_STACK:
             switch(action.type) {
                 case ACTION_PLAY_CARD:
-                    playCard(action.id, turnInfo.activePlayer);
+                    playCard(action.id, turnInfo.activePlayer, action.payWith);
                     break;
                 case ACTION_NONE:
                     {
@@ -647,14 +694,25 @@ void GameState::performAction(Action action)
     }
 }
 
-void GameState::playCard(int cardId, int playerId)
+void GameState::playCard(int cardId, int playerId, ResourceAmount payWith)
 {
     auto player = getPlayerById(playerId);
     auto card = find_if(player->hand.begin(), player->hand.end(), 
             [cardId] (Card& c) {return c.id == cardId;});
     card->playedBy = playerId;
 
-    player->resources = player->resources - card->cost;
+    if (card->cost[RESOURCE_ANY] == 0) {
+        payWith = card->cost;
+    } else if (totalCost(payWith) == 0) {
+        LOG_ERROR << "Did not specify how to pay for card";
+    }
+
+    if (player->resources >= payWith and payWith >= card->cost) {
+        player->resources = player->resources - payWith;
+    } else {
+        LOG_ERROR << "Amount specified to play card is either not enough or the player does not have enough";
+    }
+
     changes.push_back({
             .type = CHANGE_PLAYER_RESOURCES, 
             .data=pair<int, ResourceAmount>(player->id, player->resources)

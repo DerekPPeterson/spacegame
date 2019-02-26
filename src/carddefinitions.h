@@ -211,6 +211,7 @@ namespace CardDefinitions {
         .cost = {},
         .provides = {{RESOURCE_AI, 1}},
         .type = CARD_RESOURCE_SHIP,
+        .creates = ShipDefinitions::aiCore,
         .getValidTargets = singleSystemControlledByActivePlayer,
         .resolve = [](GameState& state) {
             auto ship = createShipIn(state, ShipDefinitions::aiCore);
@@ -234,6 +235,7 @@ namespace CardDefinitions {
         .cost = {},
         .provides = {{RESOURCE_ANTIMATTER, 1}},
         .type = CARD_RESOURCE_SHIP,
+        .creates = ShipDefinitions::amGatherer,
         .getValidTargets = singleSystemControlledByActivePlayer,
         .resolve = [](GameState& state) {
             auto ship = createShipIn(state, ShipDefinitions::amGatherer);
@@ -247,6 +249,7 @@ namespace CardDefinitions {
         .cost = {},
         .provides = {{RESOURCE_INFLUENCE, 1}},
         .type = CARD_RESOURCE_SHIP,
+        .creates = ShipDefinitions::diplomaticVessal,
         .getValidTargets = singleSystemControlledByActivePlayer,
         .resolve = [](GameState& state) {
             auto ship = createShipIn(state, ShipDefinitions::diplomaticVessal);

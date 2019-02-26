@@ -232,12 +232,13 @@ shared_ptr<Model> SpaceShip::warpQuad;
 
 // TODO get different models for these
 map<string, string> MODEL_PATHS = {
-    {"SS1", "./res/models/SS1_OBJ/SS1.obj"},
-    {"Default Flagship", "./res/models/SS1_OBJ/SS1.obj"},
+    {"FALLBACK", "./res/models/SS1_OBJ/SS1.obj"},
+    //{"SS1", "./res/models/SS1_OBJ/SS1.obj"},
+    //{"Default Flagship", "./res/models/SS1_OBJ/SS1.obj"},
     {"Mining Platform", "./res/models/mining_platform/mining_platform.obj"},
-    {"AI Coreship", "./res/models/SS1_OBJ/SS1.obj"},
-    {"AM Gatherer", "./res/models/SS1_OBJ/SS1.obj"},
-    {"Diplomatic Vessel", "./res/models/SS1_OBJ/SS1.obj"},
+    //{"AI Coreship", "./res/models/SS1_OBJ/SS1.obj"},
+    //{"AM Gatherer", "./res/models/SS1_OBJ/SS1.obj"},
+    //{"Diplomatic Vessel", "./res/models/SS1_OBJ/SS1.obj"},
 };
 
 map<string, shared_ptr<Model>> shipModels;
@@ -264,7 +265,7 @@ std::shared_ptr<SpaceShip> SpaceShip::createFrom(logic::Ship logicShip, System* 
 
 
 SpaceShip::SpaceShip(string type, System* system) :
-    Renderable(SHADER_LIGHTING),
+    Renderable(SHADER_LIGHTING | SHADER_WARP_STEP1),
     type(type), curSystem(system), prevSystem(system)
 {
     this->type = type;
@@ -272,8 +273,14 @@ SpaceShip::SpaceShip(string type, System* system) :
     orbit.inclination = rand_float_between(0, 3.14 / 3);
     orbit.radius = rand_float_between(1, 3);
     position = calcOrbitPosition(curSystem->getPosition(), orbit);
-    stage = SHADER_LIGHTING | SHADER_WARP_STEP1;
     warpQuad = Shapes::warpQuad;
+
+    meshModel = shipModels[type];
+    if (not meshModel) {
+        LOG_ERROR << "Creating a ship of type " << type << 
+            " but it does not have a model. Defaulting to FALLBACK model";
+        meshModel = shipModels["FALLBACK"];
+    }
 }
 
 float calculateWarp(glm::vec3 position, float margin, glm::vec3 start, glm::vec3 end)
@@ -372,7 +379,7 @@ glm::mat4 SpaceShip::calcModelMat() const
 void SpaceShip::draw(Shader& shader)
 {
     shader.setCommon(UNIFORM_MODEL, calcModelMat());
-    shipModels[type]->draw(shader);
+    meshModel->draw(shader);
 }
 
 void SpaceShip::drawWarp(Shader& shader)
