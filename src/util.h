@@ -23,7 +23,7 @@ inline std::string randString(int n)
     return ret;
 };
 
-inline glm::vec3 randWithinSphere(int radius)
+inline glm::vec3 randWithinSphere(float radius)
 {
     glm::vec3 ret;
     ret.x = rand_float_between(-1, 1);

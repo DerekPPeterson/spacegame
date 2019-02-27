@@ -8,6 +8,7 @@
 #include "logic.h"
 #include "util.h"
 #include "spaceThings.h"
+#include "particles.h"
 #include <memory>
 
 // Class to handle screen space info and transformations
@@ -110,6 +111,19 @@ class HullIcon : public Renderable, public Selectable,
         float rotation = 0;
 
         static std::shared_ptr<Model> m;
+};
+
+class AttackIcon : public Renderable, public Selectable, 
+    public needs_setup<AttackIcon>, public Object
+{
+    public:
+        AttackIcon() : Renderable(SHADER_NONE)
+            {position = glm::vec3(0);};
+        void queueDraw() override;
+        static void setup();
+
+    protected:
+        static ParticleGroup particles;
 };
 
 class AnyResIcon : public Renderable, public Selectable, public Object,

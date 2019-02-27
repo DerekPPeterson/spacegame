@@ -169,6 +169,7 @@ class Card : public Renderable , public Object, public Dragable,
         Text typeText;
         Text hullText;
         HullIcon hullIcon;
+        AttackIcon attackIcon;
 
         float size = 0.2;
         glm::vec3 speed = {0, 0, 0};

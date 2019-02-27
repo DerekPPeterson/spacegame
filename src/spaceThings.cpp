@@ -189,7 +189,7 @@ void LaserShot::update(UpdateInfo& info)
 
 void LaserShot::queueDraw()
 {
-    Particles::queueParticleDraw(getPos(), color);
+    Particles::queueParticleDraw(glm::mat4(1.0f), getPos(), color);
 }
 
 Explosion::Explosion(glm::vec3 position, float size, float duration)

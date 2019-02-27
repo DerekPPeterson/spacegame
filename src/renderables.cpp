@@ -110,6 +110,9 @@ InstanceMeshRenderable::InstanceMeshRenderable(
             case INSTANCE_ATTRIB_MAT4:
                 dataSize += sizeof(glm::mat4);
                 break;
+            case INSTANCE_ATTRIB_INT:
+                dataSize += sizeof(int);
+                break;
         }
     }
 
@@ -138,6 +141,11 @@ InstanceMeshRenderable::InstanceMeshRenderable(
                 setVertexAttribPointersMat4(curAttribNo, offset);
                 offset += 16 * sizeof(float);
                 curAttribNo += 4;
+                break;
+            case INSTANCE_ATTRIB_INT:
+                setVertexAttribPointersMat4(curAttribNo, offset);
+                offset += 1 * sizeof(float);
+                curAttribNo += 1;
                 break;
         }
     }

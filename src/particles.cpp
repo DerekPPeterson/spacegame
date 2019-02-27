@@ -13,7 +13,7 @@ void ParticleGroup::addParticle(glm::vec3 position, glm::vec3 velocity, glm::vec
 void ParticleGroup::queueDraw() 
 {
     for (int i = 0; i < positions.size(); i++) {
-        Particles::queueParticleDraw(positions[i], colors[i] * colorMultiplier);
+        Particles::queueParticleDraw(getModel(), positions[i], colors[i] * colorMultiplier, useView);
     }
 }
 

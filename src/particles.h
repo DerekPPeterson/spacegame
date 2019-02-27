@@ -39,6 +39,8 @@ class Particles : public needs_setup<Particles>
         std::vector<InstanceAttribName> attribs = {
             INSTANCE_ATTRIB_MAT4,
             INSTANCE_ATTRIB_VEC3,
+            INSTANCE_ATTRIB_INT,
+            INSTANCE_ATTRIB_VEC3,
         };
         particle = std::make_shared<InstanceMeshRenderable>(
                 SHADER_PARTICLE,
@@ -49,24 +51,29 @@ class Particles : public needs_setup<Particles>
         );
     }
 
-    static void queueParticleDraw(glm::vec3 position, glm::vec3 color)
+    static void queueParticleDraw(glm::mat4 model, glm::vec3 position, glm::vec3 color, bool useView = true)
     {
         struct ParticleInstanceData
         {
             glm::mat4 model;
             glm::vec3 color;
+            bool useView;
+            glm::vec3 particlePos;
         } data;
-        data.model = glm::translate(glm::mat4(1), position);
+        data.model = model;
         data.color = color;
+        data.useView = useView;
+        data.particlePos = position;
         particle->addInstance(&data);
         particle->queueDraw();
     }
 };
 
-class ParticleGroup : public Object, public Renderable
+class ParticleGroup : public Object, public Renderable, public has_model_mat
 {
     public:
         ParticleGroup() : Renderable(SHADER_NONE) {};
+        ParticleGroup(bool useView) : Renderable(SHADER_NONE), useView(useView) {};
         void addParticle(glm::vec3 position, glm::vec3 velocity, glm::vec3 color);
         virtual void queueDraw() override;
         virtual void update(UpdateInfo& info) override;
@@ -75,6 +82,7 @@ class ParticleGroup : public Object, public Renderable
         std::vector<glm::vec3> positions;
         std::vector<glm::vec3> velocities;
         std::vector<glm::vec3> colors;
+        bool useView = true;
 };
 
 

@@ -83,6 +83,7 @@ enum InstanceAttribName {
     INSTANCE_ATTRIB_VEC3,
     INSTANCE_ATTRIB_VEC2,
     INSTANCE_ATTRIB_MAT4,
+    INSTANCE_ATTRIB_INT,
 };
 
 class InstanceMeshRenderable : public MeshRenderable

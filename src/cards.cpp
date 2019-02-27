@@ -122,6 +122,11 @@ void Card::queueDraw()
             hullIcon.setModel(hullModel);
             hullIcon.queueDraw();
 
+            glm::mat4 attackModel = glm::translate(model, {-0.6, -1.8, 0});
+            attackModel = glm::scale(attackModel, glm::vec3(0.15));
+            attackIcon.setModel(attackModel);
+            attackIcon.queueDraw();
+
             glm::mat4 hullTextModel = glm::translate(model, {0.6, -1.7, 0});
             hullText.setModel(hullTextModel);
             hullText.queueDraw();

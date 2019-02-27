@@ -260,6 +260,37 @@ void HullIcon::update(UpdateInfo& info)
     rotation = 3.14 / 10 * sin(info.curTime * 2 * 3.14 / 4);
 }
 
+ParticleGroup AttackIcon::particles = ParticleGroup(false);
+
+void AttackIcon::setup()
+{
+    for (int i = 0; i < 20; i++) {
+        particles.addParticle(
+                randWithinSphere(0.4) + glm::vec3(-0.3, 0.3, 0),
+                {0, 0, 0},
+                glm::vec3(10, 0, 0) * rand_float_between(0.8, 1.2)
+            );
+        particles.addParticle(
+                randWithinSphere(0.5) + glm::vec3(-0.3, 0.3, 0),
+                {0, 0, 0},
+                glm::vec3(0.568, 0.501, 0.168) * rand_float_between(1, 20)
+            );
+    }
+    for (int i = 0; i < 20; i++) {
+        particles.addParticle(
+                glm::vec3(-1, 1, 0) * rand_float_between(-0.3, 0.3),
+                {0, 0, 0},
+                glm::vec3(10, 0, 0) * rand_float_between(0.8, 3)
+            );
+    }
+};
+
+void AttackIcon::queueDraw()
+{
+    particles.setModel(getModel());
+    particles.queueDraw();
+}
+
 AnyResIcon::AnyResIcon(int n) :
     Renderable(SHADER_NONE), t(Fonts::title, to_string(n), {2, 2, 2}, 0, 0.6)
 {
