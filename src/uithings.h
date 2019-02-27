@@ -96,6 +96,22 @@ class InfluenceIcon : public Renderable, public Selectable, public Object,
         static std::shared_ptr<Model> m;
 };
 
+class HullIcon : public Renderable, public Selectable, 
+    public needs_setup<HullIcon>, public Object
+{
+    public:
+        HullIcon() : Renderable(SHADER_UI_LIGHTING) 
+            {position = glm::vec3(0);};
+        void draw(Shader& shader) override;
+        void update(UpdateInfo& info) override;
+        static void setup();
+
+    protected:
+        float rotation = 0;
+
+        static std::shared_ptr<Model> m;
+};
+
 class AnyResIcon : public Renderable, public Selectable, public Object,
     public needs_setup<AnyResIcon>
 {

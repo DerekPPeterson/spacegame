@@ -6,6 +6,7 @@
 #include <string>
 #include <math.h>
 #include <glm/glm.hpp>
+#include <type_traits>
 
 inline float rand_float_between(float LO, float HI)
 {
@@ -33,32 +34,39 @@ inline glm::vec3 randWithinSphere(int radius)
     return ret;
 }
 
-template <class T>
+
+template <typename T>
 class Interpolated
 {
     public:
-        Interpolated(T min, T max, T speed) 
-            : curVal(min), min(min), max(max), speed(speed) {};
-        void gotoMax() {goToMax = true;};
-        void gotoMin() {goToMax = false;};
+        Interpolated(T val, T speed) 
+            : curVal(val), target(val), speed(speed) {};
         void update(float deltaTime)
         {
-            if (goToMax) {
-                curVal += speed * deltaTime;
-            } else {
-                curVal -= speed * deltaTime;
-            }
-            if (curVal > max) {
-                curVal = max;
-            } else if (curVal < min) {
-                curVal = min;
+            if (target != curVal) {
+
+                T dir = target - curVal;
+                if constexpr(std::is_same<T, glm::vec3>::value) {
+                    if (glm::length(dir) < glm::length(speed) * deltaTime) {
+                        curVal = target;
+                    } else {
+                        dir = glm::normalize(dir);
+                        T v = speed * deltaTime;
+                        curVal += v;
+                    }
+                } else {
+                    if (dir < abs(speed * deltaTime)) {
+                        curVal = target;
+                    } else {
+                        dir = dir / abs(dir);
+                        T v = speed * deltaTime;
+                        curVal += v;
+                    }
+                }
             }
         }
-        bool goToMax = true;
+        T target;
         T curVal;
-    protected:
-        T min;
-        T max;
         T speed;
 };
 

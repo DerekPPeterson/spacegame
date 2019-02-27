@@ -116,6 +116,17 @@ void Card::queueDraw()
         displayShip.setModel(displayShipModel);
         displayShip.queueDraw();
 
+        if (info.creates) {
+            glm::mat4 hullModel = glm::translate(model, {0.8, -1.8, 0});
+            hullModel = glm::scale(hullModel, glm::vec3(0.15));
+            hullIcon.setModel(hullModel);
+            hullIcon.queueDraw();
+
+            glm::mat4 hullTextModel = glm::translate(model, {0.6, -1.7, 0});
+            hullText.setModel(hullTextModel);
+            hullText.queueDraw();
+        }
+
         glm::mat4 cardBackgroundModel = glm::translate(model, {0, 0, -5});
         cardBackgroundModel = glm::scale(cardBackgroundModel, glm::vec3(10));
         cardBackground.setModel(cardBackgroundModel);
@@ -158,6 +169,9 @@ Card::Card(CardInfo info) : Renderable(SHADER_CARD),
     cardText(Fonts::regular, info.text, info.color, 1.6, 0.15),
     costText(Fonts::regular, createCostString(info.cost), info.color, 1.6, 0.25),
     typeText(Fonts::title, info.type, info.color, 9, 0.15),
+    hullText(Fonts::title, info.creates ? to_string(info.creates->armour) : "", info.color, 0, 0.15),
+    angleY(0, 3.14),
+    info(info),
     displayShip(info.logicId, info.creates ? (shipModels[info.creates->type] ? shipModels[info.creates->type] : shipModels["FALLBACK"]) : nullptr),
     cardBackground(info.logicId, "./res/textures/dark_space.jpg"),
     stencilQuadWithModel(info.logicId, stencilQuad)
@@ -194,6 +208,7 @@ Card::Card(CardInfo info) : Renderable(SHADER_CARD),
     cardText.setColor(Card::info.color);
     cardText.setColor(Card::info.color);
     typeText.setColor(Card::info.color);
+    hullText.setColor(Card::info.color);
 }
 
 std::shared_ptr<Card> Card::createFrom(logic::Card logicCard)
@@ -222,12 +237,13 @@ void Card::updateModel()
     //tmpPosition.y += 0.1 * sin(3.14 / 4 * Timer::get("start") + phase);
     model = glm::translate(model, tmpPosition);
     model = glm::scale(model, {size, size, size});
-    float angleY = 3.1415f / 16 * sin(3.14159 / 2 * Timer::global.get() + phase);
-    model = glm::rotate(model, angleY, {0, 1, 0});
+
     if (isHovered) {
-        float angleX = 3.1415f / 16 * sin(3.14159 * Timer::global.get() + phase);
-        model = glm::rotate(model, angleX, {1, 0, 0});
+        angleY.target = 0;
+    } else {
+        angleY.target = 3.14 / 12;
     }
+    model = glm::rotate(model, angleY.curVal, {0, 1, 0});
     setModel(model);
 }
 
@@ -237,6 +253,7 @@ void Card::update(UpdateInfo& info)
     updateModel();
     costText.update(info);
     cardText.update(info);
+    hullText.update(info);
 
     checkSetHoverQuad(info, true);
     checkSetDrag(info, true);
@@ -264,11 +281,7 @@ void Card::update(UpdateInfo& info)
         }
     }
 
-    //if (position.y > -0.45) {
-    //    highlight = 3;
-    //} else {
-    //    highlight = 1;
-    //}
+    angleY.update(info.deltaTime);
 }
 
 void Card::onClick()

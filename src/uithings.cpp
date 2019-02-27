@@ -7,6 +7,7 @@
 using namespace std;
 
 shared_ptr<Model> WarpBeacon::m;
+shared_ptr<Model> HullIcon::m;
 
 std::map<std::string, ResourceType> resourceStrings = {
     {"wb", RESOURCE_WARP_BEACONS},
@@ -239,6 +240,24 @@ void InfluenceIcon::draw(Shader &shader)
 void InfluenceIcon::update(UpdateInfo& info)
 {
     curTime = info.curTime;
+}
+
+void HullIcon::setup()
+{
+    m = make_shared<Model>("./res/models/icons/hull.obj");
+}
+
+void HullIcon::draw(Shader& shader)
+{
+    glm::mat4 tmpModel = glm::translate(getModel(), position);
+    tmpModel = glm::rotate(tmpModel, rotation, {0, 1, 0});
+    shader.setCommon(UNIFORM_MODEL, tmpModel);
+    m->draw(shader);
+}
+
+void HullIcon::update(UpdateInfo& info) 
+{
+    rotation = 3.14 / 10 * sin(info.curTime * 2 * 3.14 / 4);
 }
 
 AnyResIcon::AnyResIcon(int n) :
