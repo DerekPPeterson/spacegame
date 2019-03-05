@@ -117,19 +117,9 @@ void Card::queueDraw()
         displayShip.queueDraw();
 
         if (info.creates) {
-            glm::mat4 hullModel = glm::translate(model, {0.8, -1.8, 0});
-            hullModel = glm::scale(hullModel, glm::vec3(0.15));
-            hullIcon.setModel(hullModel);
-            hullIcon.queueDraw();
-
-            glm::mat4 attackModel = glm::translate(model, {-0.6, -1.8, 0});
-            attackModel = glm::scale(attackModel, glm::vec3(0.15));
-            attackIcon.setModel(attackModel);
-            attackIcon.queueDraw();
-
-            glm::mat4 hullTextModel = glm::translate(model, {0.6, -1.7, 0});
-            hullText.setModel(hullTextModel);
-            hullText.queueDraw();
+            glm::mat4 statsModel = glm::translate(model, {0.8 - statsText.calcWidth(), -1.8, 0});
+            statsText.setModel(statsModel);
+            statsText.queueDraw();
         }
 
         glm::mat4 cardBackgroundModel = glm::translate(model, {0, 0, -5});
@@ -169,12 +159,25 @@ map<ResourceType, glm::vec3> CARD_COLORS = {
     {RESOURCE_INFLUENCE, {2, 0, 0}},
 };
 
+string createStatsLine(optional<logic::Ship> ship)
+{
+    if (ship) {
+        stringstream ss;
+        ss << "{attack} " << ship->attack 
+           << "  {shield} " << ship->shield
+           << "  {hull} " << ship->armour;
+        return ss.str();
+    } else {
+        return "";
+    }
+}
+
 Card::Card(CardInfo info) : Renderable(SHADER_CARD),
     titleText(Fonts::title, info.name, info.color, 0, 0.2),
     cardText(Fonts::regular, info.text, info.color, 1.6, 0.15),
     costText(Fonts::regular, createCostString(info.cost), info.color, 1.6, 0.25),
     typeText(Fonts::title, info.type, info.color, 9, 0.15),
-    hullText(Fonts::title, info.creates ? to_string(info.creates->armour) : "", info.color, 0, 0.15),
+    statsText(Fonts::title, createStatsLine(info.creates), info.color, 0, 0.15),
     angleY(0, 3.14),
     info(info),
     displayShip(info.logicId, info.creates ? (shipModels[info.creates->type] ? shipModels[info.creates->type] : shipModels["FALLBACK"]) : nullptr),
@@ -213,7 +216,7 @@ Card::Card(CardInfo info) : Renderable(SHADER_CARD),
     cardText.setColor(Card::info.color);
     cardText.setColor(Card::info.color);
     typeText.setColor(Card::info.color);
-    hullText.setColor(Card::info.color);
+    statsText.setColor(Card::info.color);
 }
 
 std::shared_ptr<Card> Card::createFrom(logic::Card logicCard)
@@ -258,7 +261,7 @@ void Card::update(UpdateInfo& info)
     updateModel();
     costText.update(info);
     cardText.update(info);
-    hullText.update(info);
+    statsText.update(info);
 
     checkSetHoverQuad(info, true);
     checkSetDrag(info, true);

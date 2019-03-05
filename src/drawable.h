@@ -178,6 +178,7 @@ class Shapes : public needs_setup<Shapes>
         static std::shared_ptr<Model> sphere;
         static std::shared_ptr<Model> warpQuad;
         static std::shared_ptr<MeshRenderable> framebufferQuad;
+        static std::shared_ptr<Model> hexagon;
 };
 
 enum LightType {LIGHT_POINT};

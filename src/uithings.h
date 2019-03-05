@@ -126,6 +126,18 @@ class AttackIcon : public Renderable, public Selectable,
         static ParticleGroup particles;
 };
 
+class ShieldIcon : public Renderable, public Selectable, 
+    public Object
+{
+    public:
+        ShieldIcon() : Renderable(SHADER_LAMP)
+            {position = glm::vec3(0);};
+        virtual void draw(Shader& shader) override;
+
+    protected:
+        static ParticleGroup particles;
+};
+
 class AnyResIcon : public Renderable, public Selectable, public Object,
     public needs_setup<AnyResIcon>
 {
@@ -157,6 +169,7 @@ class IconNum : public Renderable, public Selectable,
 
 extern std::map<std::string, ResourceType> resourceStrings;
 std::shared_ptr<Renderable> createIcon(ResourceType type, int n=0);
+std::shared_ptr<Renderable> createIcon(std::string type, int n=0);
 
 class ResourceDisplay : public Renderable, public Object, 
     public UIObject, public has_model_mat

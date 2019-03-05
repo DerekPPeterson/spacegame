@@ -359,12 +359,14 @@ shared_ptr<MeshRenderable> createFramebufferQuad()
 shared_ptr<Model> Shapes::sphere;
 shared_ptr<Model> Shapes::warpQuad;
 shared_ptr<MeshRenderable> Shapes::framebufferQuad;
+shared_ptr<Model> Shapes::hexagon;
 
 volatile Shapes shapes; // Needed to force setup func to run
 void Shapes::setup()
 {
     sphere = shared_ptr<Model>(new Model("./res/models/sphere.obj"));
     warpQuad = shared_ptr<Model>(new Model("./res/models/quad/quad.obj"));
+    hexagon = shared_ptr<Model>(new Model("./res/models/hexagon/hexagon.obj"));
     framebufferQuad = createFramebufferQuad();
 }
 

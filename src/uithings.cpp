@@ -38,6 +38,21 @@ std::shared_ptr<Renderable> createIcon(ResourceType type, int n)
     return shared_ptr<Renderable>(icon);
 };
 
+std::shared_ptr<Renderable> createIcon(string type, int n) {
+    if (resourceStrings.count(type)) {
+        return createIcon(resourceStrings[type], n);
+    } else {
+        Renderable* icon = nullptr;
+        if (type == "attack") {
+                icon = new AttackIcon();
+        } else if (type == "hull") {
+                icon = new HullIcon(); 
+        } else if (type == "shield") {
+                icon = new ShieldIcon();
+        }
+        return shared_ptr<Renderable>(icon);
+    }
+}
 
 void WarpBeacon::setup()
 {
@@ -348,7 +363,7 @@ void ResourceDisplay::set(ResourceAmount amount)
         auto str = pair.first;
         auto type = pair.second;
 
-        if (amount.find(type) != amount.end())
+        if (amount.find(type) != amount.end() and amount[type] > 0)
         {
             ss << "{" << str << "}: " << amount[type] << endl;
         }
@@ -364,6 +379,20 @@ void ResourceDisplay::queueDraw()
     text.setModel(curModel);
     text.queueDraw();
 }
+
+void ShieldIcon::draw(Shader& shader)
+{
+    shader.setBool("useView", false);
+    shader.setCommon(UNIFORM_COLOR, {0, 1.5, 1.5});
+
+    vector<glm::vec3> coords = {{-0.3, -0.5, 0}, {-0.3, 0.5, 0}, {0.3, 0, 0}};
+    for (auto coord : coords) {
+        auto tempModel = glm::translate(getModel(), coord);
+        tempModel = glm::scale(tempModel, glm::vec3(0.45));
+        shader.setCommon(UNIFORM_MODEL, glm::translate(tempModel, {0.5, -0.25, 0}));
+        Shapes::hexagon->draw(shader);
+    }
+};
 
 unique_ptr<LineMesh> create2DBox(glm::vec2 ul, glm::vec2 lr, float depth = 0.2)
 {

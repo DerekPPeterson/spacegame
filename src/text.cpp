@@ -190,12 +190,16 @@ void Text::calcCharPositions()
                 }
 
             }
-            if (resourceStrings.count(key)) {
-                if (isAny) {
-                    icons.push_back(createIcon(resourceStrings[key], stoi(anyAmount)));
-                } else {
-                    icons.push_back(createIcon(resourceStrings[key]));
-                }
+
+            shared_ptr<Renderable> icon;
+            if (isAny) {
+                icon = createIcon(key, stoi(anyAmount));
+            } else {
+                icon = createIcon(key);
+            }
+
+            if (icon) {
+                icons.push_back(icon);
                 i = j;
                 charInfo = iconInfo;
                 c = '~';
