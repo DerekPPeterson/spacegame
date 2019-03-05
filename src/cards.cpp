@@ -117,7 +117,7 @@ void Card::queueDraw()
         displayShip.queueDraw();
 
         if (info.creates) {
-            glm::mat4 statsModel = glm::translate(model, {0.8 - statsText.calcWidth(), -1.8, 0});
+            glm::mat4 statsModel = glm::translate(model, {1.0 - statsText.calcWidth(), -1.65, 0});
             statsText.setModel(statsModel);
             statsText.queueDraw();
         }

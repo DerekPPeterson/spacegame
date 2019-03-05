@@ -235,9 +235,9 @@ void GraphicsObjectHandler::setPossibleActions(std::vector<logic::Action> action
     }
     
     // TODO debug only
-    stringstream ss;
-    ss << actions;
-    debugInfo->addInfo(ss.str());
+    //stringstream ss;
+    //ss << actions;
+    //debugInfo->addInfo(ss.str());
     
 };
 

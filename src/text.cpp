@@ -298,7 +298,7 @@ void Text::queueDraw()
         if (not icon) {
             font->textQuad->addInstance(&data);
         } else {
-            glm::mat4 iconModel = glm::translate(data.model, {1, -1, 0});
+            glm::mat4 iconModel = glm::translate(data.model, {0.5, -1, 0});
             dynamic_pointer_cast<has_model_mat>(icon)->setModel(iconModel);
         }
     }

@@ -245,6 +245,7 @@ void PointLight::setUniforms(Shader shader, int iPointLight)
 void PointLight::draw(Shader& shader)
 {
     shader.setVec3("color", color);
+    shader.setBool("useView", true);
     glm::mat4 model = glm::translate(glm::mat4(1.0f), position);
     model = glm::scale(model, glm::vec3(size, size, size));
     shader.setMat4("model", model);
