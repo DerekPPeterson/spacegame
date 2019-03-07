@@ -30,6 +30,7 @@ struct CardInfo
     int ownerId = 0;
     int logicId = 0;
     std::optional<logic::Ship> creates;
+    int nCreates = 0;
 };
 
 std::string createCostString(ResourceAmount amount);

@@ -113,6 +113,21 @@ class HullIcon : public Renderable, public Selectable,
         static std::shared_ptr<Model> m;
 };
 
+class ShipIcon : public Renderable, public Selectable, 
+    public needs_setup<ShipIcon>, public Object
+{
+    public:
+        ShipIcon() : Renderable(SHADER_UI_LIGHTING) 
+            {position = glm::vec3(0);};
+        void draw(Shader& shader) override;
+        static void setup();
+
+    protected:
+        float rotation = 0;
+
+        static std::shared_ptr<Model> m;
+};
+
 class AttackIcon : public Renderable, public Selectable, 
     public needs_setup<AttackIcon>, public Object
 {

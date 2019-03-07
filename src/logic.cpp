@@ -224,13 +224,14 @@ void GameState::startGame()
         // TODO load deck dynamically
         list<logic::Card> deck;
         vector<Card> toUse = {
-            CardDefinitions::sample_ship2,
+            //CardDefinitions::sample_ship2,
             CardDefinitions::ai_coreship,
             CardDefinitions::subtle_hack,
             //CardDefinitions::am_gatherer,
             //CardDefinitions::am_laser,
-            CardDefinitions::resource_ship,
+            //CardDefinitions::resource_ship,
             //CardDefinitions::diplomaticVessal,
+            CardDefinitions::droneSwarm,
         };
         for (int i = 0; i < 40; i++) {
             Card card = toUse[i % toUse.size()];

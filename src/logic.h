@@ -202,6 +202,7 @@ namespace logic {
         int ownerId = 0;
         vector<int> targets;
         optional<Ship> creates;
+        int howManyCreated = 0;
 
         function<void(GameState&)> resolve = DEFAULT_CARD_RESOLVE;
         function<tuple<int, int, vector<Target>>(GameState&)> getValidTargets;
@@ -211,7 +212,7 @@ namespace logic {
             out << "(Card: " << c.name << " id " << c.id << ")";
             return out;
         }
-        SERIALIZE(id, name, cardText, cost, type, provides, playedBy, targets, ownerId, creates);
+        SERIALIZE(id, name, cardText, cost, type, provides, playedBy, targets, ownerId, creates, howManyCreated);
     };
 
     struct Player : public GameObject

@@ -140,6 +140,15 @@ namespace ShipDefinitions {
         },
     };
 
+    Ship drone = {
+        .type = "Drone",
+        .attack = 1,
+        .shield = 0,
+        .armour = 1,
+        .movement = 1,
+        .kind = SHIP_NORMAL,
+    };
+
     Ship amGatherer = {
         .type = "AM Gatherer",
         .attack = 0,
@@ -216,6 +225,21 @@ namespace CardDefinitions {
         .resolve = [](GameState& state) {
             auto ship = createShipIn(state, ShipDefinitions::aiCore);
             ship->upkeep(state, *ship);
+        },
+    };
+
+    Card droneSwarm = {
+        .name = "Drone Swarm",
+        .cardText = "Construct 3 drones",
+        .cost = {{RESOURCE_AI, 1}},
+        .type = CARD_SHIP,
+        .creates = ShipDefinitions::drone,
+        .howManyCreated = 3,
+        .getValidTargets = singleSystemControlledByActivePlayer,
+        .resolve = [](GameState& state) {
+            for (int i = 0; i < 3; i ++) {
+                createShipIn(state, ShipDefinitions::drone);
+            }
         },
     };
 

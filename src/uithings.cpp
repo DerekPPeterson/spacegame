@@ -8,6 +8,7 @@ using namespace std;
 
 shared_ptr<Model> WarpBeacon::m;
 shared_ptr<Model> HullIcon::m;
+shared_ptr<Model> ShipIcon::m;
 
 std::map<std::string, ResourceType> resourceStrings = {
     {"wb", RESOURCE_WARP_BEACONS},
@@ -47,6 +48,8 @@ std::shared_ptr<Renderable> createIcon(string type, int n) {
                 icon = new AttackIcon();
         } else if (type == "hull") {
                 icon = new HullIcon(); 
+        } else if (type == "ship") {
+                icon = new ShipIcon(); 
         } else if (type == "shield") {
                 icon = new ShieldIcon();
         }
@@ -274,6 +277,20 @@ void HullIcon::update(UpdateInfo& info)
 {
     rotation = 3.14 / 10 * sin(info.curTime * 2 * 3.14 / 4);
 }
+
+void ShipIcon::setup()
+{
+    m = make_shared<Model>("./res/models/ships_icon/ships_icon.obj");
+}
+
+void ShipIcon::draw(Shader& shader)
+{
+    glm::mat4 tmpModel = glm::translate(getModel(), position + glm::vec3(0, 0.3, 0));
+    tmpModel = glm::scale(tmpModel, glm::vec3(1.2));
+    shader.setCommon(UNIFORM_MODEL, tmpModel);
+    m->draw(shader);
+}
+
 
 ParticleGroup AttackIcon::particles = ParticleGroup(false);
 
