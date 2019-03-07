@@ -9,6 +9,13 @@
 
 using namespace std;
 
+glm::vec3 calcUiLightDir(float curTime)
+{
+    glm::vec3 dir = {1, 1, 0};
+
+    return dir * (float) (fmod(curTime, 10) - 5);
+}
+
 
 void Renderer::compileLinkShaders()
 {
@@ -109,6 +116,7 @@ void Renderer::renderMainScene()
     shaders[SHADER_UI_LIGHTING].use();
     shaders[SHADER_UI_LIGHTING].setMat4("projection", projection);
     shaders[SHADER_UI_LIGHTING].setMat4("view", glm::mat4(1.0f));
+    shaders[SHADER_UI_LIGHTING].setVec3("lightDir", calcUiLightDir(Timer::global.get()));
     Renderable::drawStage(SHADER_UI_LIGHTING, shaders[SHADER_UI_LIGHTING]);
 
     glEnable(GL_STENCIL_TEST);

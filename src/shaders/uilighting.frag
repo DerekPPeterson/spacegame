@@ -18,13 +18,15 @@ uniform vec3 specularColor = vec3(0, 0, 0);
 
 uniform float gamma = 1.0;
 
+uniform vec3 lightDir;
+
 struct DirLight {
     vec3 lightDir;
     vec3 color;
 };
 
-uniform float ambientStrength = 0.3;
-uniform float specularStrength = 0.3;
+uniform float ambientStrength = 0.2;
+uniform float specularStrength = 0.2;
 
 
 vec3 calcDirLight(DirLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
@@ -60,8 +62,8 @@ void main()
     totalLight = ambientStrength * texture(diffuse0, TexCoord).rgb;
 
     DirLight light;
-    light.lightDir = normalize(vec3(0.5, 0.5, 1));
-    light.color = vec3(0.1, 0.1, 0.1);
+    light.lightDir = normalize(lightDir - fragPos);
+    light.color = vec3(0.07, 0.07, 0.07);
 
     vec3 viewDir = vec3(0, 0, 1);
     totalLight += calcDirLight(light, normal, fragPos, viewDir);
